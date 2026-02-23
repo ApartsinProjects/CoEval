@@ -19,11 +19,20 @@ TEMPLATES: dict[str, str] = {
         "evaluation rubric. Return only a JSON object where each key is a quality factor, and each "
         "value is a concise description of that factor. Output only the JSON."
     ),
+    # REQ-7.1  Structured labeled format outperforms the original run-on sentence for
+    # mid-size models (qwen2.5-0.5B: 1/3 -> 3/3 quality-adj.) while not regressing
+    # larger ones.  Task-level and model-level prompt_library overrides (REQ-9.3/9.4)
+    # let individual tasks/models substitute few_shot or other variants as needed.
     'sample': (
-        "Generate a natural benchmark data point for the task {task_description} and produce a "
-        "response {output_description}, where the response is specified with {target_attributes}. "
-        "To make the datapoint naturalistic, use the following nuance parameters: "
-        "{nuanced_attributes}. Return as JSON with exactly two keys: \"prompt\" and \"response\"."
+        "Generate a realistic benchmark data point.\n"
+        "Task: {task_description}\n"
+        "Output format: {output_description}\n"
+        "Required attributes: {target_attributes}\n"
+        "Nuance: {nuanced_attributes}\n\n"
+        "Return only a JSON object with exactly two string keys:\n"
+        "  \"prompt\"   -- a realistic input text for the task\n"
+        "  \"response\" -- the expected output for that input\n"
+        "Output only the JSON. No explanation or markdown."
     ),
     'test': (
         "Given the datapoint: {input}\n"
