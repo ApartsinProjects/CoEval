@@ -1,0 +1,5 @@
+{
+  "acknowledgment_quality": "Clearly acknowledges the customer's issue without deflecting or minimizing.",
+  "resolution_clarity": "Proposes a concrete, actionable resolution step. Vague promises do not qualify.",
+  "tone_alignment": "Tone matches the requested resolution_tone attribute (formal or empathetic) throughout."
+}

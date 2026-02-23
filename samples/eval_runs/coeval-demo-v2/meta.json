@@ -1,0 +1,15 @@
+{
+  "experiment_id": "coeval-demo-v2",
+  "status": "completed",
+  "created_at": "2026-02-22T10:00:00Z",
+  "updated_at": "2026-02-22T11:32:00Z",
+  "phases_completed": [
+    "attribute_mapping",
+    "rubric_mapping",
+    "data_generation",
+    "response_collection",
+    "evaluation"
+  ],
+  "phases_in_progress": [],
+  "resume_from": null
+}
