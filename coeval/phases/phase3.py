@@ -10,7 +10,7 @@ from ..interfaces import ModelPool
 from ..logger import RunLogger
 from ..prompts import get_prompt
 from ..storage import ExperimentStorage
-from .utils import call_llm_json, QuotaTracker
+from .utils import call_llm_json, extract_prompt_response, QuotaTracker
 
 
 def run_phase3(
@@ -21,7 +21,13 @@ def run_phase3(
     quota: QuotaTracker,
     phase_mode: str,
 ) -> None:
-    """Execute Phase 3 for all (task, teacher) pairs according to phase_mode."""
+    """Execute Phase 3 for all (task, teacher) pairs according to phase_mode.
+
+    Individual teacher failures are logged as errors but do NOT abort the
+    phase as long as at least one datapoint was generated per task.  Only
+    when a task ends up with zero datapoints is an exception raised so that
+    downstream phases never receive an empty dataset.
+    """
     teachers = cfg.get_models_by_role('teacher')
     errors: list[str] = []
 
@@ -37,9 +43,20 @@ def run_phase3(
                 logger.error(msg)
                 errors.append(msg)
 
+        # Verify that the task has at least one datapoint from any teacher
+        total_for_task = sum(
+            storage.count_datapoints(task.name, t.name) for t in teachers
+        )
+        if total_for_task == 0:
+            raise RuntimeError(
+                f"Phase 3: no datapoints were generated for task '{task.name}' "
+                f"— all {len(teachers)} teacher(s) failed"
+            )
+
     if errors:
-        raise RuntimeError(
-            f"Phase 3 completed with {len(errors)} error(s):\n" + "\n".join(errors)
+        logger.warning(
+            f"Phase 3 completed with {len(errors)} partial failure(s) "
+            f"(pipeline continues with available data):\n" + "\n".join(errors)
         )
 
 
@@ -127,14 +144,15 @@ def _generate_datapoints(
         result = call_llm_json(iface, prompt, params)
         quota.consume(teacher_id)
 
+        prompt_text, response_text = extract_prompt_response(result)
         dp_id = f"{task_id}__{teacher_id}__{seq:05d}"
         record: dict = {
             'id': dp_id,
             'task_id': task_id,
             'teacher_model_id': teacher_id,
             'sampled_target_attributes': sampled_target,
-            'prompt': result['prompt'],
-            'reference_response': result['response'],
+            'prompt': prompt_text,
+            'reference_response': response_text,
             'generated_at': _now_iso(),
         }
         if task.store_nuanced:

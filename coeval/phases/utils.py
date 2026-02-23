@@ -25,12 +25,15 @@ def _extract_json(text: str) -> Any:
     After a successful parse, single-element lists whose sole item is a dict
     are automatically unwrapped to match the expected ``{"key": ...}`` shape.
     """
+    def _unwrap_list(obj: Any) -> Any:
+        """Return the first dict element if obj is a non-empty list of dicts."""
+        if isinstance(obj, list) and obj and isinstance(obj[0], dict):
+            return obj[0]
+        return obj
+
     # Strategy 1 — direct
     try:
-        result = json.loads(text)
-        if isinstance(result, list) and len(result) == 1 and isinstance(result[0], dict):
-            result = result[0]
-        return result
+        return _unwrap_list(json.loads(text))
     except json.JSONDecodeError:
         pass
 
@@ -39,10 +42,7 @@ def _extract_json(text: str) -> Any:
         idx = text.find(start_char)
         if idx != -1:
             try:
-                result = json.loads(text[idx:])
-                if isinstance(result, list) and len(result) == 1 and isinstance(result[0], dict):
-                    result = result[0]
-                return result
+                return _unwrap_list(json.loads(text[idx:]))
             except json.JSONDecodeError:
                 pass
 
@@ -52,10 +52,7 @@ def _extract_json(text: str) -> Any:
         end_idx = text.rfind(end_char)
         if 0 <= start_idx < end_idx:
             try:
-                result = json.loads(text[start_idx:end_idx + 1])
-                if isinstance(result, list) and len(result) == 1 and isinstance(result[0], dict):
-                    result = result[0]
-                return result
+                return _unwrap_list(json.loads(text[start_idx:end_idx + 1]))
             except json.JSONDecodeError:
                 pass
 
@@ -143,6 +140,59 @@ def merge_rubrics(*rubrics: dict) -> dict[str, str]:
             if factor not in result:
                 result[factor] = desc
     return result
+
+
+# Ordered lists of key-name alternatives for the two required datapoint fields.
+# First match wins; these cover common naming variations from small models.
+_PROMPT_KEYS = ('prompt', 'input', 'question', 'task', 'context', 'user_input', 'text', 'scenario')
+_RESPONSE_KEYS = ('response', 'output', 'answer', 'completion', 'result', 'reference', 'label')
+
+
+def extract_prompt_response(data: Any) -> tuple[str, str]:
+    """Extract the prompt and response strings from a datapoint dict (or list of dicts).
+
+    Small models frequently use key names other than the canonical
+    ``"prompt"`` / ``"response"`` (e.g. ``"input"``/``"output"``,
+    ``"question"``/``"answer"``), and sometimes wrap the object in a list.
+    This helper normalises the structure and returns the first matching values.
+
+    Raises ``KeyError`` if neither field can be located.
+    """
+    # Unwrap list — use the first dict element if the model returned a list
+    if isinstance(data, list):
+        for item in data:
+            if isinstance(item, dict):
+                data = item
+                break
+        else:
+            raise KeyError(
+                f"Model returned a list but no dict element was found: {data!r}"
+            )
+
+    if not isinstance(data, dict):
+        raise KeyError(f"Expected a dict from model output, got {type(data).__name__}: {data!r}")
+
+    prompt_val: str | None = None
+    for key in _PROMPT_KEYS:
+        if key in data:
+            prompt_val = str(data[key])
+            break
+
+    response_val: str | None = None
+    for key in _RESPONSE_KEYS:
+        if key in data:
+            response_val = str(data[key])
+            break
+
+    if prompt_val is None:
+        raise KeyError(
+            f"No prompt-like key found in model output — keys present: {list(data.keys())}"
+        )
+    if response_val is None:
+        raise KeyError(
+            f"No response-like key found in model output — keys present: {list(data.keys())}"
+        )
+    return prompt_val, response_val
 
 
 class QuotaTracker:

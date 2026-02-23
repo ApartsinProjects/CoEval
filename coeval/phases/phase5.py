@@ -20,7 +20,12 @@ def run_phase5(
     quota: QuotaTracker,
     phase_mode: str,
 ) -> None:
-    """Execute Phase 5 for all (task, teacher, judge) triples."""
+    """Execute Phase 5 for all (task, teacher, judge) triples.
+
+    Individual judge failures are logged as errors but do NOT abort the
+    phase as long as at least one evaluation was recorded across all tasks.
+    Only a complete absence of evaluations causes an exception.
+    """
     teachers = cfg.get_models_by_role('teacher')
     judges = cfg.get_models_by_role('judge')
     errors: list[str] = []
@@ -39,9 +44,24 @@ def run_phase5(
                     logger.error(msg)
                     errors.append(msg)
 
-    if errors:
+    # Count total evaluations produced across all tasks and judge combinations
+    total_evals = sum(
+        len(storage.read_evaluations(task.name, teacher.name, judge.name))
+        for task in cfg.tasks
+        for teacher in teachers
+        for judge in judges
+    )
+
+    if total_evals == 0:
         raise RuntimeError(
-            f"Phase 5 completed with {len(errors)} error(s):\n" + "\n".join(errors)
+            "Phase 5: no evaluations were generated — all judge/teacher combinations failed"
+        )
+
+    if errors:
+        logger.warning(
+            f"Phase 5 completed with {len(errors)} partial failure(s) "
+            f"(pipeline continues with {total_evals} available evaluation(s)):\n"
+            + "\n".join(errors)
         )
 
 
