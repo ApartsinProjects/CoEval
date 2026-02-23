@@ -1,0 +1,175 @@
+# CoEval — Local Smoke Test
+#
+# 5 small HuggingFace instruction-tuned models, all holding all three roles.
+# 2 tasks, each with 3 static target attributes (2 values each),
+# 3 static nuanced attributes (2 values each), and 2 rubric factors.
+# sampling.total = 2 keeps runtime manageable on CPU/small GPU.
+#
+# Estimated LLM call budget (all static attrs → phases 1-2 make 0 LLM calls):
+#   Phase 3 (data generation):   5 teachers × 2 tasks × 2 items  =   20 calls
+#   Phase 4 (response collection): 5 teachers × 5 students × 2 tasks × 2 items = 100 calls
+#   Phase 5 (evaluation, single mode): 5 teachers × 5 judges × 2 tasks × 10 responses = 500 calls
+#   ─────────────────────────────────────────────────────────────────────────────────
+#   Total:                                                              ~620 LLM calls
+#
+# Models sorted from smallest to largest by parameter count.
+
+models:
+  - name: smollm2-135m
+    interface: huggingface
+    parameters:
+      model: HuggingFaceTB/SmolLM2-135M-Instruct
+      temperature: 0.7
+      max_new_tokens: 512
+      device: auto
+    roles: [teacher, student, judge]
+    role_parameters:
+      teacher:
+        temperature: 0.8
+        max_new_tokens: 512
+      student:
+        temperature: 0.5
+        max_new_tokens: 64
+      judge:
+        temperature: 0.0
+        max_new_tokens: 128
+
+  - name: smollm2-360m
+    interface: huggingface
+    parameters:
+      model: HuggingFaceTB/SmolLM2-360M-Instruct
+      temperature: 0.7
+      max_new_tokens: 512
+      device: auto
+    roles: [teacher, student, judge]
+    role_parameters:
+      teacher:
+        temperature: 0.8
+        max_new_tokens: 512
+      student:
+        temperature: 0.5
+        max_new_tokens: 64
+      judge:
+        temperature: 0.0
+        max_new_tokens: 128
+
+  - name: smollm2-1b7
+    interface: huggingface
+    parameters:
+      model: HuggingFaceTB/SmolLM2-1.7B-Instruct
+      temperature: 0.7
+      max_new_tokens: 512
+      device: auto
+    roles: [teacher, student, judge]
+    role_parameters:
+      teacher:
+        temperature: 0.8
+        max_new_tokens: 512
+      student:
+        temperature: 0.5
+        max_new_tokens: 64
+      judge:
+        temperature: 0.0
+        max_new_tokens: 128
+
+  - name: qwen2p5-0b5
+    interface: huggingface
+    parameters:
+      model: Qwen/Qwen2.5-0.5B-Instruct
+      temperature: 0.7
+      max_new_tokens: 512
+      device: auto
+    roles: [teacher, student, judge]
+    role_parameters:
+      teacher:
+        temperature: 0.8
+        max_new_tokens: 512
+      student:
+        temperature: 0.5
+        max_new_tokens: 64
+      judge:
+        temperature: 0.0
+        max_new_tokens: 128
+
+  - name: qwen2p5-1b5
+    interface: huggingface
+    parameters:
+      model: Qwen/Qwen2.5-1.5B-Instruct
+      temperature: 0.7
+      max_new_tokens: 512
+      device: auto
+    roles: [teacher, student, judge]
+    role_parameters:
+      teacher:
+        temperature: 0.8
+        max_new_tokens: 512
+      student:
+        temperature: 0.5
+        max_new_tokens: 64
+      judge:
+        temperature: 0.0
+        max_new_tokens: 128
+
+
+tasks:
+  # ── Task 1: Email subject line ───────────────────────────────────────────
+  - name: email_subject
+    description: >
+      Write a concise email subject line for a given email body.
+    output_description: >
+      A single subject line of 5 to 12 words that captures the main point.
+
+    target_attributes:
+      tone:    [formal, casual]
+      urgency: [routine, urgent]
+      intent:  [request, announcement]
+
+    nuanced_attributes:
+      sender_role:   [peer, manager]
+      domain:        [finance, hr]
+      writing_style: [terse, verbose]
+
+    sampling:
+      target: [1, 1]   # sample exactly 1 target attribute per item
+      nuance: [1, 2]   # sample 1–2 nuanced attributes per item
+      total: 2         # 2 benchmark items per (task, teacher) pair
+
+    rubric:
+      relevance:   "The subject line accurately reflects the main point of the email body."
+      conciseness: "The subject line is brief and free of filler or redundant words."
+
+    evaluation_mode: single
+
+  # ── Task 2: Sentiment classification ─────────────────────────────────────
+  - name: text_sentiment
+    description: >
+      Classify the sentiment of a short customer review.
+    output_description: >
+      A single word — either Positive or Negative — with no additional text.
+
+    target_attributes:
+      sentiment: [positive, negative]
+      intensity: [mild, strong]
+      aspect:    [product, support]
+
+    nuanced_attributes:
+      register: [formal, colloquial]
+      length:   [one_sentence, multi_sentence]
+      style:    [direct, sarcastic]
+
+    sampling:
+      target: [1, 1]
+      nuance: [1, 2]
+      total: 2
+
+    rubric:
+      accuracy:    "The predicted sentiment matches the true sentiment expressed in the review."
+      calibration: "The label is consistent with the intensity and phrasing of the review."
+
+    evaluation_mode: single
+
+
+experiment:
+  id: "local-smoke-test-v1"
+  storage_folder: "./eval_runs"
+  log_level: INFO
