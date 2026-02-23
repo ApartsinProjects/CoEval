@@ -12,6 +12,56 @@ _MAX_RETRIES = 3
 _INITIAL_DELAY = 1.0
 
 
+def _extract_json(text: str) -> Any:
+    """Extract JSON from noisy model output using multiple fallback strategies.
+
+    Small models often wrap JSON in prose, markdown fences, or return a
+    single-element list instead of a bare object.  Strategies (in order):
+      1. Direct parse of the full text.
+      2. Locate the first '{' or '[' and parse from there to the end.
+      3. Locate the substring between the first '{' and the last '}' (or
+         first '[' and last ']') and parse that window.
+
+    After a successful parse, single-element lists whose sole item is a dict
+    are automatically unwrapped to match the expected ``{"key": ...}`` shape.
+    """
+    # Strategy 1 — direct
+    try:
+        result = json.loads(text)
+        if isinstance(result, list) and len(result) == 1 and isinstance(result[0], dict):
+            result = result[0]
+        return result
+    except json.JSONDecodeError:
+        pass
+
+    # Strategy 2 — strip leading non-JSON prose
+    for start_char in ('{', '['):
+        idx = text.find(start_char)
+        if idx != -1:
+            try:
+                result = json.loads(text[idx:])
+                if isinstance(result, list) and len(result) == 1 and isinstance(result[0], dict):
+                    result = result[0]
+                return result
+            except json.JSONDecodeError:
+                pass
+
+    # Strategy 3 — extract outermost balanced brackets
+    for start_char, end_char in (('{', '}'), ('[', ']')):
+        start_idx = text.find(start_char)
+        end_idx = text.rfind(end_char)
+        if 0 <= start_idx < end_idx:
+            try:
+                result = json.loads(text[start_idx:end_idx + 1])
+                if isinstance(result, list) and len(result) == 1 and isinstance(result[0], dict):
+                    result = result[0]
+                return result
+            except json.JSONDecodeError:
+                pass
+
+    raise json.JSONDecodeError('Cannot extract JSON from model output', text, 0)
+
+
 def call_llm_json(
     iface: ModelInterface,
     prompt: str,
@@ -25,9 +75,9 @@ def call_llm_json(
         try:
             raw = iface.generate(prompt, parameters)
             # Strip markdown code fences that some models emit
-            raw = re.sub(r'^```(?:json)?\s*', '', raw.strip(), flags=re.MULTILINE)
-            raw = re.sub(r'```\s*$', '', raw.strip(), flags=re.MULTILINE)
-            return json.loads(raw.strip())
+            cleaned = re.sub(r'^```(?:json)?\s*', '', raw.strip(), flags=re.MULTILINE)
+            cleaned = re.sub(r'```\s*$', '', cleaned.strip(), flags=re.MULTILINE)
+            return _extract_json(cleaned.strip())
         except json.JSONDecodeError as exc:
             last_err = exc
             if attempt < max_retries - 1:

@@ -28,12 +28,22 @@ class HuggingFaceInterface(ModelInterface):
                 "pip install 'coeval[huggingface]'"
             )
         token = access_key or os.environ.get('HF_TOKEN')
-        self._pipeline = pipeline(
-            'text-generation',
-            model=model_id,
-            device=device,
-            token=token or None,
-        )
+        # "auto" means let transformers pick the best device via device_map;
+        # specific values like "cpu" or "cuda" are passed directly as device=.
+        if device == 'auto':
+            self._pipeline = pipeline(
+                'text-generation',
+                model=model_id,
+                device_map='auto',
+                token=token or None,
+            )
+        else:
+            self._pipeline = pipeline(
+                'text-generation',
+                model=model_id,
+                device=device,
+                token=token or None,
+            )
 
     def generate(self, prompt: str, parameters: dict) -> str:
         params = dict(parameters)
