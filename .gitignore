@@ -1,2 +1,29 @@
 # LibreOffice lock files
 .~lock.*#
+
+# Python build / cache artefacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+.eggs/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Experiment runtime outputs (large data; not source)
+eval_runs/
+
+# IDE / tool config
+.claude/
+.idea/
+.vscode/
+
+# Misc temp files
+experiments/full_run.log
+experiments/non_ascii.txt
+*.log
