@@ -1,0 +1,134 @@
+# CoEval -- Mixed Backend Test
+#
+# Originally designed for 2 OpenAI + 2 HuggingFace models.
+# OpenAI fell back to all-HuggingFace due to insufficient_quota on the test account.
+# Roles are assigned to mirror the original intent:
+#   qwen2p5-1b5 (1.5B) -> teacher + judge  [replaces gpt-4o-mini]
+#   qwen2p5-0b5 (0.5B) -> student          [replaces gpt-3.5-turbo]
+#   smollm2-135m (135M) -> student only    [smallest HF model]
+#   smollm2-360m (360M) -> student only    [second smallest HF model]
+#
+# Estimated LLM call budget (static attrs/rubric -> phases 1-2 make 0 LLM calls):
+#   Phase 3 (data generation):     1 teacher x 2 items x 1 task =  2 calls  [qwen2p5-1b5]
+#   Phase 4 (response collection): 1 teacher x 3 students x 2   =  6 calls  [qwen + 2 smollm2]
+#   Phase 5 (evaluation, single):  1 teacher x 1 judge x 3 x 2  =  6 calls  [qwen2p5-1b5]
+#   ---------------------------------------------------------------------------------
+#   Total: ~14 HuggingFace calls
+
+models:
+  # --------------------------------------------------------------------------
+  # Qwen2.5-1.5B: most capable local model; teacher + judge
+  # (replaces gpt-4o-mini from the original design)
+  # --------------------------------------------------------------------------
+  - name: qwen2p5-1b5
+    interface: huggingface
+    parameters:
+      model: Qwen/Qwen2.5-1.5B-Instruct
+      temperature: 0.7
+      max_new_tokens: 512
+      device: auto
+    roles: [teacher, judge]
+    role_parameters:
+      teacher:
+        temperature: 0.8
+        max_new_tokens: 512
+      judge:
+        temperature: 0.0
+        max_new_tokens: 128
+
+  # --------------------------------------------------------------------------
+  # Qwen2.5-0.5B: mid-size capable student
+  # (replaces gpt-3.5-turbo from the original design)
+  # --------------------------------------------------------------------------
+  - name: qwen2p5-0b5
+    interface: huggingface
+    parameters:
+      model: Qwen/Qwen2.5-0.5B-Instruct
+      temperature: 0.5
+      max_new_tokens: 64
+      device: auto
+    roles: [student]
+
+  # --------------------------------------------------------------------------
+  # SmolLM2-135M: smallest HuggingFace model; student only
+  # --------------------------------------------------------------------------
+  - name: smollm2-135m
+    interface: huggingface
+    parameters:
+      model: HuggingFaceTB/SmolLM2-135M-Instruct
+      temperature: 0.5
+      max_new_tokens: 64
+      device: auto
+    roles: [student]
+
+  # --------------------------------------------------------------------------
+  # SmolLM2-360M: second smallest HuggingFace model; student only
+  # --------------------------------------------------------------------------
+  - name: smollm2-360m
+    interface: huggingface
+    parameters:
+      model: HuggingFaceTB/SmolLM2-360M-Instruct
+      temperature: 0.5
+      max_new_tokens: 64
+      device: auto
+    roles: [student]
+
+
+tasks:
+  # --------------------------------------------------------------------------
+  # Sentiment classification -- minimal output (one word) keeps HF student
+  # models tractable while still producing a meaningful accuracy comparison.
+  # --------------------------------------------------------------------------
+  - name: sentiment
+    description: >
+      Classify the sentiment of a short customer review as Positive or Negative.
+    output_description: >
+      A single word -- either Positive or Negative -- with no additional text.
+
+    target_attributes:
+      sentiment: [positive, negative]
+      intensity:  [mild, strong]
+
+    nuanced_attributes:
+      domain: [electronics, food, clothing]
+      style:  [direct, sarcastic]
+
+    sampling:
+      target: [1, 1]   # sample exactly 1 target attribute per datapoint
+      nuance: [1, 1]   # sample exactly 1 nuanced attribute per datapoint
+      total: 2         # 2 benchmark datapoints
+
+    rubric:
+      accuracy:  "The predicted sentiment (Positive/Negative) matches the true sentiment."
+      format:    "The response is a single word with no extra text or punctuation."
+
+    evaluation_mode: single
+
+    prompt_library:
+      # few_shot for qwen2p5-1b5 teacher (experiment: robust across strategies)
+      sample: |
+        Generate a benchmark data point for: {task_description}
+        Response format: {output_description}
+        Required attributes: {target_attributes}. Nuance: {nuanced_attributes}.
+
+        Follow this example format exactly:
+        {{"prompt": "This blender broke after two uses and customer service ignored my emails.",
+          "response": "Negative"}}
+
+        Now generate a NEW, different data point.
+        Return only a JSON object with keys "prompt" and "response". No explanation.
+
+
+experiment:
+  id: mixed-backend-v2              # new folder; v1 had the OpenAI quota failure
+  storage_folder: ./eval_runs
+  resume_from: mixed-backend-v1     # copy phase 1-2 artifacts from v1 (already written)
+
+  phases:
+    attribute_mapping:   Keep   # reuse phase 1 copied from v1
+    rubric_mapping:      Keep   # reuse phase 2 copied from v1
+    data_generation:     New    # v1 failed here; run fresh with HF teacher
+    response_collection: New
+    evaluation:          New
+
+  log_level: INFO

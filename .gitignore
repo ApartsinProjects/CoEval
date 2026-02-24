@@ -27,3 +27,7 @@ eval_runs/
 experiments/full_run.log
 experiments/non_ascii.txt
 *.log
+
+# Local configs that may contain API keys -- never commit these
+examples/*_local.yaml
+examples/*_openai.yaml
