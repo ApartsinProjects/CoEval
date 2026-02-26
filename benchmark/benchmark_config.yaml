@@ -1,0 +1,740 @@
+# CoEval Extensive Benchmark
+# =============================================================================
+# 5 domains × 5 tasks = 25 tasks
+# 5 SOTA HuggingFace models (3 teacher/student/judge + 2 student-only)
+# Rubrics auto-generated per task via Phase 2 (rubric: auto)
+# =============================================================================
+
+# ─── MODELS ──────────────────────────────────────────────────────────────────
+models:
+
+  # ── Primary teacher / student / judge models (7–14B, strong JSON output) ──
+
+  - name: qwen2-5-7b
+    interface: huggingface
+    parameters:
+      model: Qwen/Qwen2.5-7B-Instruct
+      temperature: 0.7
+      max_new_tokens: 512
+      device: auto
+    roles: [teacher, student, judge]
+    role_parameters:
+      teacher:
+        temperature: 0.8
+        max_new_tokens: 512
+      student:
+        temperature: 0.7
+        max_new_tokens: 256
+      judge:
+        temperature: 0.1
+        max_new_tokens: 256
+
+  - name: qwen2-5-14b
+    interface: huggingface
+    parameters:
+      model: Qwen/Qwen2.5-14B-Instruct
+      temperature: 0.7
+      max_new_tokens: 512
+      device: auto
+    roles: [teacher, student, judge]
+    role_parameters:
+      teacher:
+        temperature: 0.8
+        max_new_tokens: 512
+      student:
+        temperature: 0.7
+        max_new_tokens: 256
+      judge:
+        temperature: 0.1
+        max_new_tokens: 256
+
+  - name: mistral-nemo
+    interface: huggingface
+    parameters:
+      model: mistralai/Mistral-Nemo-Instruct-2407
+      temperature: 0.3
+      max_new_tokens: 512
+      device: auto
+    roles: [teacher, student, judge]
+    role_parameters:
+      teacher:
+        temperature: 0.4
+        max_new_tokens: 512
+      student:
+        temperature: 0.3
+        max_new_tokens: 256
+      judge:
+        temperature: 0.1
+        max_new_tokens: 256
+
+  # ── Student-only models (3–4B; reliable free-form text, may struggle with JSON) ──
+
+  - name: phi3-5-mini
+    interface: huggingface
+    parameters:
+      model: microsoft/Phi-3.5-mini-instruct
+      temperature: 0.7
+      max_new_tokens: 256
+      device: auto
+    roles: [student]
+
+  - name: llama3-2-3b
+    interface: huggingface
+    parameters:
+      model: meta-llama/Llama-3.2-3B-Instruct
+      temperature: 0.7
+      max_new_tokens: 256
+      device: auto
+    roles: [student]
+
+
+# ─── TASKS ───────────────────────────────────────────────────────────────────
+tasks:
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # DOMAIN 1: EDUCATION
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - name: edu_concept_explanation
+    description: >
+      Explain a complex academic or scientific concept to a learner
+      at a specified educational level. The explanation should be accurate,
+      clear, and appropriately scaffolded for the target audience.
+    output_description: >
+      A structured explanation (2–4 paragraphs) that defines the concept,
+      uses an analogy or concrete example, and ends with a brief summary
+      or take-away. Vocabulary and depth must match the specified level.
+    target_attributes:
+      concept_complexity: [foundational, intermediate, advanced]
+      audience_level: [elementary, middle_school, high_school, undergraduate]
+    nuanced_attributes:
+      subject_domain: [biology, physics, mathematics, history, economics]
+      explanation_style: [narrative, structured_list, socratic_dialogue]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 2]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+  - name: edu_quiz_generation
+    description: >
+      Generate a set of assessment questions for a given learning objective
+      and educational level. Questions should test understanding at the
+      specified cognitive depth, not merely factual recall.
+    output_description: >
+      A JSON object with key "questions" containing a list of 3–5 question
+      objects, each with "question", "type" (multiple_choice / short_answer
+      / true_false), "answer", and "explanation" fields. Question difficulty
+      and type must match the specified parameters.
+    target_attributes:
+      cognitive_level: [recall, comprehension, application, analysis]
+      question_type: [multiple_choice, short_answer, mixed]
+      difficulty: [easy, medium, hard]
+    nuanced_attributes:
+      subject_area: [science, language_arts, social_studies, mathematics]
+      question_count: [3, 4, 5]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+  - name: edu_essay_feedback
+    description: >
+      Provide actionable, constructive feedback on a student essay draft.
+      Feedback should address the specified evaluation dimension and be
+      appropriate for the student's grade level.
+    output_description: >
+      A feedback report (3–5 sentences) that identifies one specific
+      strength, one concrete area for improvement with a suggestion,
+      and an encouraging closing remark. Tone must match the grade level.
+    target_attributes:
+      feedback_focus: [argument_structure, evidence_use, clarity, grammar]
+      grade_level: [middle_school, high_school, undergraduate]
+    nuanced_attributes:
+      essay_topic: [persuasive, expository, narrative, analytical]
+      feedback_tone: [encouraging, direct, detailed]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+  - name: edu_study_plan
+    description: >
+      Create a structured study plan to help a student prepare for an
+      upcoming exam or master a topic within a specified time frame.
+    output_description: >
+      A study plan with a brief overview paragraph followed by a
+      day-by-day or week-by-week schedule (3–5 entries). Each entry
+      should specify what to study, how long, and a recommended activity
+      type. The plan should be realistic and achievable.
+    target_attributes:
+      timeframe: [one_week, two_weeks, one_month]
+      study_intensity: [light, moderate, intensive]
+      subject: [mathematics, science, history, language]
+    nuanced_attributes:
+      learning_style: [visual, auditory, reading_writing, kinesthetic]
+      student_level: [beginner, intermediate, advanced]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+  - name: edu_learning_adaptation
+    description: >
+      Rewrite a piece of instructional content so it is accessible and
+      engaging for learners with a specific need or learning profile.
+    output_description: >
+      An adapted version of the instructional content (2–3 paragraphs)
+      that preserves all key learning points while adjusting vocabulary,
+      structure, pacing, and examples to suit the specified learner profile.
+    target_attributes:
+      learner_profile: [esl_learner, learning_disability, gifted, reluctant_reader]
+      adaptation_type: [simplify, enrich, scaffold, multimodal_support]
+    nuanced_attributes:
+      content_type: [procedure, concept_definition, narrative, data_interpretation]
+      subject_domain: [science, mathematics, social_studies, language_arts]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # DOMAIN 2: HEALTHCARE
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - name: hc_procedure_explanation
+    description: >
+      Explain a medical or clinical procedure in language that a patient
+      with the specified health literacy level can understand. The explanation
+      should reduce anxiety and support informed consent.
+    output_description: >
+      A patient-facing explanation (3–4 paragraphs) covering what the
+      procedure involves, why it is recommended, what the patient will
+      experience, and what to expect afterward. Medical jargon must be
+      minimised and explained where unavoidable.
+    target_attributes:
+      procedure_complexity: [routine, moderate, complex]
+      health_literacy: [low, moderate, high]
+      patient_context: [elective, urgent, preventive]
+    nuanced_attributes:
+      procedure_type: [diagnostic, surgical, therapeutic, screening]
+      communication_style: [reassuring, factual, detailed]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+  - name: hc_case_summary
+    description: >
+      Summarise a clinical case scenario for a specified clinical audience,
+      highlighting key findings, differentials, and recommended next steps.
+    output_description: >
+      A structured clinical summary with sections for chief complaint,
+      relevant history, key findings, differential diagnoses (2–3),
+      and recommended workup or treatment plan. Length: 150–250 words.
+      Clinical accuracy and appropriate terminology for the target audience.
+    target_attributes:
+      case_complexity: [straightforward, moderate, complex_multisystem]
+      clinical_audience: [medical_student, junior_doctor, specialist]
+      case_type: [acute, chronic, emergency]
+    nuanced_attributes:
+      specialty_domain: [internal_medicine, pediatrics, emergency, surgery]
+      presentation_style: [narrative, structured_template, bullet_points]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+  - name: hc_medication_guide
+    description: >
+      Create a patient-friendly medication guide for a given drug class
+      and indication, tailored to a specific patient profile.
+    output_description: >
+      A medication guide (150–250 words) covering: what the medication
+      is for, how to take it, common side effects to watch for, what to
+      avoid, and when to contact a healthcare provider. Language must match
+      the patient's health literacy level. Safety information must be accurate.
+    target_attributes:
+      medication_class: [antibiotic, antihypertensive, analgesic, antidiabetic]
+      health_literacy: [low, moderate, high]
+      patient_risk: [standard, high_risk_interactions, elderly, pediatric]
+    nuanced_attributes:
+      delivery_format: [prose, bullet_list, faq_style]
+      language_register: [simple, plain, clinical]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+  - name: hc_symptom_triage
+    description: >
+      Describe a triage decision process for a patient presenting with
+      a specified set of symptoms, for a given care setting.
+    output_description: >
+      A triage description (200–300 words) that identifies the urgency
+      level (immediate / urgent / non-urgent), lists the key assessment
+      criteria that informed that classification, recommends the immediate
+      care pathway, and notes red-flag symptoms that would escalate urgency.
+      Must be clinically sound and avoid definitive diagnosis language.
+    target_attributes:
+      urgency_level: [non_urgent, urgent, immediate]
+      care_setting: [primary_care, emergency_department, telehealth, community]
+      patient_population: [adult, pediatric, geriatric]
+    nuanced_attributes:
+      symptom_cluster: [respiratory, cardiovascular, neurological, gastrointestinal]
+      clinical_detail: [minimal, moderate, detailed]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+  - name: hc_lab_results_interpretation
+    description: >
+      Interpret a set of laboratory test results for a patient, explaining
+      what the values mean and what the next steps might be, in language
+      appropriate for the specified audience.
+    output_description: >
+      An interpretation (150–250 words) that explains what was measured,
+      whether values are normal or abnormal, what the pattern suggests
+      clinically, and recommended follow-up actions. Must not provide
+      a definitive diagnosis. Language must match the target audience.
+    target_attributes:
+      result_pattern: [normal, mildly_abnormal, significantly_abnormal]
+      audience: [patient, junior_clinician, specialist]
+      lab_panel: [metabolic, lipid, cbc, thyroid, liver_function]
+    nuanced_attributes:
+      clinical_context: [routine_screening, monitoring_chronic, acute_presentation]
+      interpretation_style: [reassuring, clinical, educational]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # DOMAIN 3: ENTERTAINMENT
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - name: ent_story_generation
+    description: >
+      Write an original short story based on given genre, thematic, and
+      structural constraints. The story should be self-contained, engaging,
+      and demonstrate the specified narrative quality.
+    output_description: >
+      A short story (200–350 words) with a clear beginning, middle, and
+      end. Must incorporate the specified genre conventions, feature at
+      least one developed character, and convey a discernible theme.
+      Opening line should hook the reader.
+    target_attributes:
+      genre: [thriller, romance, science_fiction, fantasy, mystery, literary]
+      narrative_quality: [plot_driven, character_driven, atmosphere_driven]
+      tone: [dark, lighthearted, suspenseful, whimsical]
+    nuanced_attributes:
+      setting_type: [urban, rural, futuristic, historical, otherworldly]
+      pov: [first_person, third_person_limited, third_person_omniscient]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+  - name: ent_dialogue_writing
+    description: >
+      Write a realistic and dramatic dialogue scene between two characters
+      in a specified emotional or situational context. Dialogue should
+      reveal character, advance a situation, and feel natural.
+    output_description: >
+      A dialogue scene (150–250 words, 8–14 exchanges) between two named
+      characters. Must include brief stage directions (italicised) to
+      convey action and emotion. Each character must have a distinct
+      voice. The scene must have a clear emotional arc.
+    target_attributes:
+      relationship_type: [strangers, colleagues, romantic_partners, adversaries]
+      emotional_stakes: [low, medium, high]
+      scene_purpose: [exposition, conflict, reconciliation, revelation]
+    nuanced_attributes:
+      genre_context: [drama, comedy, thriller, period_piece]
+      dialogue_style: [naturalistic, stylised, subtext_heavy]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+  - name: ent_movie_synopsis
+    description: >
+      Write a compelling movie synopsis for a film with a given premise,
+      genre, and target audience. The synopsis should sell the concept
+      while revealing only enough plot to intrigue, not spoil.
+    output_description: >
+      A movie synopsis (150–250 words) in present tense that introduces
+      the protagonist and their world, establishes the central conflict,
+      hints at stakes and turning points, and ends on a compelling note.
+      Tone must match the genre. Logline (1 sentence) must precede the body.
+    target_attributes:
+      genre: [action, drama, comedy, horror, animated, sci_fi]
+      audience_rating: [family, teen, adult]
+      narrative_hook: [character_arc, mystery, spectacle, emotional_journey]
+    nuanced_attributes:
+      story_origin: [original, adaptation, sequel, reboot]
+      setting_era: [contemporary, historical, futuristic]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+  - name: ent_review_writing
+    description: >
+      Write an engaging review of a fictional book, film, game, or album
+      for a specified publication type and audience. The review should
+      evaluate, not merely describe.
+    output_description: >
+      A review (200–300 words) with a headline, a hook opening, a balanced
+      evaluation (strengths and weaknesses), a recommendation, and a star
+      rating (1–5). Must use vocabulary appropriate for the publication type
+      and give specific (invented) examples as evidence.
+    target_attributes:
+      sentiment: [positive, mixed, negative]
+      media_type: [film, book, video_game, album, television_series]
+      publication_type: [mainstream, specialist_critic, user_review]
+    nuanced_attributes:
+      genre: [action, drama, horror, comedy, literary, indie]
+      review_style: [analytical, conversational, polemical]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+  - name: ent_trivia_creation
+    description: >
+      Generate a themed trivia question set for a given topic, difficulty
+      level, and use context (pub quiz, classroom, online game).
+    output_description: >
+      A trivia set containing 5 questions. Each question object must have:
+      "question" (clear and unambiguous), "answer" (concise), "difficulty"
+      (easy/medium/hard), and "fun_fact" (one sentence additional context).
+      Questions must span varied subtopics within the theme and avoid
+      duplicating factual territory.
+    target_attributes:
+      difficulty_mix: [all_easy, all_medium, all_hard, mixed]
+      topic_breadth: [narrow_specialist, general_themed, pop_culture_blend]
+    nuanced_attributes:
+      trivia_theme: [space_exploration, classic_cinema, world_history, sports, music]
+      use_context: [pub_quiz, classroom_game, family_night, online_trivia]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # DOMAIN 4: MANUFACTURING
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - name: mfg_sop_writing
+    description: >
+      Write a Standard Operating Procedure (SOP) for a manufacturing
+      or assembly task at a specified complexity and safety level.
+      The SOP must be unambiguous and actionable by a trained operator.
+    output_description: >
+      An SOP document (200–350 words) with: Purpose, Scope, Required
+      Materials/Tools, Safety Precautions, Step-by-Step Procedure (numbered,
+      5–8 steps), and Quality Check criteria. Each step must be a single
+      imperative action. Safety warnings must be flagged with [WARNING].
+    target_attributes:
+      process_complexity: [simple, moderate, complex]
+      safety_level: [standard, elevated_risk, hazardous]
+      operation_type: [assembly, calibration, inspection, maintenance, packaging]
+    nuanced_attributes:
+      industry_sector: [automotive, electronics, food_processing, pharmaceuticals]
+      operator_skill_level: [entry_level, trained, specialist]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+  - name: mfg_defect_analysis
+    description: >
+      Write a defect analysis report for a manufacturing quality issue,
+      identifying root cause, contributing factors, and corrective actions.
+    output_description: >
+      A defect report (200–300 words) structured as: Defect Description,
+      Detection Point, Root Cause Analysis (5-Why or Fishbone summary),
+      Contributing Factors (2–3), Immediate Containment Action, and
+      Corrective/Preventive Actions (CAPA, 2–3 items). Must be specific,
+      traceable, and use manufacturing quality terminology appropriately.
+    target_attributes:
+      defect_type: [dimensional, surface_finish, functional_failure, contamination]
+      root_cause_category: [human_error, process_variation, material, equipment]
+      severity: [minor, major, critical]
+    nuanced_attributes:
+      industry_sector: [automotive, electronics, aerospace, consumer_goods]
+      report_audience: [shop_floor, quality_manager, customer]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+  - name: mfg_quality_checklist
+    description: >
+      Create a quality inspection checklist for a manufactured product
+      or production stage, calibrated to the specified inspection type
+      and compliance requirements.
+    output_description: >
+      A quality checklist with a header (product/process name, inspection
+      type, revision) followed by 8–12 inspection items, each with:
+      inspection point, acceptance criterion, check method, and pass/fail
+      marking column. Items must be logically ordered and cover the
+      specified inspection scope completely.
+    target_attributes:
+      inspection_type: [incoming, in_process, final, pre_shipment]
+      compliance_standard: [iso_9001, iatf_16949, fda_gmp, customer_specific]
+      product_category: [mechanical_component, pcb_assembly, finished_good, raw_material]
+    nuanced_attributes:
+      industry_sector: [automotive, medical_devices, electronics, food]
+      checklist_format: [tabular, narrative_steps, digital_form]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+  - name: mfg_maintenance_schedule
+    description: >
+      Generate a preventive maintenance schedule description for a
+      piece of industrial equipment, covering a specified time horizon
+      and maintenance scope.
+    output_description: >
+      A maintenance schedule (200–300 words) with: Equipment Overview
+      (1 sentence), a maintenance table (daily / weekly / monthly /
+      quarterly tasks with responsible party and estimated duration),
+      Critical Safety Checks highlighted, and a note on documentation
+      requirements. Tasks must be realistic and follow manufacturer
+      best-practice logic.
+    target_attributes:
+      equipment_type: [cnc_machine, conveyor_system, industrial_robot, hvac, hydraulic_press]
+      maintenance_frequency: [daily_focus, weekly_focus, full_schedule]
+      maintenance_scope: [mechanical, electrical, hydraulic, full_system]
+    nuanced_attributes:
+      industry_context: [automotive, food_processing, pharmaceutical, heavy_industry]
+      schedule_format: [table_with_narrative, checklist, calendar_view]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+  - name: mfg_process_documentation
+    description: >
+      Document a manufacturing process flow for a given production stage,
+      capturing inputs, transformations, outputs, and control points
+      in a format usable by engineering and operations teams.
+    output_description: >
+      A process documentation (200–350 words) including: Process Name and
+      Objective, Inputs (materials, information), Process Steps (4–7,
+      with control parameters noted), Outputs, Key Performance Indicators
+      (2–3 KPIs), and Risk/Failure Modes (2–3). Must use standard process
+      terminology and include measurable acceptance criteria.
+    target_attributes:
+      process_stage: [raw_material_prep, machining, assembly, testing, packaging]
+      documentation_purpose: [training, audit, process_improvement, customer_submission]
+      detail_level: [high_level, detailed, work_instruction]
+    nuanced_attributes:
+      industry_sector: [automotive, aerospace, electronics, consumer_goods]
+      process_complexity: [single_step, multi_step, multi_station]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # DOMAIN 5: CYBERSECURITY
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - name: sec_vulnerability_explanation
+    description: >
+      Explain a cybersecurity vulnerability or attack class to an audience
+      with a specified technical level. Focus on understanding risk and
+      impact, not on enabling exploitation.
+    output_description: >
+      An explanation (200–300 words) covering: what the vulnerability is,
+      how it is typically exploited (in conceptual, non-technical terms),
+      who is at risk, what the potential impact is, and how it can be
+      mitigated. Technical depth must match the audience. Must avoid
+      providing specific exploitation details.
+    target_attributes:
+      vulnerability_class: [sql_injection, phishing, ransomware, privilege_escalation,
+                            supply_chain_attack, misconfigurations]
+      audience_level: [non_technical, it_generalist, security_professional]
+      impact_scope: [individual, organisation, critical_infrastructure]
+    nuanced_attributes:
+      communication_purpose: [awareness, incident_briefing, training, executive_report]
+      explanation_style: [analogy_based, technical_narrative, structured_breakdown]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+  - name: sec_incident_response
+    description: >
+      Write an incident response procedure for a specified threat type
+      and organisational context, covering detection through recovery.
+    output_description: >
+      An incident response procedure (250–350 words) structured as:
+      Trigger Conditions, Immediate Containment Steps (3–5, numbered),
+      Evidence Preservation Actions, Eradication Steps, Recovery Steps,
+      Post-Incident Review items, and Escalation Contacts (role-based,
+      not real names). Procedure must be actionable and phase-ordered.
+    target_attributes:
+      threat_type: [ransomware, data_breach, ddos, insider_threat, phishing_campaign]
+      org_size: [smb, enterprise, critical_infrastructure]
+      response_phase: [containment_only, full_lifecycle, recovery_focus]
+    nuanced_attributes:
+      industry_sector: [healthcare, finance, government, retail, manufacturing]
+      procedure_format: [numbered_steps, playbook_style, runbook]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+  - name: sec_advisory_summary
+    description: >
+      Summarise a security advisory for a given vulnerability or threat
+      intelligence item, tailored for a specific organisational audience.
+    output_description: >
+      A security advisory summary (150–250 words) with: CVE/Advisory ID
+      (fictional but plausible), Severity rating, Affected Systems,
+      Attack Vector summary (1–2 sentences), Business Impact, Recommended
+      Actions (prioritised, 3–5 items), and Deadline/Urgency indicator.
+      Action items must be concrete and specific to the audience role.
+    target_attributes:
+      severity: [critical, high, medium]
+      affected_system_type: [web_application, os_kernel, network_device,
+                             cloud_service, iot_device]
+      advisory_audience: [security_team, it_operations, ciso_executive]
+    nuanced_attributes:
+      industry_context: [finance, healthcare, government, manufacturing, retail]
+      advisory_style: [technical_detail, executive_summary, action_focused]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+  - name: sec_awareness_scenario
+    description: >
+      Create a security awareness training scenario that helps employees
+      recognise and respond to a specified social engineering or cyber threat.
+    output_description: >
+      A training scenario (200–300 words) comprising: Scenario Setup
+      (2–3 sentences describing the situation), Red Flags (3–5 observable
+      warning signs, bulleted), Correct Response Steps (3–4 actions the
+      employee should take), and Lesson Reinforcement (1 sentence key
+      takeaway). Must be realistic, relatable, and not condescending.
+    target_attributes:
+      threat_vector: [email_phishing, vishing, smishing, pretexting, baiting]
+      target_employee_role: [general_staff, finance_team, it_staff, executive]
+      scenario_realism: [obvious_example, subtle_example, advanced_spear_phishing]
+    nuanced_attributes:
+      industry_sector: [healthcare, finance, retail, technology, government]
+      scenario_format: [story_narrative, role_play_prompt, quiz_scenario]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+  - name: sec_threat_modeling
+    description: >
+      Generate a threat model description for a given system type,
+      identifying assets, threat actors, attack surfaces, and prioritised
+      mitigations, tailored for the specified audience and detail level.
+    output_description: >
+      A threat model description (250–350 words) covering: System Overview
+      (1–2 sentences), Key Assets to Protect (3–4 items), Relevant Threat
+      Actors and Motivations (2–3), Primary Attack Surfaces (3–4),
+      Top 3 Threat Scenarios with likelihood/impact estimates, and
+      Recommended Mitigations (3–5, prioritised). Must use STRIDE or
+      PASTA vocabulary where appropriate.
+    target_attributes:
+      system_type: [web_application, mobile_app, iot_platform, cloud_infrastructure,
+                   internal_enterprise_network]
+      threat_actor_focus: [external_attacker, insider, nation_state, opportunistic]
+      detail_level: [executive_summary, technical_overview, engineering_detail]
+    nuanced_attributes:
+      industry_context: [healthcare, fintech, manufacturing, saas_platform, government]
+      modeling_framework: [stride_based, attack_tree, risk_matrix]
+    sampling:
+      target: [1, 2]
+      nuance: [1, 1]
+      total: 10
+    rubric: auto
+    evaluation_mode: single
+
+
+# ─── EXPERIMENT ──────────────────────────────────────────────────────────────
+experiment:
+  id: benchmark-v1
+  storage_folder: ./benchmark/runs
+
+  # Phase modes: all New for a clean first run
+  phases:
+    attribute_mapping:   New
+    rubric_mapping:      New
+    data_generation:     New
+    response_collection: New
+    evaluation:          New
+
+  log_level: INFO
+
+  # Conservative quotas to prevent runaway costs on large models
+  quota:
+    qwen2-5-14b:
+      max_calls: 2000
+    mistral-nemo:
+      max_calls: 2000
+    qwen2-5-7b:
+      max_calls: 2000

@@ -1,0 +1,98 @@
+experiment:
+  id: simple-test-v1
+  log_level: INFO
+  phases:
+    attribute_mapping: New
+    data_generation: New
+    evaluation: New
+    response_collection: New
+    rubric_mapping: New
+  quota:
+    gpt-4o-mini:
+      max_calls: 20
+  storage_folder: ./benchmark/runs
+models:
+- interface: openai
+  name: gpt-4o-mini
+  parameters:
+    max_tokens: 512
+    model: gpt-4o-mini
+    temperature: 0.7
+  role_parameters:
+    judge:
+      max_tokens: 128
+      temperature: 0.0
+    teacher:
+      max_tokens: 512
+      temperature: 0.8
+  roles:
+  - teacher
+  - judge
+- interface: huggingface
+  name: smollm2-135m
+  parameters:
+    device: auto
+    max_new_tokens: 128
+    model: HuggingFaceTB/SmolLM2-135M-Instruct
+    temperature: 0.7
+  role_parameters:
+    student:
+      max_new_tokens: 64
+      temperature: 0.5
+  roles:
+  - student
+- interface: huggingface
+  name: smollm2-360m
+  parameters:
+    device: auto
+    max_new_tokens: 128
+    model: HuggingFaceTB/SmolLM2-360M-Instruct
+    temperature: 0.7
+  role_parameters:
+    student:
+      max_new_tokens: 64
+      temperature: 0.5
+  roles:
+  - student
+tasks:
+- description: 'Summarise a short passage of text in a single sentence that captures
+    the key point. The summary must match the specified tone and domain.
+
+    '
+  evaluation_mode: single
+  name: text_summary
+  nuanced_attributes:
+    domain:
+    - technology
+    - cooking
+  output_description: 'A single sentence (10-25 words) that accurately summarises
+    the main point of the passage. No lists, no headers, plain prose only.
+
+    '
+  prompt_library:
+    sample: "Generate a benchmark data point for: {task_description}\nResponse format:\
+      \ {output_description}\nRequired attributes: {target_attributes}. Nuance: {nuanced_attributes}.\n\
+      \nFollow this example format exactly:\n{{\"prompt\": \"Photosynthesis is the\
+      \ process by which plants convert sunlight, water, and carbon dioxide into glucose\
+      \ and oxygen. The process occurs in the chloroplasts and is essential for life\
+      \ on Earth.\",\n  \"response\": \"Photosynthesis is how plants use sunlight,\
+      \ water, and CO2 to produce glucose and oxygen in their chloroplasts.\"}}\n\n\
+      Now generate a NEW, different data point that fits the required attributes.\n\
+      Return only a JSON object with keys \"prompt\" and \"response\". No explanation.\n"
+  rubric:
+    accuracy: The summary faithfully captures the main point of the passage without
+      adding or omitting key information.
+    conciseness: The summary is a single, well-formed sentence within the 10-25 word
+      limit.
+  sampling:
+    nuance:
+    - 1
+    - 1
+    target:
+    - 1
+    - 1
+    total: 2
+  target_attributes:
+    tone:
+    - formal
+    - casual

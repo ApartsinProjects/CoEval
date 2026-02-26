@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Teacher Score Report — coeval-demo-v2</title>
+<script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+<style>
+  body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f4f6f9;color:#222}
+  .header{background:#1F3864;color:#fff;padding:18px 28px 14px}
+  .header h1{margin:0 0 4px;font-size:1.25rem}
+  .header .meta{font-size:0.78rem;opacity:0.8}
+  .notice{background:#FFF3CD;border-left:4px solid #FFC107;padding:10px 16px;margin:14px 20px;border-radius:4px;font-size:0.85rem}
+  .notice.warn{background:#f8d7da;border-color:#dc3545}
+  .section{background:#fff;border-radius:6px;padding:18px 20px;margin:14px 20px;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+  .section h2{margin:0 0 12px;font-size:1rem;color:#1F3864;border-bottom:2px solid #e5e8ed;padding-bottom:6px}
+  table{width:100%;border-collapse:collapse;font-size:0.82rem}
+  th{background:#2E74B5;color:#fff;padding:7px 10px;text-align:left}
+  td{padding:6px 10px;border-bottom:1px solid #e8eaf0}
+  tr:nth-child(even){background:#f7f9fc}
+  .flag{color:#c00;font-weight:bold}
+  .badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:0.75rem;font-weight:bold}
+  .badge-high{background:#d4edda;color:#155724}
+  .badge-med{background:#fff3cd;color:#856404}
+  .badge-low{background:#f8d7da;color:#721c24}
+  .badge-deg{background:#e2e3e5;color:#383d41}
+  .chart-wrap{margin:10px 0}
+  .filters{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+  .filters label{font-size:0.82rem;font-weight:bold;color:#444}
+  .filters select{font-size:0.82rem;padding:4px 8px;border:1px solid #ccc;border-radius:4px}
+  .kv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+  .kv-card{background:#f0f4fa;border-radius:5px;padding:10px 14px}
+  .kv-card .kv-val{font-size:1.3rem;font-weight:bold;color:#1F3864}
+  .kv-card .kv-label{font-size:0.75rem;color:#555;margin-top:2px}
+</style></head>
+<body>
+<div class="header">
+  <h1>Teacher Score Report</h1>
+  <div class="meta">Experiment: <strong>coeval-demo-v2</strong> &nbsp;|&nbsp; Status: completed &nbsp;|&nbsp; Tasks: complaint_response, followup_reminder &nbsp;|&nbsp; Teachers: 3 &nbsp;|&nbsp; Students: 3 &nbsp;|&nbsp; Judges: 3 &nbsp;|&nbsp; Eval tuples: 162</div>
+</div>
+<div class="notice">⚠ <strong>Self-judging:</strong> 54 eval tuples have judge = student model. These are included in all metrics and flagged below.</div>
+<div class="notice">⚠ <strong>Self-teaching:</strong> 54 eval tuples have teacher = student model. These are included in all metrics and flagged below.</div>
+<div id="content">
+
+<div class="section">
+  <h2>Teacher Differentiation Scores</h2>
+  <p style="font-size:0.82rem;color:#555">Higher score = teacher's datapoints better separate student capabilities.
+  Formula selector: <select id="formula_sel" onchange="updateTeacherChart()">
+    <option value="v1">v1 — Variance of per-student averages</option>
+    <option value="s2">s2 — Average per-datapoint student spread</option>
+    <option value="r3">r3 — Range of per-student averages</option>
+  </select></p>
+  <div class="chart-wrap" id="chart_teacher_bar"></div>
+</div>
+<div class="section">
+  <h2>Per-Aspect Differentiation Heatmap (v1)</h2>
+  <div class="chart-wrap" id="chart_asp_heat"></div>
+</div>
+<div class="section">
+  <h2>Teacher Score Summary Table</h2>
+  <table><thead><tr><th>Teacher</th><th>Score v1</th><th>Score s2</th><th>Score r3</th><th>In T*</th></tr></thead><tbody><tr><td>ft-model</td><td><span class="badge badge-low">0.193</span></td><td><span class="badge badge-med">0.423</span></td><td><span class="badge badge-high">0.778</span></td><td>✓</td></tr><tr><td>llama3</td><td><span class="badge badge-low">0.122</span></td><td><span class="badge badge-low">0.309</span></td><td><span class="badge badge-med">0.555</span></td><td>✓</td></tr><tr><td>gpt4o</td><td><span class="badge badge-low">0.079</span></td><td><span class="badge badge-low">0.246</span></td><td><span class="badge badge-med">0.472</span></td><td></td></tr></tbody></table>
+</div>
+<script>
+const teachers=["ft-model", "llama3", "gpt4o"];
+const sc_v1=[0.1929, 0.1219, 0.0787];
+const sc_s2=[0.4231, 0.3087, 0.246];
+const sc_r3=[0.7778, 0.5555, 0.4722];
+const t_star=["ft-model", "llama3"];
+const formula_data={v1:sc_v1,s2:sc_s2,r3:sc_r3};
+const asp_labels=["complaint_response/acknowledgment_quality", "complaint_response/resolution_clarity", "complaint_response/tone_alignment", "followup_reminder/instruction_fidelity", "followup_reminder/test_identity_grounding", "followup_reminder/timing_grounding"];
+const asp_matrix=[[0.0833, 0.0833, 0.0833], [0.287, 0.2315, 0.1759], [0.1944, 0.0648, 0.0278], [0.0648, 0.1204, 0.1204], [0.1944, 0.0, 0.0], [0.3333, 0.2315, 0.0648]];
+
+function updateTeacherChart(){
+  const f=document.getElementById('formula_sel').value;
+  const colors=teachers.map(t=>t_star.includes(t)?'#1F3864':'#2E74B5');
+  Plotly.react('chart_teacher_bar',[{
+    x:teachers,y:formula_data[f],type:'bar',
+    marker:{color:colors},
+    text:teachers.map(t=>t_star.includes(t)?'★ T*':''),textposition:'outside'
+  }],{xaxis:{title:'Teacher'},yaxis:{title:'Differentiation Score'},
+      margin:{t:30,b:60,l:50,r:20},plot_bgcolor:'#fafbfc',paper_bgcolor:'#fff'},{responsive:true});
+}
+updateTeacherChart();
+
+// Aspect heatmap
+const zvals=asp_matrix;  // [aspect][teacher]
+Plotly.newPlot('chart_asp_heat',[{
+  z:zvals,x:teachers,y:asp_labels,type:'heatmap',
+  colorscale:'Blues',zmin:0,zmax:0.25,
+  text:zvals.map(row=>row.map(v=>v!=null?v.toFixed(3):'—')),
+  texttemplate:'%{text}',hovertemplate:'Aspect: %{y}<br>Teacher: %{x}<br>v1: %{z:.3f}<extra></extra>'
+}],{margin:{t:20,b:120,l:200,r:20},yaxis:{tickfont:{size:10}},
+      plot_bgcolor:'#fafbfc',paper_bgcolor:'#fff'},{responsive:true});
+</script>
+</div>
+</body></html>

@@ -1,0 +1,67 @@
+models:
+  - name: gpt4o-teacher
+    interface: openai
+    parameters:
+      model: gpt-4o
+      temperature: 0.8
+      max_tokens: 2048
+    roles: [teacher]
+
+  - name: ft-student
+    interface: openai
+    parameters:
+      model: ft:gpt-3.5-turbo:org:clinical:abc123
+      temperature: 0.3
+      max_tokens: 512
+    roles: [student]
+
+  - name: gpt4o-judge
+    interface: openai
+    parameters:
+      model: gpt-4o
+      temperature: 0.0
+    roles: [judge]
+
+tasks:
+  - name: followup_reminder
+    description: "Extract the follow-up test from a medical visit summary and compose a patient reminder."
+    output_description: "A polite, concise reminder message addressed to the patient stating the required test and timing."
+    target_attributes:
+      test_type: ["blood test", "X-ray"]
+      urgency: ["routine", "urgent"]
+    nuanced_attributes:
+      note_style: ["SOAP", "narrative"]
+      section: ["assessment_plan", "orders"]
+    sampling:
+      target: [1, 1]
+      nuance: [1, 1]
+      total: 4
+    rubric:
+      test_identity_grounding: "Correctly identifies the required follow-up test. Does not introduce extra or incorrect tests."
+      timing_grounding: "States timing exactly as written in the source note. No modification or omission."
+      instruction_fidelity: "Reflects only what is in the note. No hallucinated medical advice or additional instructions."
+    evaluation_mode: single
+
+  - name: complaint_response
+    description: "Generate a professional response to a customer complaint submitted to a SaaS company."
+    output_description: "A clear, appropriately-toned response that acknowledges the issue and proposes a concrete resolution."
+    target_attributes:
+      complaint_type: ["billing error", "service delay"]
+      resolution_tone: ["formal", "empathetic"]
+    nuanced_attributes:
+      channel: ["email", "chat"]
+      customer_tier: ["standard", "premium"]
+    sampling:
+      target: [1, 1]
+      nuance: [1, 1]
+      total: 4
+    rubric:
+      acknowledgment_quality: "Clearly acknowledges the customer's issue without deflecting or minimizing."
+      resolution_clarity: "Proposes a concrete, actionable resolution step. Vague promises do not qualify."
+      tone_alignment: "Tone matches the requested resolution_tone attribute (formal or empathetic) throughout."
+    evaluation_mode: single
+
+experiment:
+  id: "coeval-demo-v1"
+  storage_folder: "./eval_runs"
+  log_level: INFO

@@ -4,12 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "coeval"
-version = "0.1.0"
-description = "CoEval: Self-evaluating LLM ensemble benchmarking system (EER MVP)"
+version = "0.2.0"
+description = "CoEval: Self-evaluating LLM ensemble benchmarking system (EER + EEA)"
 requires-python = ">=3.10"
 dependencies = [
     "pyyaml>=6.0",
     "openai>=1.0",
+    "openpyxl>=3.1",
 ]
 
 [project.optional-dependencies]
@@ -18,10 +19,16 @@ huggingface = [
     "torch>=2.0",
     "accelerate>=0.26",
 ]
+parquet = [
+    "pyarrow>=14.0",
+]
 
 [project.scripts]
-coeval = "coeval.cli:main"
+coeval = "experiments.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["coeval*"]
+include = ["experiments*", "analysis*"]
+
+[tool.pytest.ini_options]
+testpaths = ["experiments/tests", "analysis/tests"]

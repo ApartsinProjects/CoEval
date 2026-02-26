@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Judge Consistency — simple-test-v1</title>
+  <script src="../plotly.min.js"></script>
+  <script>
+const DATA = {"judges": ["gpt-4o-mini"], "attr_labels": ["tone=casual", "tone=formal"], "judge_attr_var": {"gpt-4o-mini": {"tone=casual": 0.0, "tone=formal": 0.25}}, "judge_attr_box": {"gpt-4o-mini": {"tone=casual": [1.0, 1.0, 0.5, 0.5], "tone=formal": [0.0, 0.0, 1.0, 0.0]}}, "calibration": [{"judge": "gpt-4o-mini", "aspect": "accuracy", "mean": 0.5, "std": 0.5774, "pct_high": 50.0, "pct_medium": 0.0, "pct_low": 50.0, "most_common": "High", "flag": false, "n": 4}, {"judge": "gpt-4o-mini", "aspect": "conciseness", "mean": 0.5, "std": 0.4082, "pct_high": 25.0, "pct_medium": 50.0, "pct_low": 25.0, "most_common": "Medium", "flag": false, "n": 4}]};
+  </script>
+  <style>
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+       background: #f5f5f5; color: #333; }
+#header { background: #1a1a2e; color: #fff; padding: 14px 20px;
+          display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+#header h1 { font-size: 1.1rem; font-weight: 600; }
+.header-meta { font-size: 0.78rem; opacity: 0.8; }
+.header-badge { background: rgba(255,255,255,.15); border-radius: 4px;
+                padding: 2px 8px; font-size: 0.75rem; }
+.partial-notice { background: #f59e0b; color: #000; padding: 8px 20px;
+                  font-size: 0.85rem; font-weight: 500; }
+#filter-panel { background: #fff; border-bottom: 1px solid #e0e0e0;
+                padding: 10px 20px; display: flex; flex-wrap: wrap; gap: 12px;
+                align-items: center; }
+.filter-group { display: flex; align-items: center; gap: 6px; }
+.filter-group label { font-size: 0.8rem; font-weight: 500; color: #555; }
+.filter-group select { font-size: 0.8rem; border: 1px solid #ccc;
+                        border-radius: 4px; padding: 3px 6px; }
+#stats-bar { background: #e8f4f8; padding: 6px 20px; font-size: 0.78rem;
+             color: #555; border-bottom: 1px solid #c9e3ee; }
+#main { padding: 16px 20px; }
+.view-section { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.1);
+                padding: 16px; margin-bottom: 16px; }
+.view-section h2 { font-size: 1rem; font-weight: 600; margin-bottom: 12px; color: #1a1a2e; }
+.view-section p.note { font-size: 0.8rem; color: #666; background: #fffbeb;
+                       border-left: 3px solid #f59e0b; padding: 6px 10px;
+                       margin-bottom: 10px; border-radius: 0 4px 4px 0; }
+.chart-container { min-height: 360px; }
+table.data-table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
+table.data-table th { background: #f0f4f8; text-align: left;
+                       padding: 6px 10px; border-bottom: 2px solid #d0d8e0;
+                       font-weight: 600; color: #444; white-space: nowrap; }
+table.data-table td { padding: 5px 10px; border-bottom: 1px solid #eee; }
+table.data-table tr:hover td { background: #f8f9fb; }
+.warn-flag { color: #d97706; font-size: 0.85em; cursor: help; }
+.degenerate-notice { background: #fef3c7; border: 1px solid #fbbf24;
+                     border-radius: 6px; padding: 10px 14px; margin-bottom: 12px;
+                     font-size: 0.82rem; }
+.na { color: #aaa; font-style: italic; }
+.tag { display: inline-block; font-size: 0.7rem; border-radius: 3px;
+       padding: 1px 5px; margin: 0 2px; }
+.tag-partial { background: #fef3c7; color: #92400e; }
+.tag-completed { background: #d1fae5; color: #065f46; }
+footer { text-align: center; padding: 16px; font-size: 0.75rem; color: #999; }
+
+  </style>
+</head>
+<body>
+
+
+<div id="header">
+  <h1>CoEval EEA &mdash; Judge Consistency View</h1>
+  <span class="header-meta">Experiment: <b>simple-test-v1</b></span>
+  <span class="header-badge tag-completed">completed</span>
+  <span class="header-meta">Tasks: 1</span>
+  <span class="header-meta">Models: 3</span>
+  <span class="header-meta">Datapoints: 2</span>
+  <span class="header-meta">Self-judging: 0</span>
+  <span class="header-meta">Self-teaching: 0</span>
+  <span class="header-meta">Analyzed: 2026-02-24T12:12:16Z</span>
+</div>
+<div id="stats-bar">Total eval records: 4 | Valid: 4 | Invalid: 0</div>
+<div id="filter-panel">
+<div class="filter-group"><label for="flt_task">Task:</label><select id="flt_task" onchange="applyFilters()"><option value="__all__">All</option><option value="text_summary">text_summary</option></select></div>
+<div class="filter-group"><label for="flt_student">Student:</label><select id="flt_student" onchange="applyFilters()"><option value="__all__">All</option><option value="smollm2-135m">smollm2-135m</option><option value="smollm2-360m">smollm2-360m</option></select></div>
+<div class="filter-group"><label for="flt_aspect">Aspect:</label><select id="flt_aspect" onchange="applyFilters()"><option value="__all__">All</option><option value="accuracy">accuracy</option><option value="conciseness">conciseness</option></select></div>
+</div>
+<div id="main">
+
+<div class="view-section">
+  <h2>View 1 — Within-Judge Score Variance by Target Attribute (Heatmap)</h2>
+  <div id="v1-chart" class="chart-container"></div>
+</div>
+<div class="view-section">
+  <h2>View 2 — Judge Score Distribution by Target Attribute (Box Plots)</h2>
+  <select id="v2-judge" onchange="renderV2()" style="margin-bottom:8px;font-size:0.8rem"></select>
+  <div id="v2-chart" class="chart-container"></div>
+</div>
+<div class="view-section">
+  <h2>View 4 — Score Calibration Table</h2>
+  <div id="v4-table"></div>
+</div>
+
+</div>
+<footer>Generated by CoEval EEA &mdash; 2026-02-24T12:12:16Z</footer>
+<script>
+
+function getFilter(id) {
+  var el = document.getElementById('flt_' + id);
+  return el ? el.value : '__all__';
+}
+
+function applyFilters() {
+  if (typeof renderAll === 'function') renderAll();
+}
+
+function fmt(v, decimals) {
+  if (v === null || v === undefined) return '<span class="na">N/A</span>';
+  return parseFloat(v).toFixed(decimals !== undefined ? decimals : 3);
+}
+
+function fmtPct(v) {
+  if (v === null || v === undefined) return '<span class="na">N/A</span>';
+  return (parseFloat(v) * 100).toFixed(1) + '%';
+}
+
+function selfFlag(is_self_judging, is_self_teaching) {
+  var flags = [];
+  if (is_self_judging) flags.push('<span class="warn-flag" title="Self-evaluation: judge model = student model.">⚠SJ</span>');
+  if (is_self_teaching) flags.push('<span class="warn-flag" title="Self-teaching: teacher model = student model.">⚠ST</span>');
+  return flags.join(' ');
+}
+
+// Colour helpers
+function scoreColor(v) {
+  if (v === null || v === undefined) return '#eee';
+  var r = Math.round(255 * (1 - v));
+  var g = Math.round(200 * v);
+  return 'rgb(' + r + ',' + g + ',60)';
+}
+
+function renderAll() {
+  var sel = document.getElementById('v2-judge');
+  DATA.judges.forEach(function(j) {
+    var o = document.createElement('option'); o.value = j; o.textContent = j;
+    sel.appendChild(o);
+  });
+  renderV1(); renderV2(); renderV4();
+}
+
+function renderV1() {
+  var judges = DATA.judges;
+  var attrs = DATA.attr_labels;
+  if (!judges.length || !attrs.length) return;
+  var z = judges.map(function(j) {
+    return attrs.map(function(k) {
+      var v = DATA.judge_attr_var[j];
+      return v ? (v[k] !== undefined ? v[k] : null) : null;
+    });
+  });
+  Plotly.newPlot('v1-chart', [{
+    type:'heatmap', z:z, x:attrs, y:judges,
+    colorscale:[[0,'#f0f8ff'],[1,'#1a4fac']],
+    zmin:0, zmax:0.25,
+  }], {title:'Within-judge variance (higher = less consistent)', margin:{t:40}});
+}
+
+function renderV2() {
+  var j = document.getElementById('v2-judge').value;
+  if (!j) return;
+  var boxData = DATA.judge_attr_box[j] || {};
+  var keys = Object.keys(boxData).sort();
+  var traces = keys.map(function(k) {
+    return {type:'box', name:k, y:boxData[k], boxpoints:'outliers'};
+  });
+  if (!traces.length) return;
+  Plotly.newPlot('v2-chart', traces,
+    {yaxis:{title:'Score', range:[-.05,1.05]}, margin:{t:20}});
+}
+
+function renderV4() {
+  var rows = DATA.calibration;
+  var html = '<table class="data-table"><tr><th>Judge</th><th>Aspect</th>';
+  html += '<th>Mean</th><th>Std Dev</th><th>% High</th><th>% Medium</th><th>% Low</th>';
+  html += '<th>Most Common</th><th>N</th></tr>';
+  rows.forEach(function(r) {
+    var style = r.flag ? 'background:#fff3cd' : '';
+    html += '<tr style="' + style + '">';
+    html += '<td>' + r.judge + '</td><td>' + r.aspect + '</td>';
+    html += '<td>' + fmt(r.mean) + '</td><td>' + fmt(r.std) + '</td>';
+    html += '<td>' + r.pct_high + '%</td><td>' + r.pct_medium + '%</td>';
+    html += '<td>' + r.pct_low + '%</td><td>' + r.most_common + '</td>';
+    html += '<td>' + r.n + '</td></tr>';
+  });
+  document.getElementById('v4-table').innerHTML = html + '</table>';
+}
+
+document.addEventListener('DOMContentLoaded', renderAll);
+
+</script>
+</body>
+</html>

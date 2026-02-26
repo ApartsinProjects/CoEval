@@ -1,0 +1,4 @@
+{
+  "channel": ["email", "chat"],
+  "customer_tier": ["standard", "premium"]
+}
