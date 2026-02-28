@@ -1,0 +1,17 @@
+# Attribute map for AESLC (email_composition task)
+# Values are inferred from email content by the AESLCLoader.
+
+purpose:
+  - information_request
+  - project_update
+  - complaint_resolution
+  - proposal
+  - follow_up
+
+length:
+  - brief
+  - standard
+  - detailed
+
+tone:
+  - semi_formal

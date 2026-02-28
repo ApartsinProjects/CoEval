@@ -28,7 +28,14 @@ class RunLogger:
             f.write(line + '\n')
         if self._console:
             stream = sys.stderr if level in ('WARNING', 'ERROR') else sys.stdout
-            print(line, file=stream)
+            try:
+                print(line, file=stream)
+            except UnicodeEncodeError:
+                # Windows consoles may use a non-UTF-8 codec; fall back gracefully.
+                safe = line.encode(stream.encoding or 'utf-8', errors='replace').decode(
+                    stream.encoding or 'utf-8', errors='replace'
+                )
+                print(safe, file=stream)
 
     def debug(self, msg: str) -> None:
         self._write('DEBUG', msg)

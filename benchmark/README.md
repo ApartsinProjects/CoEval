@@ -249,24 +249,38 @@ setups, `accelerate` will shard automatically.
 
 ---
 
+## Cost and Time Estimation
+
+Before committing to the full run, use the estimation probe to get a predicted
+cost and time breakdown per model:
+
+```bash
+coeval run --config benchmark/benchmark_config.yaml --estimate-only
+```
+
+This runs a small number of real inference calls (default: 2 per model), measures
+latency and token throughput, then extrapolates to the full experiment and prints a
+cost table. No phase data is generated.
+
+---
+
 ## Resuming a Partial Run
 
-If the run is interrupted, resume it without re-running completed phases:
+If the run is interrupted, continue in-place without re-running completed phases:
+
+```bash
+coeval run --config benchmark/benchmark_config.yaml --continue
+```
+
+The `--continue` flag reopens the existing experiment folder, reads `phases_completed`
+from `meta.json`, and skips those phases automatically. Phases 1–2 use `Keep` mode
+(skip tasks whose files already exist); Phases 3–5 use `Extend` mode (skip individual
+records already written to JSONL).
+
+Alternatively, create a new experiment that inherits completed artifacts:
 
 ```bash
 coeval run --config benchmark/benchmark_config.yaml --resume benchmark-v1
-```
-
-Or selectively set specific phases to `Resume` in the YAML:
-
-```yaml
-experiment:
-  phases:
-    attribute_mapping:   Resume   # already done
-    rubric_mapping:      Resume   # already done
-    data_generation:     Resume   # in progress
-    response_collection: New
-    evaluation:          New
 ```
 
 ---

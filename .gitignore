@@ -23,6 +23,11 @@ eval_runs/
 .idea/
 .vscode/
 
+# Provider key files (contain API keys — never commit)
+keys.yaml
+*.keys.yaml
+.coeval/
+
 # Misc temp files
 experiments/full_run.log
 experiments/non_ascii.txt

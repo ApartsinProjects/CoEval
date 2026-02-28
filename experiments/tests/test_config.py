@@ -181,12 +181,12 @@ def test_v05_invalid_role():
 
 
 # ---------------------------------------------------------------------------
-# V-06: interface must be openai or huggingface
+# V-06: interface must be openai, anthropic, gemini, or huggingface
 # ---------------------------------------------------------------------------
 
 def test_v06_invalid_interface():
     raw = _minimal_raw()
-    raw['models'][0]['interface'] = 'anthropic'
+    raw['models'][0]['interface'] = 'foobar'
     errors = validate_config(_cfg(raw))
     assert any('Unknown interface' in e for e in errors)
 

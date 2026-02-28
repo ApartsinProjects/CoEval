@@ -195,18 +195,60 @@ def extract_prompt_response(data: Any) -> tuple[str, str]:
     return prompt_val, response_val
 
 
+def parse_json_text(text: str) -> Any:
+    """Parse JSON from raw model output text, stripping markdown fences.
+
+    Equivalent to the JSON-extraction step inside :func:`call_llm_json` but
+    works directly on a response string rather than making an LLM call.
+    Useful for processing Batch API results where retries are not available.
+    """
+    cleaned = re.sub(r'^```(?:json)?\s*', '', text.strip(), flags=re.MULTILINE)
+    cleaned = re.sub(r'```\s*$', '', cleaned.strip(), flags=re.MULTILINE)
+    return _extract_json(cleaned.strip())
+
+
+def parse_word_text(
+    text: str,
+    valid_words: frozenset = frozenset({'High', 'Medium', 'Low'}),
+) -> str:
+    """Extract a valid evaluation word from raw model output.
+
+    More lenient than the retry-based :func:`call_llm_word`: scans the response
+    for any occurrence of a valid word rather than requiring the entire response
+    to equal the word.  Returns ``'Low'`` as a fallback when no valid word is
+    found.  Useful for Batch API results where per-item retries are not possible.
+    """
+    stripped = text.strip().rstrip('.')
+    if stripped in valid_words:
+        return stripped
+    for token in text.strip().split():
+        cleaned = token.strip('.,!?;:')
+        if cleaned in valid_words:
+            return cleaned
+    return 'Low'  # conservative fallback
+
+
 class QuotaTracker:
-    """Tracks remaining LLM calls per model (REQ-5.4.1 quota field)."""
+    """Tracks remaining LLM calls per model (REQ-5.4.1 quota field).
+
+    Thread-safe: all mutations are protected by a ``threading.Lock`` so that
+    concurrent phase workers (e.g. the OAI ThreadPoolExecutor in Phase 4/5)
+    cannot race on the shared counter.
+    """
 
     def __init__(self, quota_config: dict[str, dict[str, int]]) -> None:
+        import threading
+        self._lock = threading.Lock()
         self._remaining: dict[str, float] = {
             model_name: float(spec.get('max_calls', float('inf')))
             for model_name, spec in quota_config.items()
         }
 
     def is_exhausted(self, model_name: str) -> bool:
-        return self._remaining.get(model_name, float('inf')) <= 0
+        with self._lock:
+            return self._remaining.get(model_name, float('inf')) <= 0
 
     def consume(self, model_name: str) -> None:
-        if model_name in self._remaining:
-            self._remaining[model_name] -= 1
+        with self._lock:
+            if model_name in self._remaining:
+                self._remaining[model_name] -= 1

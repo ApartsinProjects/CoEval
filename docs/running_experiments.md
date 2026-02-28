@@ -22,17 +22,25 @@ model or by completely different ones.
 6. [Storage Folder Format](#6-storage-folder-format)
 7. [Prompt Library Customisation](#7-prompt-library-customisation)
 8. [Quota Control](#8-quota-control)
-9. [Use-Case Examples](#9-use-case-examples)
-   - 9.1 [First run — everything from scratch](#91-first-run--everything-from-scratch)
-   - 9.2 [Resume an interrupted run](#92-resume-an-interrupted-run)
-   - 9.3 [Extend an existing dataset](#93-extend-an-existing-dataset)
-   - 9.4 [Re-use attributes and rubric; regenerate data only](#94-re-use-attributes-and-rubric-regenerate-data-only)
-   - 9.5 [Add a new student model to a finished experiment](#95-add-a-new-student-model-to-a-finished-experiment)
-   - 9.6 [Dry-run / config check](#96-dry-run--config-check)
-   - 9.7 [Full OpenAI-backend experiment](#97-full-openai-backend-experiment)
-10. [Validation Rules](#10-validation-rules)
-11. [CLI Reference](#11-cli-reference)
-12. [Frequently Asked Questions](#12-frequently-asked-questions)
+9. [Batch Processing](#9-batch-processing)
+10. [Model Probe](#10-model-probe)
+11. [Cost and Time Estimation](#11-cost-and-time-estimation)
+12. [Label Accuracy for Classification Tasks](#12-label-accuracy-for-classification-tasks)
+13. [Use-Case Examples](#13-use-case-examples)
+    - 13.1 [First run — everything from scratch](#131-first-run--everything-from-scratch)
+    - 13.2 [Resume an interrupted run](#132-resume-an-interrupted-run)
+    - 13.3 [Extend an existing dataset](#133-extend-an-existing-dataset)
+    - 13.4 [Re-use attributes and rubric; regenerate data only](#134-re-use-attributes-and-rubric-regenerate-data-only)
+    - 13.5 [Add a new student model to a finished experiment](#135-add-a-new-student-model-to-a-finished-experiment)
+    - 13.6 [Dry-run / config check](#136-dry-run--config-check)
+    - 13.7 [Full OpenAI-backend experiment](#137-full-openai-backend-experiment)
+    - 13.8 [Estimate cost before running](#138-estimate-cost-before-running)
+    - 13.9 [Run with probing in resume mode](#139-run-with-probing-in-resume-mode)
+    - 13.10 [Sentiment classification with label accuracy](#1310-sentiment-classification-with-label-accuracy)
+    - 13.11 [Probe models, inspect progress, apply batch results](#1311-probe-models-inspect-progress-apply-batch-results)
+14. [Validation Rules](#14-validation-rules)
+15. [CLI Reference](#15-cli-reference)
+16. [Frequently Asked Questions](#16-frequently-asked-questions)
 
 ---
 
@@ -92,6 +100,9 @@ coeval run --config examples/local_smoke_test.yaml --dry-run   # check config
 coeval run --config examples/local_smoke_test.yaml             # full run
 ```
 
+> **Available subcommands:** `coeval run`, `coeval probe`, `coeval plan`, `coeval status`, `coeval generate`, `coeval models`, `coeval analyze`.
+> See the [CLI Reference](cli_reference.md) for the full option listing for every subcommand.
+
 ---
 
 ## 4. Configuration Reference
@@ -117,7 +128,7 @@ Each entry in the `models` list defines one model.
 ```yaml
 models:
   - name: my-model              # required; [A-Za-z0-9._-], no double underscores
-    interface: huggingface      # "huggingface" or "openai"
+    interface: huggingface      # openai | anthropic | gemini | huggingface | azure_openai | bedrock | vertex
     parameters:                 # passed to the interface on every call
       model: Qwen/Qwen2.5-1.5B-Instruct
       temperature: 0.7
@@ -373,7 +384,7 @@ Because `__` is reserved, **model names and task names must not contain `__`**.
 
 ## 7. Prompt Library Customisation
 
-CoEval ships six **canonical prompt templates** (in `coeval/prompts.py`):
+CoEval ships six **canonical prompt templates** (in `experiments/prompts.py`):
 
 | Prompt ID | Used in | Purpose |
 |-----------|---------|---------|
@@ -464,9 +475,307 @@ warning.  Other models continue unaffected.  Models **not** listed in `quota` ha
 
 ---
 
-## 9. Use-Case Examples
+## 9. Batch Processing
 
-### 9.1 First run — everything from scratch
+For large experiments, CoEval can submit LLM requests as **batch jobs** rather than
+individual real-time calls.  Batch APIs offer significant cost savings but have higher
+latency (results returned within 24 hours, typically 1–4 hours).
+
+| Interface | Batch mechanism | Pricing discount |
+|-----------|----------------|-----------------|
+| `openai` | OpenAI Batch API | 50% per-token discount |
+| `anthropic` | Anthropic Message Batches API | 50% per-token discount |
+| `gemini` | Pseudo-batch (paced real-time calls) | No discount |
+| `huggingface` | Not supported | — |
+
+### Enabling batch per phase
+
+```yaml
+experiment:
+  batch:
+    phases: [3, 4, 5]    # which phases to run in batch mode (default: none)
+```
+
+Or configure per-model:
+
+```yaml
+models:
+  - name: gpt4o-teacher
+    interface: openai
+    parameters:
+      model: gpt-4o
+    roles: [teacher]
+    batch_enabled: true    # this model always uses batch
+```
+
+CoEval polls automatically and resumes the pipeline once batch results are available.
+To mix batch and real-time models in the same experiment, set `batch_enabled: false`
+on individual models.
+
+---
+
+## 9b. Additional Provider Interfaces
+
+CoEval supports seven model interfaces.  All accept the same `generate()` contract;
+credentials are resolved automatically from the provider key file or environment variables.
+
+| `interface` value | Provider | Install | Auth |
+|-------------------|----------|---------|------|
+| `openai` | OpenAI | `pip install openai` | `OPENAI_API_KEY` |
+| `anthropic` | Anthropic | `pip install anthropic` | `ANTHROPIC_API_KEY` |
+| `gemini` | Google AI Studio | `pip install google-generativeai` | `GEMINI_API_KEY` or `GOOGLE_API_KEY` |
+| `huggingface` | HuggingFace Hub (local GPU) | `pip install 'coeval[huggingface]'` | `HF_TOKEN` |
+| `azure_openai` | Azure OpenAI Service | `pip install openai` | `AZURE_OPENAI_API_KEY` + `AZURE_OPENAI_ENDPOINT` |
+| `bedrock` | AWS Bedrock | `pip install boto3` | `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` + `AWS_DEFAULT_REGION` |
+| `vertex` | Google Vertex AI (Gemini) | `pip install google-cloud-aiplatform` | `GOOGLE_CLOUD_PROJECT` + ADC |
+
+### Azure OpenAI
+
+```yaml
+models:
+  - name: azure-gpt4o
+    interface: azure_openai
+    parameters:
+      model: gpt-4o                              # deployment name in Azure
+      azure_endpoint: https://my-res.openai.azure.com/
+      api_version: 2024-08-01-preview
+      temperature: 0.7
+      max_tokens: 512
+    roles: [teacher, student, judge]
+```
+
+### AWS Bedrock
+
+```yaml
+models:
+  - name: claude-bedrock
+    interface: bedrock
+    parameters:
+      model: anthropic.claude-3-5-sonnet-20241022-v2:0
+      region: us-east-1
+      temperature: 0.7
+      max_tokens: 512
+    roles: [teacher, student, judge]
+```
+
+AWS credentials are resolved in order: `parameters` → provider key file → environment variables → IAM instance role.
+
+### Google Vertex AI
+
+```yaml
+models:
+  - name: gemini-vertex
+    interface: vertex
+    parameters:
+      model: gemini-1.5-pro
+      project: my-gcp-project
+      location: us-central1
+      temperature: 0.7
+      max_tokens: 512
+    roles: [teacher, student, judge]
+```
+
+Authentication uses [Application Default Credentials](https://cloud.google.com/docs/authentication/application-default-credentials) (`gcloud auth application-default login`) unless a `service_account_key` path is provided in the provider key file.
+
+### Provider key file
+
+Store API keys in one place instead of per-experiment:
+
+```yaml
+# ~/.coeval/keys.yaml  (or set COEVAL_KEYS_FILE env var, or pass --keys PATH)
+providers:
+  openai: sk-...
+  anthropic: sk-ant-...
+  gemini: AIza...
+  huggingface: hf_...
+  azure_openai:
+    api_key: ...
+    endpoint: https://my-resource.openai.azure.com/
+    api_version: 2024-08-01-preview
+  bedrock:
+    access_key_id: AKIA...
+    secret_access_key: ...
+    region: us-east-1
+  vertex:
+    project: my-gcp-project
+    location: us-central1
+```
+
+Pass a custom file with `--keys PATH`.  Keys in the file act as fallbacks after
+model-level `access_key` values in the YAML.
+
+```bash
+coeval run   --config my.yaml --keys ~/.coeval/prod-keys.yaml
+coeval probe --config my.yaml --keys ~/.coeval/prod-keys.yaml
+coeval models              # list all accessible models
+coeval models --providers openai,anthropic
+```
+
+---
+
+## 10. Model Probe
+
+Before the pipeline starts, CoEval tests every model for availability using lightweight
+API calls that **do not consume generation tokens** (model listing endpoint or
+Hub metadata API).
+
+### Probe modes
+
+Configure via `experiment.probe_mode` in the YAML or the `--probe` CLI flag:
+
+| Mode | Behaviour |
+|------|-----------|
+| `full` | Probe every model in the config (default) |
+| `resume` | Probe only models needed for phases that haven't yet completed |
+| `disable` | Skip the probe entirely |
+
+```yaml
+experiment:
+  probe_mode: resume     # full | resume | disable
+  probe_on_fail: warn    # abort | warn  (default: abort)
+```
+
+`abort` (default): halt the pipeline if any model is unreachable.
+`warn`: log a warning and continue; affected phases may fail or produce partial results.
+
+On completion, a `probe_results.json` file is written to the experiment folder.
+
+### CLI flags
+
+```bash
+# Probe embedded in a run:
+coeval run --config my.yaml --probe resume --probe-on-fail warn
+coeval run --config my.yaml --probe disable   # skip probe entirely
+
+# Standalone probe — test models without starting any pipeline phases:
+coeval probe --config my.yaml                        # test all models
+coeval probe --config my.yaml --probe resume         # test only models needed for remaining phases
+coeval probe --config my.yaml --probe-on-fail warn   # always exits 0
+```
+
+`coeval probe` runs the same pre-flight check that `coeval run` executes, then exits
+immediately after printing results.  Useful for verifying API keys before committing to
+a full run.  It suppresses folder-existence validation, so it works on any config
+regardless of whether the experiment folder already exists.
+
+---
+
+## 11. Cost and Time Estimation
+
+The cost estimator runs a small number of sample API/inference calls per model,
+measures latency and token throughput, then extrapolates to the full experiment size.
+
+### `coeval plan` — dedicated planning command
+
+```bash
+# Heuristic only (no real LLM calls, no experiment folder required):
+coeval plan --config my.yaml --estimate-samples 0
+
+# 3 sample calls per model for a more accurate estimate:
+coeval plan --config my.yaml --estimate-samples 3
+
+# Estimate remaining work for an already-started experiment:
+coeval plan --config my.yaml --continue --estimate-samples 0
+```
+
+`coeval plan` does not require the experiment folder to already exist (unless `--continue`
+is given), so it can be run against a brand-new config before anything has been created.
+
+### Alternative: estimate via `coeval run`
+
+```bash
+# Run the estimator inline before starting the pipeline, then exit:
+coeval run --config my.yaml --estimate-only --estimate-samples 0
+coeval run --config my.yaml --estimate-only --estimate-samples 3
+
+# Estimate only the remaining work for a partial run:
+coeval run --config my.yaml --estimate-only --continue
+```
+
+### Estimate and then continue with the pipeline
+
+```yaml
+experiment:
+  estimate_cost: true      # run estimator before the pipeline (default: false)
+  estimate_samples: 2      # sample calls per model (default: 2)
+```
+
+### Output
+
+The estimator prints a table like:
+
+```
+Phase               | Calls  | Cost (USD) | Time (min)
+--------------------|--------|------------|----------
+attribute_mapping   |     16 |      $0.03 |        0.7
+rubric_mapping      |     16 |      $0.03 |        0.7
+data_generation     |    200 |      $1.40 |        8.0
+response_collection |    600 |      $0.90 |       15.0
+evaluation          |    600 |      $1.20 |       18.0
+--------------------|--------|------------|----------
+TOTAL               |   1432 |      $3.56 |       42.4
+```
+
+A `cost_estimate.json` file is also written to the experiment folder.
+Batch pricing discounts (50% for `openai` and `anthropic`) are reflected automatically
+in the `Cost (USD)` column when batch mode is enabled.
+
+---
+
+## 12. Label Accuracy for Classification Tasks
+
+For tasks where the correct answer is a **discrete class label** (e.g. sentiment
+analysis, intent classification, named-entity type recognition), CoEval can evaluate
+student responses by **exact label match** instead of calling an LLM judge.
+
+### Config
+
+Add `label_attributes` to the task definition:
+
+```yaml
+tasks:
+  - name: sentiment_analysis
+    description: Classify the sentiment of a product review.
+    output_description: A single word — positive, negative, or neutral.
+    target_attributes:
+      sentiment: [positive, negative, neutral]
+    label_attributes: [sentiment]   # exact-match evaluation; no judge model required
+    sampling:
+      target: [1, 1]
+      total: 30
+    rubric:
+      correctness: "The sentiment label matches the ground-truth label."
+    evaluation_mode: single
+```
+
+**Validation rule V-17** enforces that every key in `label_attributes` must also
+appear as a key in `target_attributes`.
+
+### Student response format
+
+The student may respond in either of two ways:
+
+1. **JSON object:** `{"sentiment": "positive"}`
+2. **Short free text:** `positive` (≤ 60 characters, single line)
+
+If the response cannot be parsed, the score is counted as **skipped** (not incorrect).
+
+### Python API
+
+```python
+from experiments.label_eval import LabelEvaluator
+
+ev = LabelEvaluator(label_attributes=["sentiment"])
+report = ev.evaluate(datapoints, responses)
+# report → {"sentiment": {"accuracy": 0.87, "n_total": 50, "n_matched": 44,
+#            "n_skipped": 3, "per_label": {"positive": {"precision": ..., ...}, ...}}}
+```
+
+---
+
+## 13. Use-Case Examples
+
+### 13.1 First run — everything from scratch
 
 All phases run in `New` mode by default (no `resume_from`, no `phases` overrides).
 
@@ -510,7 +819,7 @@ coeval run --config summarise-v1.yaml
 
 ---
 
-### 9.2 Resume an interrupted run
+### 13.2 Resume an interrupted run
 
 If a run fails (e.g. network error in Phase 4), all already-written artifacts are
 preserved.  Create a new experiment that inherits the completed phases:
@@ -537,7 +846,7 @@ coeval run --config summarise-v2.yaml --resume summarise-v1
 
 ---
 
-### 9.3 Extend an existing dataset
+### 13.3 Extend an existing dataset
 
 Double the number of datapoints per task without discarding the ones already generated:
 
@@ -563,7 +872,7 @@ experiment:
 
 ---
 
-### 9.4 Re-use attributes and rubric; regenerate data only
+### 13.4 Re-use attributes and rubric; regenerate data only
 
 Use stable, trusted attributes from a previous run but generate entirely fresh datapoints:
 
@@ -583,7 +892,7 @@ experiment:
 
 ---
 
-### 9.5 Add a new student model to a finished experiment
+### 13.5 Add a new student model to a finished experiment
 
 Run only Phase 4 (and 5) for a new student, without regenerating anything else:
 
@@ -614,7 +923,7 @@ experiment:
 
 ---
 
-### 9.6 Dry-run / config check
+### 13.6 Dry-run / config check
 
 Validate the config and print the execution plan without making any LLM calls:
 
@@ -630,7 +939,7 @@ Output includes:
 
 ---
 
-### 9.7 Full OpenAI-backend experiment
+### 13.7 Full OpenAI-backend experiment
 
 ```yaml
 models:
@@ -690,7 +999,145 @@ experiment:
 
 ---
 
-## 10. Validation Rules
+### 13.8 Estimate cost before running
+
+```bash
+# Heuristic only — no LLM calls, instant:
+coeval run --config my.yaml --estimate-only --estimate-samples 0
+
+# 3 sample calls per model for a more accurate estimate:
+coeval run --config my.yaml --estimate-only --estimate-samples 3
+```
+
+---
+
+### 13.9 Continue a failed experiment in-place
+
+When a run is interrupted, restart it without changing the experiment ID:
+
+```bash
+coeval run --config my.yaml --continue
+```
+
+CoEval reads `phases_completed` from `meta.json` and skips completed phases automatically.
+Phases 1–2 use `Keep` mode; Phases 3–5 use `Extend` mode (per-record resumption).
+
+---
+
+### 13.10 Sentiment classification with label accuracy
+
+```yaml
+models:
+  - name: gpt4o-teacher
+    interface: openai
+    parameters:
+      model: gpt-4o
+      temperature: 0.7
+      max_tokens: 512
+    roles: [teacher]
+
+  - name: gpt4o-mini-student
+    interface: openai
+    parameters:
+      model: gpt-4o-mini
+      temperature: 0.3
+      max_tokens: 32
+    roles: [student]
+
+tasks:
+  - name: sentiment_analysis
+    description: Classify the sentiment of a product review.
+    output_description: A single word — positive, negative, or neutral.
+    target_attributes:
+      sentiment: [positive, negative, neutral]
+    label_attributes: [sentiment]   # judge-free exact-match evaluation
+    sampling:
+      target: [1, 1]
+      total: 30
+    rubric:
+      correctness: "The predicted sentiment matches the ground-truth label."
+    evaluation_mode: single
+
+experiment:
+  id: sentiment-v1
+  storage_folder: ./eval_runs
+```
+
+No judge model is required — Phase 5 uses exact label matching instead of LLM calls.
+
+---
+
+### 13.11 Two-step workflow: generate design, then run
+
+Separate the attribute/rubric generation step from the execution step so you can
+review and edit the generated values before running the full pipeline.
+
+```bash
+# Step 1 — write a draft config with target_attributes: auto and rubric: auto
+# Step 2 — generate the design file (runs phases 1-2 in a temp directory)
+coeval generate --config draft.yaml --out design.yaml
+
+# Step 3 — review design.yaml; attributes and rubric are now static lists
+# Step 4 — run the full pipeline from the materialized design
+coeval run --config design.yaml
+```
+
+**Draft config snippet** (`draft.yaml`):
+```yaml
+tasks:
+  - name: qa_task
+    description: Answer a factual question with a single sentence.
+    output_description: A single sentence that directly answers the question.
+    target_attributes: auto   # teacher generates the attribute map
+    rubric: auto              # teacher generates the rubric
+    sampling: {target: [1,2], nuance: [0,0], total: 10}
+```
+
+**After `coeval generate`**, the materialized `design.yaml` has:
+```yaml
+tasks:
+  - name: qa_task
+    target_attributes:
+      difficulty: [easy, hard]
+      domain: [science, history]
+    rubric:
+      accuracy: >
+        The answer correctly states the fact asked about.
+      completeness: >
+        The answer addresses all parts of the question.
+    ...
+```
+
+---
+
+### 13.12 Probe models, inspect progress, apply batch results
+
+**Before a run — verify API keys and model access:**
+
+```bash
+coeval probe --config my-experiment.yaml
+```
+
+**During or after a run — inspect progress:**
+
+```bash
+# Show metadata, phase artifact counts, pending batch jobs, and recent errors:
+coeval status --run eval_runs/my-experiment-v1
+
+# Poll batch APIs; for completed jobs, download and apply results to storage:
+coeval status --run eval_runs/my-experiment-v1 --fetch-batches
+
+# Then resume to finish any remaining work:
+coeval run   --config my-experiment.yaml --continue
+```
+
+`coeval status` reads the experiment folder directly — no config file needed.
+Phase 4 and Phase 5 batch results are applied automatically by `--fetch-batches`.
+Phase 3 (data generation) batch results require a subsequent `--continue` run.
+
+---
+
+## 14. Validation Rules
 
 CoEval validates the configuration before any LLM call is made.
 All errors are reported at once; the experiment does not start if any rule is violated.
@@ -702,33 +1149,146 @@ All errors are reported at once; the experiment does not start if any rule is vi
 | V-03 | Task names must be unique |
 | V-04 | Model names match `[A-Za-z0-9._-]` and must not contain `__`; task names match `[A-Za-z0-9_-]`; experiment ID matches `[A-Za-z0-9._-]` |
 | V-05 | Every model must have at least one valid role (`teacher`, `student`, `judge`) |
-| V-06 | Every model's `interface` must be `openai` or `huggingface` |
-| V-07 | At least one model must be a `student`; at least one must be a `judge`; if any task uses `auto`/`complete` attributes or `auto`/`extend` rubric, at least one model must be a `teacher` |
+| V-06 | Every model's `interface` must be one of: `openai`, `anthropic`, `gemini`, `huggingface`, `azure_openai`, `bedrock`, `vertex` |
+| V-07 | At least one model must be a `student`; at least one must be a `judge` (unless all tasks use `label_attributes`); if any task uses `auto`/`complete` attributes or `auto`/`extend` rubric, at least one model must be a `teacher` |
 | V-08 | `Model` mode is not permitted for Phase 1 (`attribute_mapping`) or Phase 2 (`rubric_mapping`) |
 | V-09 | `rubric: extend` requires `experiment.resume_from` to be set |
 | V-10 | If `resume_from` is set, the source experiment folder must exist in `storage_folder` |
-| V-11 | For a new experiment (no `resume_from`), the target folder must not already exist — use a different ID or set `resume_from` to continue an existing run |
+| V-11 | For a new experiment (no `resume_from`), the target folder must not already exist — use a different ID or `--continue` to restart an interrupted run |
+| V-12 | `generation_retries` must be >= 0 if specified |
+| V-13 | `experiment.batch.phases` must be a subset of `[3, 4, 5]` |
+| V-14 | `--continue` requires an existing `meta.json` in the experiment folder |
+| V-15 | `experiment.probe_mode` must be `disable`, `full`, or `resume` |
+| V-16 | `experiment.probe_on_fail` must be `abort` or `warn` |
+| V-17 | Every key in `label_attributes` must also be present as a key in `target_attributes` |
 
 ---
 
-## 11. CLI Reference
+## 15. CLI Reference
+
+> **Full option listing:** see [`docs/cli_reference.md`](cli_reference.md) for tables of
+> every option, exit code, and example for every subcommand.
+
+### Subcommand summary
+
+| Subcommand | Purpose |
+|------------|---------|
+| `coeval run` | Execute an evaluation experiment (all five pipeline phases) |
+| `coeval probe` | Test model availability without starting any experiment phases |
+| `coeval plan` | Estimate cost and runtime without starting any experiment phases |
+| `coeval status` | Show experiment progress and pending batch job status |
+| `coeval generate` | Run phases 1–2 and write a materialized YAML ready for `coeval run` |
+| `coeval models` | List available text-generation models from each configured provider |
+| `coeval analyze` | Analyze an experiment folder and generate reports |
+
+### `coeval run` — key options
 
 ```
 coeval run --config PATH [options]
 
-Options:
-  --config PATH          Path to the YAML configuration file (required)
-  --resume EXPERIMENT_ID Override experiment.resume_from from the command line
-  --dry-run              Validate config and print the execution plan; make no LLM calls
-  --log-level LEVEL      Override the log level (DEBUG | INFO | WARNING | ERROR)
+  --config PATH          Required; path to the YAML configuration file
+  --resume ID            Override experiment.resume_from from the command line
+  --continue             Resume a failed/interrupted run in-place (requires meta.json)
+  --only-models IDS      Comma-separated model IDs to activate; all others skipped
+  --dry-run              Validate config and print plan; make no LLM calls
+  --probe MODE           Probe scope: full (default) | resume | disable
+  --probe-on-fail MODE   On unavailable model: abort (default) | warn
+  --estimate-only        Run estimator, print table, write cost_estimate.json, then exit
+  --estimate-samples N   Sample calls per model (default 2; 0 = heuristics only)
+  --log-level LEVEL      DEBUG | INFO | WARNING | ERROR
 ```
 
-The execution plan is always printed before the run starts (even without `--dry-run`).
+The execution plan is always printed before the run starts.
 Log output is written to both stdout and `{storage_folder}/{experiment_id}/run.log`.
+
+**CLI flag precedence:** CLI flags always override their YAML config equivalents
+(`--probe` overrides `experiment.probe_mode`, `--estimate-samples` overrides
+`experiment.estimate_samples`, `--log-level` overrides `experiment.log_level`).
+
+### `coeval probe` — standalone model check
+
+```
+coeval probe --config PATH [--probe MODE] [--probe-on-fail MODE] [--log-level LEVEL]
+```
+
+Exit codes: 0 = all models available, 1 = config error, 2 = model unavailable + `abort`.
+
+### `coeval plan` — standalone cost estimation
+
+```
+coeval plan --config PATH [--continue] [--estimate-samples N] [--log-level LEVEL]
+```
+
+Does not require the experiment folder to exist (unless `--continue` is given).
+
+### `coeval status` — experiment dashboard
+
+```
+coeval status --run PATH [--fetch-batches]
+```
+
+Takes the experiment **folder path** (not a config file). `--fetch-batches` polls
+provider APIs and applies completed Phase 4/5 batch results automatically.
+
+### `coeval generate` — design then run
+
+```
+coeval generate --config PATH --out PATH [--probe MODE] [--probe-on-fail MODE]
+                [--log-level LEVEL] [--keys PATH]
+```
+
+Runs phases 1–2 in a temporary directory; writes a materialized YAML where all
+`auto`/`complete`/`extend` values are replaced by generated static data.
+Review and edit `--out`, then pass it to `coeval run`.
+
+### `coeval models` — list accessible models
+
+```
+coeval models [--providers LIST] [--verbose] [--keys PATH]
+```
+
+Queries each provider's model-listing endpoint and prints accessible models.
+Credentials are resolved from the provider key file or environment variables.
+
+### Provider key file (`--keys PATH`)
+
+All config-consuming subcommands accept `--keys PATH` to point at a YAML file
+storing provider credentials (default: `~/.coeval/keys.yaml`).  Credentials in
+the file act as fallbacks after model-level `access_key` values in the YAML.
 
 ---
 
-## 12. Frequently Asked Questions
+## 16. Frequently Asked Questions
+
+### New Subcommands (probe / plan / status)
+
+**Q: When should I use `coeval probe` instead of just running with `--probe`?**
+> Use `coeval probe` to verify API keys and model access *before* you commit to a full
+> run — especially if the experiment would take hours or incur significant cost.  It runs
+> the same lightweight availability check but exits immediately after printing results,
+> without creating any experiment folder or consuming any pipeline quota.
+
+**Q: What is the difference between `coeval plan` and `coeval run --estimate-only`?**
+> Both call the same cost estimator and print the same table.  `coeval plan` is the
+> preferred standalone command: it suppresses folder-existence validation, so you can
+> use it against a new config before the experiment folder exists.  `coeval run
+> --estimate-only` is the inline version — useful when you want to check cost and then
+> immediately start the run.
+
+**Q: What does `coeval status` show?**
+> It reads the experiment folder directly (no config file needed) and prints:
+> (1) experiment metadata (ID, status, creation time, completed and in-progress phases),
+> (2) file and JSONL record counts per phase,
+> (3) pending batch jobs (IDs, phase, request count, last-known status), and
+> (4) the last 10 entries from `run_errors.jsonl`.
+
+**Q: My batch job finished but the results aren't in the experiment folder.  How do I apply them?**
+> Run `coeval status --run <path> --fetch-batches`.  This polls the OpenAI/Anthropic
+> APIs for all tracked batch jobs, downloads results for completed jobs, and writes them
+> into the Phase 4 or Phase 5 JSONL files automatically.  Phase 3 batch results cannot
+> be reconstructed automatically — the command will notify you to re-run with `--continue`.
+
+---
 
 ### Setup and Installation
 
@@ -750,16 +1310,21 @@ Log output is written to both stdout and `{storage_folder}/{experiment_id}/run.l
 ### Running Experiments
 
 **Q: The experiment fails with "Experiment folder already exists".**
-> This is validation rule V-11.  Either (a) choose a new `experiment.id`, or (b) set
-> `resume_from: <your-existing-id>` to continue the interrupted run.
+> This is validation rule V-11.  Either (a) choose a new `experiment.id`, (b) set
+> `resume_from: <your-existing-id>` to inherit Phase 1–2 artifacts from a prior run,
+> or (c) use `--continue` to restart the same experiment in-place.
 
 **Q: Can I run the same config twice?**
-> Not with the same `experiment.id`.  Change the ID for each fresh run, or use
-> `resume_from` to continue an existing one.
+> Not with the same `experiment.id` unless you use `--continue`.  Change the ID for
+> each fresh run, or use `--continue` to resume an interrupted one.
 
 **Q: The run stopped halfway through Phase 4.  How do I continue from where it left off?**
-> Create a new config with a new `experiment.id`, set `resume_from` to the failed
-> experiment's ID, and set the appropriate phase modes:
+> Option A (recommended for interrupted runs): use `--continue`:
+> ```bash
+> coeval run --config my.yaml --continue
+> ```
+> Option B (new experiment ID): create a new config with `resume_from` pointing to the
+> old experiment and set phase modes manually:
 > ```yaml
 > phases:
 >   attribute_mapping:   Keep
@@ -767,6 +1332,21 @@ Log output is written to both stdout and `{storage_folder}/{experiment_id}/run.l
 >   data_generation:     Keep
 >   response_collection: Extend   # generates only missing responses
 >   evaluation:          Extend
+> ```
+
+**Q: How do I get a cost estimate in USD before running?**
+> Use `--estimate-only`:
+> ```bash
+> coeval run --config my.yaml --estimate-only
+> ```
+> This prints a cost table per phase and writes `cost_estimate.json`, then exits.
+> Add `--estimate-samples 0` to use heuristics only (no real LLM calls).
+
+**Q: The model probe fails for one of my models.  Can I skip just that model?**
+> Run with `--probe-on-fail warn`.  CoEval will log the failure and continue with
+> the remaining models:
+> ```bash
+> coeval run --config my.yaml --probe-on-fail warn
 > ```
 
 **Q: What is `--dry-run` useful for?**
@@ -838,7 +1418,32 @@ Log output is written to both stdout and `{storage_folder}/{experiment_id}/run.l
 > This usually means the model is not following the JSON output format (`single` mode)
 > or the one-word instruction (`per_factor` mode).  Try a larger judge model, add a
 > model-specific `prompt_library` override for `evaluate_single` or `evaluate_per_factor`,
-> or switch to `per_factor` mode which has a simpler output format.
+> switch to `per_factor` mode (simpler output format), or ensure `max_new_tokens` /
+> `max_tokens` is at least 256 for `single` mode judge calls.
+
+**Q: When should I use `label_attributes` instead of an LLM judge?**
+> Use `label_attributes` for tasks with a finite, known set of correct answers
+> (classification, tagging, intent detection).  Label evaluation is deterministic,
+> costs nothing, and is much faster than judge calls.  For open-ended generation
+> tasks (summarisation, translation, code generation), use an LLM judge.
+
+**Q: Does `label_attributes` require a judge model?**
+> No.  When all rubric factors for a task are covered by `label_attributes`, no judge
+> model is invoked for that task.  You can omit the `judge` role from the model list
+> entirely if every task in the experiment uses label-based evaluation.
+
+---
+
+### Batch Processing
+
+**Q: How much cheaper is batch processing?**
+> For `openai` and `anthropic` models, the Batch API offers a **50% per-token
+> discount**.  The `gemini` pseudo-batch interface provides no discount — it simply
+> paces requests to avoid rate limits.  HuggingFace models do not support batching.
+
+**Q: How long does a batch job take?**
+> OpenAI and Anthropic guarantee results within 24 hours, but typical turnaround is
+> 1–4 hours.  CoEval polls automatically and resumes the pipeline when results arrive.
 
 ---
 

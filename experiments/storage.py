@@ -19,6 +19,7 @@ class ExperimentStorage:
 
     def __init__(self, storage_folder: str, experiment_id: str) -> None:
         self.root = Path(storage_folder) / experiment_id
+        self.run_path = self.root  # alias used by probe / cost_estimator
         self.phase1 = self.root / 'phase1_attributes'
         self.phase2 = self.root / 'phase2_rubric'
         self.phase3 = self.root / 'phase3_datapoints'
@@ -195,7 +196,8 @@ class ExperimentStorage:
     def get_responded_datapoint_ids(
         self, task_id: str, teacher_id: str, student_id: str
     ) -> set[str]:
-        return {r['datapoint_id'] for r in self.read_responses(task_id, teacher_id, student_id)}
+        return {r['datapoint_id'] for r in self.read_responses(task_id, teacher_id, student_id)
+                if r.get('status') != 'failed'}
 
     # ------------------------------------------------------------------
     # Phase 5 — evaluations
@@ -222,7 +224,105 @@ class ExperimentStorage:
     def get_evaluated_response_ids(
         self, task_id: str, teacher_id: str, judge_id: str
     ) -> set[str]:
-        return {e['response_id'] for e in self.read_evaluations(task_id, teacher_id, judge_id)}
+        return {e['response_id'] for e in self.read_evaluations(task_id, teacher_id, judge_id)
+                if e.get('status') != 'failed'}
+
+    # ------------------------------------------------------------------
+    # Run-level error log
+    # ------------------------------------------------------------------
+
+    @property
+    def run_errors_path(self) -> Path:
+        return self.root / 'run_errors.jsonl'
+
+    def append_run_error(self, record: dict) -> None:
+        """Append a slot-level or item-level failure record to run_errors.jsonl.
+
+        Each record must contain at minimum:
+          phase (str), status='failed', error (str), timestamp (str)
+        Optional fields: task, teacher, model, role.
+
+        The file is created on first write.  The runner and validator both
+        read this file to produce failure summaries without needing to scan
+        all phase JSONL files.
+        """
+        self._append_jsonl(self.run_errors_path, {'status': 'failed', **record})
+
+    def read_run_errors(self) -> list[dict]:
+        """Return all records from run_errors.jsonl (empty list if not created yet)."""
+        return self._read_jsonl(self.run_errors_path)
+
+    # ------------------------------------------------------------------
+    # Pending batch jobs  (for coeval status --fetch-batches)
+    # ------------------------------------------------------------------
+
+    @property
+    def pending_batches_path(self) -> Path:
+        return self.root / 'pending_batches.json'
+
+    def add_pending_batch(
+        self,
+        batch_id: str,
+        interface: str,
+        phase: str,
+        description: str,
+        n_requests: int,
+        id_to_key: dict[str, str],
+    ) -> None:
+        """Record a submitted batch job so ``coeval status`` can track it.
+
+        Called by batch runners immediately after a batch job is created at the
+        API (before polling starts), so a crash during polling still leaves a
+        traceable record.
+
+        Args:
+            batch_id:    Provider-assigned batch job ID (e.g. ``"batch_abc…"``).
+            interface:   ``"openai"`` or ``"anthropic"``.
+            phase:       Phase that submitted the job (e.g. ``"evaluation"``).
+            description: Human-readable label used as the batch job description.
+            n_requests:  Number of requests in this batch.
+            id_to_key:   Mapping from compact request IDs (``"r0"``, ``"r1"``, …)
+                         to the caller's opaque user-keys (batch_keys).  Persisted
+                         so ``status --fetch-batches`` can correlate downloaded
+                         results with experiment artifacts.
+        """
+        data = self._read_json(self.pending_batches_path) if self.pending_batches_path.exists() else {}
+        data[batch_id] = {
+            'interface':   interface,
+            'phase':       phase,
+            'description': description,
+            'submitted_at': _now_iso(),
+            'n_requests':  n_requests,
+            'id_to_key':   id_to_key,
+            'status':      'pending',
+        }
+        self._write_json(self.pending_batches_path, data)
+
+    def remove_pending_batch(self, batch_id: str) -> None:
+        """Remove a completed batch job record (called after results are saved)."""
+        if not self.pending_batches_path.exists():
+            return
+        data = self._read_json(self.pending_batches_path)
+        data.pop(batch_id, None)
+        if data:
+            self._write_json(self.pending_batches_path, data)
+        else:
+            self.pending_batches_path.unlink(missing_ok=True)
+
+    def update_pending_batch_status(self, batch_id: str, status: str) -> None:
+        """Update the ``status`` field of a tracked batch job record."""
+        if not self.pending_batches_path.exists():
+            return
+        data = self._read_json(self.pending_batches_path)
+        if batch_id in data:
+            data[batch_id]['status'] = status
+            self._write_json(self.pending_batches_path, data)
+
+    def read_pending_batches(self) -> dict[str, dict]:
+        """Return all pending batch records keyed by batch_id."""
+        if not self.pending_batches_path.exists():
+            return {}
+        return self._read_json(self.pending_batches_path)
 
     # ------------------------------------------------------------------
     # Low-level helpers

@@ -11,22 +11,26 @@ enough to fix bugs, add new phases, or add a new model backend.
 1. [Repository Layout](#1-repository-layout)
 2. [Architecture Overview](#2-architecture-overview)
 3. [Module Reference](#3-module-reference)
-   - 3.1 [`coeval/config.py`](#31-coevalconfigpy)
-   - 3.2 [`coeval/storage.py`](#32-coevalstorepy)
-   - 3.3 [`coeval/prompts.py`](#33-coevalpromptsspy)
-   - 3.4 [`coeval/logger.py`](#34-coevalloggerpy)
-   - 3.5 [`coeval/runner.py`](#35-coevalrunnerpy)
-   - 3.6 [`coeval/cli.py`](#36-coevalclipy)
-   - 3.7 [`coeval/interfaces/base.py`](#37-coevalinterfacesbasepy)
-   - 3.8 [`coeval/interfaces/openai_iface.py`](#38-coevalinterfacesopenai_ifacepy)
-   - 3.9 [`coeval/interfaces/huggingface_iface.py`](#39-coevalinterfaceshuggingface_ifacepy)
-   - 3.10 [`coeval/interfaces/pool.py`](#310-coevalinterfacespoolpy)
-   - 3.11 [`coeval/phases/utils.py`](#311-coevalphasesutispy)
-   - 3.12 [`coeval/phases/phase1.py`](#312-coevalphases_phase1py)
-   - 3.13 [`coeval/phases/phase2.py`](#313-coevalphases_phase2py)
-   - 3.14 [`coeval/phases/phase3.py`](#314-coevalphases_phase3py)
-   - 3.15 [`coeval/phases/phase4.py`](#315-coevalphases_phase4py)
-   - 3.16 [`coeval/phases/phase5.py`](#316-coevalphases_phase5py)
+   - 3.1 [`experiments/config.py`](#31-experimentsconfigpy)
+   - 3.2 [`experiments/storage.py`](#32-experimentsstoragepy)
+   - 3.3 [`experiments/prompts.py`](#33-experimentspromptspy)
+   - 3.4 [`experiments/logger.py`](#34-experimentsloggerpy)
+   - 3.5 [`experiments/runner.py`](#35-experimentsrunnerpy)
+   - 3.6 [`experiments/cli.py`](#36-experimentsclipy)
+   - 3.7 [`experiments/commands/`](#37-experimentscommands)
+   - 3.8 [`experiments/label_eval.py`](#38-experimentslabel_evalpy)
+   - 3.9 [`experiments/interfaces/base.py`](#39-experimentsinterfacesbasepy)
+   - 3.10 [`experiments/interfaces/openai_iface.py`](#310-experimentsinterfacesopenai_ifacepy)
+   - 3.11 [`experiments/interfaces/anthropic_iface.py`](#311-experimentsinterfacesanthropic_ifacepy)
+   - 3.12 [`experiments/interfaces/gemini_iface.py`](#312-experimentsinterfacesgemini_ifacepy)
+   - 3.13 [`experiments/interfaces/huggingface_iface.py`](#313-experimentsinterfaceshuggingface_ifacepy)
+   - 3.14 [`experiments/interfaces/openai_batch.py`](#314-experimentsinterfacesopenai_batchpy)
+   - 3.15 [`experiments/interfaces/anthropic_batch.py`](#315-experimentsinterfacesanthropic_batchpy)
+   - 3.16 [`experiments/interfaces/probe.py`](#316-experimentsinterfacesprobepy)
+   - 3.17 [`experiments/interfaces/cost_estimator.py`](#317-experimentsinterfacescost_estimatorpy)
+   - 3.18 [`experiments/interfaces/pool.py`](#318-experimentsinterfacespoolpy)
+   - 3.19 [`experiments/phases/utils.py`](#319-experimentsphasesutispy)
+   - 3.20–3.24 `experiments/phases/phase{1–5}.py`
 4. [Data Flow Walkthrough](#4-data-flow-walkthrough)
 5. [ID Naming Convention](#5-id-naming-convention)
 6. [Error Handling Strategy](#6-error-handling-strategy)
@@ -34,68 +38,81 @@ enough to fix bugs, add new phases, or add a new model backend.
 8. [Adding a New Phase](#8-adding-a-new-phase)
 9. [Testing](#9-testing)
 10. [Frequently Asked Questions](#10-frequently-asked-questions)
-   - 3.8 [`coeval/interfaces/openai_iface.py`](#38-coevalinterfacesopenai_ifacepy)
-   - 3.9 [`coeval/interfaces/huggingface_iface.py`](#39-coevalinterfaceshuggingface_ifacepy)
-   - 3.10 [`coeval/interfaces/pool.py`](#310-coevalinterfacespoolpy)
-   - 3.11 [`coeval/phases/utils.py`](#311-coevalphasesutispy)
-   - 3.12 [`coeval/phases/phase1.py`](#312-coevalphases_phase1py)
-   - 3.13 [`coeval/phases/phase2.py`](#313-coevalphases_phase2py)
-   - 3.14 [`coeval/phases/phase3.py`](#314-coevalphases_phase3py)
-   - 3.15 [`coeval/phases/phase4.py`](#315-coevalphases_phase4py)
-   - 3.16 [`coeval/phases/phase5.py`](#316-coevalphases_phase5py)
-4. [Data Flow Walkthrough](#4-data-flow-walkthrough)
-5. [ID Naming Convention](#5-id-naming-convention)
-6. [Error Handling Strategy](#6-error-handling-strategy)
-7. [Adding a New Model Backend](#7-adding-a-new-model-backend)
-8. [Adding a New Phase](#8-adding-a-new-phase)
-9. [Testing](#9-testing)
 
 ---
 
 ## 1. Repository Layout
 
 ```
-coeval/
+experiments/                     ← main pipeline package (experiments.* namespace)
 ├── __init__.py
-├── cli.py                   # CLI entry point (coeval run ...)
-├── config.py                # Config dataclasses, YAML loading, validation V-01..V-11
-├── logger.py                # RunLogger: timestamped log to file + console
-├── prompts.py               # Canonical prompt templates + resolution logic
-├── runner.py                # Orchestrator: iterates phases, manages storage/logger/pool
-├── storage.py               # ExperimentStorage: all filesystem I/O
+├── cli.py                       # CLI entry point (coeval run/probe/plan/status/analyze)
+├── config.py                    # Config dataclasses, YAML loading, validation V-01..V-17
+├── logger.py                    # RunLogger: timestamped log to file + console
+├── prompts.py                   # Canonical prompt templates + resolution logic
+├── runner.py                    # Orchestrator: iterates phases, manages storage/logger/pool
+├── storage.py                   # ExperimentStorage: all filesystem I/O
+├── label_eval.py                # LabelEvaluator: exact-match evaluation for classification tasks
+│
+├── commands/                    # Standalone CLI command implementations
+│   ├── __init__.py
+│   ├── probe_cmd.py             # coeval probe — standalone model availability probe
+│   ├── plan_cmd.py              # coeval plan — standalone cost/time estimation
+│   └── status_cmd.py           # coeval status — experiment dashboard + batch fetching
 │
 ├── interfaces/
-│   ├── __init__.py          # Re-exports ModelInterface and ModelPool
-│   ├── base.py              # Abstract ModelInterface
-│   ├── openai_iface.py      # OpenAI Chat Completions backend
-│   ├── huggingface_iface.py # HuggingFace transformers.pipeline backend
-│   └── pool.py              # ModelPool: lazy-load + cache interfaces
+│   ├── __init__.py              # Re-exports ModelInterface and ModelPool
+│   ├── base.py                  # Abstract ModelInterface
+│   ├── openai_iface.py          # OpenAI Chat Completions backend
+│   ├── anthropic_iface.py       # Anthropic Messages backend
+│   ├── gemini_iface.py          # Google Gemini backend
+│   ├── huggingface_iface.py     # HuggingFace transformers.pipeline backend
+│   ├── openai_batch.py          # OpenAI Batch API submit + poll + apply helpers
+│   ├── anthropic_batch.py       # Anthropic Message Batches submit + poll + apply helpers
+│   ├── probe.py                 # run_probe(): lightweight model availability check
+│   ├── cost_estimator.py        # estimate_experiment_cost(), PRICE_TABLE
+│   └── pool.py                  # ModelPool: lazy-load + cache interfaces
 │
-└── phases/
-    ├── __init__.py
-    ├── utils.py             # Shared helpers: _extract_json, call_llm_json/word, mergers, QuotaTracker
-    ├── phase1.py            # Attribute mapping
-    ├── phase2.py            # Rubric mapping
-    ├── phase3.py            # Data generation
-    ├── phase4.py            # Response collection
-    └── phase5.py            # Evaluation
+├── phases/
+│   ├── __init__.py
+│   ├── utils.py                 # Shared helpers: _extract_json, call_llm_json/word, mergers, QuotaTracker
+│   ├── phase1.py                # Attribute mapping
+│   ├── phase2.py                # Rubric mapping
+│   ├── phase3.py                # Data generation
+│   ├── phase4.py                # Response collection
+│   └── phase5.py                # Evaluation
+│
+└── tests/                       # Unit tests (pytest, no network/GPU required)
+    ├── test_config.py
+    ├── test_storage.py
+    ├── test_prompts.py
+    ├── test_utils.py
+    ├── test_phase4_phase5.py
+    ├── test_label_eval.py
+    ├── test_probe_and_estimator.py
+    └── test_commands.py
 
-experiments/
-├── prompt_format_test.py    # Standalone experiment: tests 7 prompt strategies × 5 models
-└── results.json             # Output of the prompt format experiment
+analysis/                        ← analysis & reporting package (analysis.* namespace)
+├── main.py                      # run_analyze() entry point for coeval analyze
+├── reports/                     # HTML report generators
+├── paper_tables.py              # LaTeX/CSV table generators for paper
+└── tests/                       # Analysis unit tests
 
-examples/
-└── local_smoke_test.yaml    # Reference config for 5 local HuggingFace models
-
-tests/
-├── test_config.py           # V-01..V-11 validation, role-parameter merge, phase mode defaults
-├── test_storage.py          # ExperimentStorage round-trips, meta lifecycle, resume copy
-├── test_prompts.py          # Prompt resolution order, all 6 template IDs, variable substitution
-└── test_utils.py            # JSON extraction, extract_prompt_response, merge helpers, QuotaTracker
+benchmark/                       ← benchmark configs, loaders, and runs
+├── loaders/                     # XSum, CodeSearchNet, AESLC, WikiTableQuestions
+├── emit_datapoints.py           # CLI: emit Phase 3 JSONL from datasets
+├── compute_scores.py            # Populates benchmark_native_score in Phase 3 JSONL
+├── configs/                     # attribute_map YAMLs per benchmark
+├── paper_benchmarks.yaml        # Full paper validation config
+└── medium_benchmark.yaml        # Medium experiment config
 
 docs/
-├── running_experiments.md   # User/operator manual
-└── developer_guide.md       # This file
+├── cli_reference.md             # Complete CLI option reference (all subcommands)
+├── running_experiments.md       # User/operator manual
+└── developer_guide.md           # This file
+
+examples/
+└── local_smoke_test.yaml        # Reference config for local HuggingFace models
 ```
 
 ---
@@ -104,27 +121,32 @@ docs/
 
 ```
 CLI (cli.py)
-  └─► load_config()  ─►  validate_config()
-         │
-         ▼
-    CoEvalConfig  ──────────────────────────────────────────────────┐
-         │                                                           │
-         ▼                                                           │
-   run_experiment() [runner.py]                                      │
-         │                                                           │
-         ├─ ExperimentStorage.initialize()  [storage.py]            │
-         ├─ RunLogger()                     [logger.py]             │
-         ├─ ModelPool()                     [interfaces/pool.py]    │
-         ├─ QuotaTracker()                  [phases/utils.py]       │
-         │                                                           │
-         └─ for phase_id in PHASE_IDS:                              │
-               runner(cfg, storage, logger, pool, quota, mode)  ────┘
-                 │
-                 ├─ Phase 1: run_phase1()   reads cfg, writes phase1_attributes/
-                 ├─ Phase 2: run_phase2()   reads cfg, writes phase2_rubric/
-                 ├─ Phase 3: run_phase3()   reads phase1 artifacts, writes phase3_datapoints/
-                 ├─ Phase 4: run_phase4()   reads phase3 artifacts, writes phase4_responses/
-                 └─ Phase 5: run_phase5()   reads phase2/3/4 artifacts, writes phase5_evaluations/
+  ├─► coeval run   → load_config() → validate_config() → run_experiment()
+  ├─► coeval probe → commands/probe_cmd.py → run_probe()
+  ├─► coeval plan  → commands/plan_cmd.py  → estimate_experiment_cost()
+  ├─► coeval status→ commands/status_cmd.py → reads experiment folder directly
+  └─► coeval analyze → analysis/main.py → run_analyze()
+
+run_experiment() [runner.py]
+  │
+  ├─ ExperimentStorage.initialize()  [storage.py]
+  ├─ RunLogger()                     [logger.py]
+  ├─ ModelPool()                     [interfaces/pool.py]
+  ├─ QuotaTracker()                  [phases/utils.py]
+  ├─ run_probe()                     [interfaces/probe.py]      (pre-flight check)
+  ├─ estimate_experiment_cost()      [interfaces/cost_estimator.py]  (optional)
+  │
+  └─ for phase_id in PHASE_IDS:
+        runner(cfg, storage, logger, pool, quota, mode)
+          │
+          ├─ Phase 1: run_phase1()   reads cfg, writes phase1_attributes/
+          ├─ Phase 2: run_phase2()   reads cfg, writes phase2_rubric/
+          ├─ Phase 3: run_phase3()   reads phase1 artifacts, writes phase3_datapoints/
+          │             batch path: openai_batch.py / anthropic_batch.py
+          ├─ Phase 4: run_phase4()   reads phase3 artifacts, writes phase4_responses/
+          │             batch path: openai_batch.py / anthropic_batch.py
+          └─ Phase 5: run_phase5()   reads phase2/3/4 artifacts, writes phase5_evaluations/
+                        batch path: openai_batch.py / anthropic_batch.py
 ```
 
 Every phase function has the same signature:
@@ -147,9 +169,9 @@ new phases without changing the orchestrator.
 
 ## 3. Module Reference
 
-### 3.1 `coeval/config.py`
+### 3.1 `experiments/config.py`
 
-**Purpose:** Parse the YAML config into typed dataclasses and enforce all 11 validation rules.
+**Purpose:** Parse the YAML config into typed dataclasses and enforce all 17 validation rules.
 
 #### Dataclasses
 
@@ -163,43 +185,51 @@ CoEvalConfig
 
 | Class | Key fields |
 |-------|-----------|
-| `ModelConfig` | `name`, `interface`, `parameters`, `roles`, `access_key`, `role_parameters` |
-| `TaskConfig` | `name`, `description`, `output_description`, `target_attributes`, `nuanced_attributes`, `sampling`, `rubric`, `evaluation_mode`, `prompt_library` |
+| `ModelConfig` | `name`, `interface`, `parameters`, `roles`, `access_key`, `role_parameters`, `batch_enabled` |
+| `TaskConfig` | `name`, `description`, `output_description`, `target_attributes`, `nuanced_attributes`, `sampling`, `rubric`, `evaluation_mode`, `prompt_library`, `label_attributes` |
 | `SamplingConfig` | `target` ([min,max] or "all"), `nuance` ([min,max]), `total` |
-| `ExperimentConfig` | `id`, `storage_folder`, `resume_from`, `phases`, `log_level`, `quota` |
+| `ExperimentConfig` | `id`, `storage_folder`, `resume_from`, `phases`, `log_level`, `quota`, `probe_mode`, `probe_on_fail`, `estimate_cost`, `estimate_samples` |
 
 #### Key functions
 
 **`load_config(path: str) -> CoEvalConfig`**
 Opens the YAML file, calls `_parse_config()`, stores the raw dict in `cfg._raw`, returns the config.
 
-**`validate_config(cfg: CoEvalConfig) -> list[str]`**
-Applies rules V-01 through V-11.  Returns a list of error strings (empty = valid).
+**`validate_config(cfg, continue_in_place=False, _skip_folder_validation=False) -> list[str]`**
+Applies rules V-01 through V-17.  Returns a list of error strings (empty = valid).
 Does **not** raise; the caller (CLI or tests) decides what to do with errors.
 
+- `continue_in_place=True`: suppresses V-11 (folder must not exist); activates V-14
+  (folder must already have `meta.json`).
+- `_skip_folder_validation=True`: suppresses both V-11 and V-14; used by standalone
+  commands (`coeval probe`, `coeval plan` without `--continue`) that are
+  folder-state-agnostic.
+
 **`CoEvalConfig.get_models_by_role(role: str) -> list[ModelConfig]`**
-Returns all models that have the given role.  Used by every phase to find teachers/students/judges.
+Returns all models that have the given role.  Used by every phase.
 
 **`CoEvalConfig.get_phase_mode(phase_id: str) -> str`**
-Returns the mode for a phase, defaulting to `'New'` for fresh experiments or `'Keep'` when `resume_from` is set.
+Returns the configured mode for a phase, defaulting to `'New'` for fresh experiments
+or `'Keep'` when `resume_from` is set.
 
 **`ModelConfig.get_parameters_for_role(role: str) -> dict`**
 Returns base `parameters` merged with `role_parameters[role]`.
-Called just before every LLM call so each role gets its own temperature, token limit, etc.
 
 #### Constants
 
 ```python
-VALID_ROLES      = {'student', 'teacher', 'judge'}
-VALID_INTERFACES = {'openai', 'huggingface'}
-VALID_PHASE_MODES = {'New', 'Keep', 'Extend', 'Model'}
+VALID_ROLES            = {'student', 'teacher', 'judge'}
+VALID_INTERFACES       = {'openai', 'anthropic', 'gemini', 'huggingface'}
+VALID_PHASE_MODES      = {'New', 'Keep', 'Extend', 'Model'}
+VALID_PROBE_MODES      = {'disable', 'full', 'resume'}
+VALID_PROBE_FAIL_MODES = {'abort', 'warn'}
 PHASE_IDS = ['attribute_mapping', 'rubric_mapping', 'data_generation',
              'response_collection', 'evaluation']
 ```
 
 ---
 
-### 3.2 `coeval/storage.py`
+### 3.2 `experiments/storage.py`
 
 **Purpose:** All filesystem I/O for one experiment.  Phases never touch the disk directly;
 they call `ExperimentStorage` methods.
@@ -207,14 +237,18 @@ they call `ExperimentStorage` methods.
 #### Class `ExperimentStorage`
 
 Constructor: `ExperimentStorage(storage_folder: str, experiment_id: str)`
-Sets `self.root = Path(storage_folder) / experiment_id` and computes all sub-paths.
+Sets `self.root = self.run_path = Path(storage_folder) / experiment_id` and computes
+all sub-paths (`phase1`, `phase2`, …, `phase5`).
 
-**`initialize(config_raw, resume_from_id=None, source_storage_folder=None)`**
+**`initialize(config_raw, resume_from_id=None, source_storage_folder=None, continue_in_place=False)`**
 Creates the full folder tree (`phase1_attributes/` … `phase5_evaluations/`), writes
-`config.yaml` (snapshot), writes `meta.json` with status `in_progress`.
-If `resume_from_id` is given, copies Phase 1 and Phase 2 artifact files from the
-source experiment into the new experiment's folders.
-Raises `FileExistsError` if the target root already exists.
+`config.yaml` (snapshot) and `meta.json` with status `in_progress`.
+
+- If `resume_from_id` is given, copies Phase 1 and Phase 2 artifact files from the
+  source experiment into the new experiment's folders.
+- If `continue_in_place=True`, uses `exist_ok=True` for all `mkdir` calls and **skips**
+  overwriting `config.yaml` and `meta.json` — existing data is preserved intact.
+- Raises `FileExistsError` if the target root already exists **and** `continue_in_place=False`.
 
 **Phase 1 methods**
 | Method | Description |
@@ -244,7 +278,7 @@ Raises `FileExistsError` if the target root already exists.
 |--------|-------------|
 | `append_response(task_id, teacher_id, student_id, record)` | Append |
 | `read_responses(...)` | Read all |
-| `iter_response_files(task_id, teacher_id)` | Yield all JSONL paths for a (task, teacher) pair (one per student) |
+| `iter_response_files(task_id, teacher_id)` | Yield all JSONL paths for a (task, teacher) pair |
 | `response_file_exists(task_id, teacher_id, student_id)` | Path existence check |
 | `get_responded_datapoint_ids(...)` | `set[str]` of `datapoint_id` values already in the file |
 
@@ -256,9 +290,22 @@ Raises `FileExistsError` if the target root already exists.
 | `evaluation_file_exists(...)` | Path existence check |
 | `get_evaluated_response_ids(...)` | `set[str]` of `response_id` values already evaluated |
 
-**`update_meta(phase_started, phase_completed, status)`**
+**`update_meta(phase_started=None, phase_completed=None, status=None)`**
 Reads, mutates, and rewrites `meta.json`.  Keeps `phases_in_progress` and
 `phases_completed` lists accurate throughout the run.
+
+**`read_meta() -> dict`**
+Reads and returns the full `meta.json` dict.  Used by `--continue` mode and
+`coeval status` to determine which phases are already done.
+
+**Batch tracking methods**
+| Method | Description |
+|--------|-------------|
+| `write_pending_batch(batch_id, record)` | Append/update entry in `pending_batches.json` |
+| `read_pending_batches() -> dict` | Read all tracked batch jobs |
+| `remove_pending_batch(batch_id)` | Remove a completed batch from the tracking file |
+| `write_run_error(record)` | Append one entry to `run_errors.jsonl` |
+| `read_run_errors(limit=10) -> list` | Read the last N error entries |
 
 **Low-level helpers** (private, used by all public methods):
 - `_write_json(path, data)` — `json.dump` with `ensure_ascii=False`
@@ -268,14 +315,14 @@ Reads, mutates, and rewrites `meta.json`.  Keeps `phases_in_progress` and
 
 ---
 
-### 3.3 `coeval/prompts.py`
+### 3.3 `experiments/prompts.py`
 
 **Purpose:** Define canonical prompt templates and resolve the correct template for
 any (prompt_id, model_name, task) combination.
 
 #### `TEMPLATES: dict[str, str]`
 
-Six entries — one per prompt ID.  All use Python `str.format()` placeholders.
+Seven entries — one per prompt ID.  All use Python `str.format()` placeholders.
 
 | ID | Used in | Variables |
 |----|---------|-----------|
@@ -301,7 +348,7 @@ variable raises `KeyError` immediately.
 
 ---
 
-### 3.4 `coeval/logger.py`
+### 3.4 `experiments/logger.py`
 
 **Purpose:** Simple timestamped logger that writes to `run.log` and optionally to
 the console.
@@ -309,6 +356,9 @@ the console.
 #### Class `RunLogger`
 
 Constructor: `RunLogger(log_path, min_level='INFO', console=True)`
+
+Pass `os.devnull` as `log_path` for standalone commands (`probe`, `plan`, `status`)
+that do not have a run folder.
 
 | Method | Level value |
 |--------|------------|
@@ -321,22 +371,32 @@ Lines are formatted as `{ISO-timestamp} [{LEVEL}] {message}`.
 `WARNING` and `ERROR` go to `sys.stderr`; others to `sys.stdout`.
 Messages below `min_level` are silently discarded (not written to disk or console).
 
+On Windows, `UnicodeEncodeError` on console output is caught and the message is
+re-emitted with `errors='replace'` to prevent crashes from non-ASCII characters.
+
 ---
 
-### 3.5 `coeval/runner.py`
+### 3.5 `experiments/runner.py`
 
 **Purpose:** Top-level experiment orchestrator.
 
-#### `run_experiment(cfg, dry_run=False) -> int`
+#### `run_experiment(cfg, dry_run=False, continue_in_place=False, only_models=None, skip_probe=False, probe_mode=None, probe_on_fail=None, estimate_only=False, estimate_samples=None) -> int`
 
-1. Creates `ExperimentStorage` and calls `initialize()`.
+1. Creates `ExperimentStorage` and calls `initialize(continue_in_place=continue_in_place)`.
 2. Creates `RunLogger`, `ModelPool`, `QuotaTracker`.
-3. Loops over `PHASE_IDS`, calls the corresponding runner function.
-4. On any phase exception: logs error, marks storage as `failed`, breaks.
-5. Returns exit code 0 (success) or 1 (failure).
+3. Runs the pre-flight probe (unless `probe_mode='disable'` or `skip_probe=True`).
+4. If `estimate_only=True`: runs estimator, prints table, writes `cost_estimate.json`, returns 0.
+5. If `continue_in_place=True`: reads `phases_completed` from `meta.json`; skips
+   already-completed phases; forces `Keep` mode for phases 1–2 and `Extend` mode for
+   phases 3–5 (regardless of YAML config).
+6. If `only_models` is set: activates only those models for phases 3–5; does **not**
+   write phase-completion markers to `meta.json` so the main process is unaffected.
+7. Loops over `PHASE_IDS`, calling the corresponding runner function.
+8. On any phase exception: logs error, marks storage as `failed`, breaks.
+9. Returns exit code 0 (success) or 1 (failure).
 
 **Partial-success guarantee:** All JSONL files written before the failure are preserved
-on disk.  The experiment can be resumed with `resume_from`.
+on disk.  Use `--continue` to resume from the last written item.
 
 #### `print_execution_plan(cfg) -> None`
 
@@ -345,35 +405,117 @@ Called before every run (dry-run or real).
 
 ---
 
-### 3.6 `coeval/cli.py`
+### 3.6 `experiments/cli.py`
 
-**Purpose:** Argparse-based entry point for the `coeval` command.
+**Purpose:** Argparse-based entry point for the `coeval` command.  Defines all
+subcommand parsers and dispatches to the appropriate handler.
 
 #### `main(argv=None) -> None`
 
-Dispatches to `_cmd_run(args)`.
+Dispatches to `_cmd_run`, `cmd_probe`, `cmd_plan`, `cmd_status`, or `_cmd_analyze`
+based on `args.command`.
 
 #### `_cmd_run(args) -> None`
 
 1. `load_config(args.config)` — raises + exits 1 on parse error.
 2. Apply CLI overrides (`--resume`, `--log-level`).
-3. `validate_config(cfg)` — prints all errors and exits 1 if any.
+3. `validate_config(cfg, continue_in_place=args.continue_in_place)` — prints all errors; exits 1 if any.
 4. `print_execution_plan(cfg)` — always.
 5. If `--dry-run`: print "config valid" and exit 0.
-6. Otherwise: `run_experiment(cfg)` and `sys.exit(exit_code)`.
+6. Otherwise: `run_experiment(cfg, ...)` and `sys.exit(exit_code)`.
 
-CLI flags:
+#### CLI subcommands and flags
 
-| Flag | Purpose |
-|------|---------|
-| `--config PATH` | Required; path to YAML |
-| `--resume ID` | Override `experiment.resume_from` |
-| `--dry-run` | Validate and plan only, no LLM calls |
-| `--log-level LEVEL` | Override log level from config |
+| Subcommand | Handler | Key options |
+|------------|---------|-------------|
+| `run` | `_cmd_run` | `--config`, `--resume`, `--continue`, `--only-models`, `--dry-run`, `--probe`, `--probe-on-fail`, `--skip-probe` (deprecated), `--estimate-only`, `--estimate-samples`, `--log-level` |
+| `probe` | `cmd_probe` (commands/) | `--config`, `--probe`, `--probe-on-fail`, `--log-level` |
+| `plan` | `cmd_plan` (commands/) | `--config`, `--continue`, `--estimate-samples`, `--log-level` |
+| `status` | `cmd_status` (commands/) | `--run`, `--fetch-batches` |
+| `analyze` | `_cmd_analyze` | `--run`, `--out`, `--partial-ok`, robust filtering flags, `--benchmark-format` |
 
 ---
 
-### 3.7 `coeval/interfaces/base.py`
+### 3.7 `experiments/commands/`
+
+Standalone CLI command implementations.  Each file exports a single `cmd_*` function
+that is imported lazily by `cli.main()`.  All three commands use a
+`RunLogger(os.devnull, ...)` (console-only, no log file) because they do not own an
+experiment run folder.
+
+#### `commands/probe_cmd.py` — `cmd_probe(args)`
+
+1. Loads config; applies `--probe`/`--probe-on-fail` overrides to `cfg.experiment`.
+2. Validates with `_skip_folder_validation=True` (probe is folder-state-agnostic).
+3. Calls `run_probe(cfg, logger, mode=..., on_fail=...)`.
+4. Prints a tabular result summary.
+5. Exits 0 on success, 1 on config error, 2 when a model is unavailable and `on_fail='abort'`.
+
+#### `commands/plan_cmd.py` — `cmd_plan(args)`
+
+1. Loads config; applies `--estimate-samples` override.
+2. Validates with `_skip_folder_validation=not continue_in_place` (folder need not exist
+   for a fresh estimate).
+3. Creates `ExperimentStorage` without calling `initialize()` (just points at the path).
+4. If `--continue`: reads `phases_completed` from `meta.json`.
+5. Calls `estimate_experiment_cost(cfg, storage, logger, ...)`.
+
+#### `commands/status_cmd.py` — `cmd_status(args)`
+
+Reads the experiment folder directly (no config file needed).  Key internal helpers:
+
+| Helper | Description |
+|--------|-------------|
+| `_print_meta(storage, run_path)` | Experiment ID, status, timestamps, phase lists |
+| `_print_phase_progress(storage, run_path)` | File counts + JSONL record counts per phase |
+| `_print_pending_batches(batches)` | Table from `pending_batches.json` |
+| `_print_recent_errors(storage)` | Last 10 entries from `run_errors.jsonl` |
+| `_fetch_batch_results(storage, batches)` | Polls APIs; applies Phase 4/5 results |
+| `_poll_openai_batch(batch_id)` | Returns `(done: bool, results: dict \| None)` |
+| `_poll_anthropic_batch(batch_id)` | Returns `(done: bool, results: dict \| None)` |
+| `_apply_phase4_results(key_to_text, storage)` | Writes response records; returns count |
+| `_apply_phase5_results(key_to_text, storage)` | Writes evaluation records; returns count |
+
+Batch key format (used internally):
+- Phase 3: `task\x00teacher\x00seq`
+- Phase 4: `task\x00teacher\x00student\x00dp_id`
+- Phase 5 single: `task\x00teacher\x00judge\x00response_id\x01`
+- Phase 5 per_factor: `task\x00teacher\x00judge\x00response_id\x00factor`
+
+Phase 3 results **cannot** be auto-applied (the in-memory `pending` dicts with sampled
+attributes were never serialised).  `_fetch_batch_results` detects `phase='data_generation'`
+and prints an advisory message directing the user to re-run with `--continue`.
+
+---
+
+### 3.8 `experiments/label_eval.py`
+
+**Purpose:** Label-accuracy metrics for classification and information-extraction tasks,
+computed directly from Phase 3 datapoints and Phase 4 student responses — **no LLM
+judge required**.
+
+#### `extract_label(response_text, attr_key) -> str | None`
+
+Three-strategy extraction:
+1. Parse as JSON; return value at `attr_key` (exact key match, then alias keys: `label`, `prediction`, `class`, `answer`, …).
+2. If JSON fails: return the text directly if it is ≤ 60 chars and single-line.
+3. Return `None` (extraction failed; response counted as *skipped*).
+
+#### `extract_multilabel(response_text, attr_keys) -> dict[str, str | None]`
+
+Batch variant for tasks with multiple label attributes.  Tries JSON first (all keys in
+one pass), then falls back to short free-text (same value replicated for every key).
+
+#### `class LabelEvaluator(label_attributes, match_fn=None)`
+
+- `label_attributes`: list of `target_attributes` keys whose sampled values are ground truth.
+- `match_fn`: optional `(predicted, ground_truth) -> bool` comparator (default: case-insensitive exact match after strip).
+- `.evaluate(datapoints, responses) -> dict[str, dict]` — returns per-attribute `accuracy`, `n_total`, `n_matched`, `n_skipped`, `per_label` (precision/recall/F1 per class).
+- `.evaluate_multilabel(datapoints, responses) -> dict` — returns `hamming_accuracy` (macro-averaged) and `per_attribute`.
+
+---
+
+### 3.9 `experiments/interfaces/base.py`
 
 **Purpose:** Abstract base class that all model backends must implement.
 
@@ -388,7 +530,7 @@ class ModelInterface(ABC):
 
 ---
 
-### 3.8 `coeval/interfaces/openai_iface.py`
+### 3.10 `experiments/interfaces/openai_iface.py`
 
 **Purpose:** OpenAI Chat Completions backend with exponential-backoff retry.
 
@@ -410,7 +552,37 @@ Retries up to 3 times with doubling delay (1 s → 2 s) on transient errors
 
 ---
 
-### 3.9 `coeval/interfaces/huggingface_iface.py`
+### 3.11 `experiments/interfaces/anthropic_iface.py`
+
+**Purpose:** Anthropic Messages API backend.
+
+#### `AnthropicInterface`
+
+Constructor: `__init__(access_key=None)` — uses `access_key` or `ANTHROPIC_API_KEY` env var.
+
+**`generate(prompt, parameters) -> str`**
+
+Pops `model`, `system_prompt`, `temperature`, `max_tokens`.
+Calls `anthropic.Anthropic.messages.create()` with exponential-backoff retry.
+
+---
+
+### 3.12 `experiments/interfaces/gemini_iface.py`
+
+**Purpose:** Google Gemini backend.
+
+#### `GeminiInterface`
+
+Constructor: `__init__(access_key=None)` — uses `access_key` or `GEMINI_API_KEY` / `GOOGLE_API_KEY` env var.
+
+**`generate(prompt, parameters) -> str`**
+
+Calls `google.generativeai.GenerativeModel.generate_content()`.
+Supports pseudo-batch via `GeminiBatchInterface` (paced real-time calls to avoid rate limits).
+
+---
+
+### 3.13 `experiments/interfaces/huggingface_iface.py`
 
 **Purpose:** Local-inference backend using `transformers.pipeline`.
 
@@ -419,6 +591,7 @@ Retries up to 3 times with doubling delay (1 s → 2 s) on transient errors
 Constructor: `__init__(model_id, access_key=None, device='auto')`
 - Loads the model weights once via `pipeline('text-generation', ...)`.
 - `device='auto'` → `device_map='auto'` (lets Accelerate choose GPU/CPU automatically).
+  Falls back to CPU if no CUDA-capable GPU is detected.
 - `device='cpu'` or `device='cuda'` → passed directly as `device=`.
 - `access_key` or `HF_TOKEN` env var is used for gated models.
 
@@ -437,7 +610,94 @@ between experiments by calling `del pool` and `torch.cuda.empty_cache()`.
 
 ---
 
-### 3.10 `coeval/interfaces/pool.py`
+### 3.14 `experiments/interfaces/openai_batch.py`
+
+**Purpose:** OpenAI Batch API helpers for phases 3–5.
+
+Key functions used by phase batch runners:
+
+| Function | Description |
+|----------|-------------|
+| `submit_openai_batch(requests, storage, phase, description)` | Uploads a JSONL file, creates a batch job, writes `pending_batches.json`, returns `batch_id` |
+| `poll_openai_batch(batch_id, storage, logger)` | Polls the API until done; downloads output; applies results via storage methods; removes from `pending_batches.json` |
+
+The batch runner (`AsyncBatchRunner` or equivalent) receives `storage=storage, phase='data_generation'`
+(etc.) so it can write tracking records before any polling begins — ensuring the
+`batch_id` is never lost even if the process is killed while waiting.
+
+---
+
+### 3.15 `experiments/interfaces/anthropic_batch.py`
+
+**Purpose:** Anthropic Message Batches API helpers for phases 3–5.
+
+Mirrors `openai_batch.py` in structure:
+
+| Function | Description |
+|----------|-------------|
+| `submit_anthropic_batch(requests, storage, phase, description)` | Creates a Message Batch, writes `pending_batches.json`, returns `batch_id` |
+| `poll_anthropic_batch(batch_id, storage, logger)` | Polls until `ended`; downloads results; applies via storage; removes from tracking |
+
+---
+
+### 3.16 `experiments/interfaces/probe.py`
+
+**Purpose:** Model availability probe — tests each model with a lightweight API call
+before the pipeline starts.
+
+#### `run_probe(cfg, logger, mode, on_fail, phases_completed=None, only_models=None, probe_results_path=None) -> (results, needed_names)`
+
+- `mode='full'` — probe all models; `mode='resume'` — probe only models needed for
+  remaining phases; `mode='disable'` — skip.
+- `on_fail='abort'` — calls `logger.error`; `on_fail='warn'` — calls `logger.warning`.
+- Writes `probe_results.json` to `probe_results_path` if provided.
+- Returns `(results dict {model_name: 'ok' | error_str}, set of probed model names)`.
+
+**Phase → role mapping** (used in `resume` mode):
+
+| Phase | Role probed |
+|-------|-------------|
+| `attribute_mapping`, `rubric_mapping`, `data_generation` | `teacher` |
+| `response_collection` | `student` |
+| `evaluation` | `judge` |
+
+#### Per-interface probe methods
+
+| Interface | Method | Mechanism |
+|-----------|--------|-----------|
+| `openai` | `_probe_openai` | `client.models.list()` — no tokens consumed |
+| `anthropic` | `_probe_anthropic` | `client.models.list()` — no tokens consumed |
+| `gemini` | `_probe_gemini` | `genai.list_models()` — no tokens consumed |
+| `huggingface` | `_probe_huggingface` | `huggingface_hub.model_info()` — metadata only |
+
+---
+
+### 3.17 `experiments/interfaces/cost_estimator.py`
+
+**Purpose:** Pre-run cost and time estimation.
+
+#### Key functions
+
+- **`get_prices(model_cfg) -> (input_price, output_price)`** — looks up `PRICE_TABLE` (17+ known models); falls back to defaults (`$1.00/$3.00 per 1M tokens`).
+- **`count_tokens_approx(text) -> int`** — `max(1, len(text) // 4)` character heuristic.
+- **`estimate_experiment_cost(cfg, storage, logger, n_samples, run_sample_calls, continue_in_place=False, completed_phases=None) -> dict`**
+  - Runs `n_samples` real calls per model (or uses heuristics when `n_samples=0`).
+  - Computes per-phase token counts and costs.
+  - Applies batch discount: 50% for `openai`/`anthropic`, 0% for `gemini`.
+  - When `continue_in_place=True` and `completed_phases` is provided, reads existing
+    storage artifacts and subtracts already-completed work from the budget.
+  - Writes `cost_estimate.json` to `storage.run_path`.
+  - Returns a dict with `total_cost_usd`, `total_time_min`, and per-phase breakdown.
+
+#### `PRICE_TABLE`
+
+Covers GPT-4o, GPT-4o-mini, GPT-3.5-turbo, Claude 3 (Haiku/Sonnet/Opus), Claude 3.5
+(Haiku/Sonnet), Claude 3.7 Sonnet, Gemini 1.5 (Flash/Pro), Gemini 2.0 Flash, and
+HuggingFace (free / compute cost only).
+
+---
+
+### 3.18 `experiments/interfaces/pool.py`
 
 **Purpose:** Lazy-load factory + cache for `ModelInterface` instances.
 
@@ -451,7 +711,7 @@ The cache key is `model_cfg.name`.
 
 ---
 
-### 3.11 `coeval/phases/utils.py`
+### 3.19 `experiments/phases/utils.py`
 
 **Purpose:** Shared utilities used by all five phase modules.
 
@@ -512,7 +772,7 @@ Decrements the counter by 1.  No-op for unlisted models.
 
 ---
 
-### 3.12 `coeval/phases/phase1.py`
+### 3.20 `experiments/phases/phase1.py`
 
 **Purpose:** Attribute Mapping — produce `target_attrs.json` and `nuanced_attrs.json` for each task.
 
@@ -532,7 +792,7 @@ Uses prompt ID `map_target_attrs` or `map_nuanced_attrs` from `get_prompt()`.
 
 ---
 
-### 3.13 `coeval/phases/phase2.py`
+### 3.21 `experiments/phases/phase2.py`
 
 **Purpose:** Rubric Mapping — produce `{task_id}.rubric.json` for each task.
 
@@ -551,15 +811,16 @@ Uses prompt ID `autorubric` from `get_prompt()`.
 
 ---
 
-### 3.14 `coeval/phases/phase3.py`
+### 3.22 `experiments/phases/phase3.py`
 
 **Purpose:** Data Generation — produce `{task_id}.{teacher_id}.datapoints.jsonl`.
 
 #### `run_phase3(cfg, storage, logger, pool, quota, phase_mode) -> None`
 
-For each `(task, teacher)` pair, calls `_generate_datapoints()`.
-Partial failures are tolerated — individual teacher failures are logged but the phase
-continues.  Raises only if a task ends up with **zero** datapoints across all teachers.
+For each `(task, teacher)` pair, calls `_generate_datapoints()` (real-time) or
+`_generate_batch_datapoints()` (batch).  Partial failures are tolerated — individual
+teacher failures are logged but the phase continues.  Raises only if a task ends up
+with **zero** datapoints across all teachers.
 
 #### `_generate_datapoints(task, teacher, storage, logger, pool, quota, phase_mode)`
 
@@ -584,7 +845,7 @@ Otherwise `target_spec = [lo, hi]`: randomly sample `n = randint(lo, min(hi, len
 
 ---
 
-### 3.15 `coeval/phases/phase4.py`
+### 3.23 `experiments/phases/phase4.py`
 
 **Purpose:** Response Collection — produce `{task_id}.{teacher_id}.{student_id}.responses.jsonl`.
 
@@ -604,7 +865,7 @@ For each datapoint: calls `iface.generate()` directly (no JSON parsing needed �
 
 ---
 
-### 3.16 `coeval/phases/phase5.py`
+### 3.24 `experiments/phases/phase5.py`
 
 **Purpose:** Evaluation — produce `{task_id}.{teacher_id}.{judge_id}.evaluations.jsonl`.
 
@@ -655,16 +916,19 @@ YAML file
   │   Read Phase 1 artifacts
   │   For N items: _sample_attrs() → get_prompt('sample') → teacher LLM call
   │                → extract_prompt_response() → append JSONL
+  │   [batch path: submit to OpenAI/Anthropic Batch API; poll; apply results]
   │
   ▼ Phase 4: For each (task, teacher, student)
   │   Read Phase 3 JSONL
   │   For each datapoint: get_prompt('test') → student LLM call → append JSONL
+  │   [batch path: same as Phase 3]
   │
   ▼ Phase 5: For each (task, teacher, judge)
       Read Phase 2 rubric
       Read Phase 3 datapoints index
       Read Phase 4 responses (all students)
       For each response: _score_response() using judge LLM → append JSONL
+      [batch path: same as Phase 3]
 ```
 
 ---
@@ -709,7 +973,7 @@ combination.
 
 ## 7. Adding a New Model Backend
 
-1. Create `coeval/interfaces/my_backend_iface.py` implementing `ModelInterface`:
+1. Create `experiments/interfaces/my_backend_iface.py` implementing `ModelInterface`:
 
 ```python
 from .base import ModelInterface
@@ -722,35 +986,37 @@ class MyBackendInterface(ModelInterface):
         ...  # call your backend, return the text response
 ```
 
-2. Register the new interface name in `ModelPool.get()` (`coeval/interfaces/pool.py`):
+2. Register the new interface name in `ModelPool.get()` (`experiments/interfaces/pool.py`):
 
 ```python
 elif model_cfg.interface == 'my_backend':
     self._cache[model_cfg.name] = MyBackendInterface(...)
 ```
 
-3. Add `'my_backend'` to `VALID_INTERFACES` in `coeval/config.py`.
+3. Add `'my_backend'` to `VALID_INTERFACES` in `experiments/config.py`.
 
-4. Write tests for the new class (mock the underlying client).
+4. Add a probe method to `experiments/interfaces/probe.py` for the new interface.
+
+5. Write tests for the new class (mock the underlying client).
 
 ---
 
 ## 8. Adding a New Phase
 
-1. Create `coeval/phases/phaseN.py` with the standard signature:
+1. Create `experiments/phases/phaseN.py` with the standard signature:
 
 ```python
 def run_phaseN(cfg, storage, logger, pool, quota, phase_mode):
     ...
 ```
 
-2. Add `'new_phase_id'` to `PHASE_IDS` in `coeval/config.py` (in the correct
+2. Add `'new_phase_id'` to `PHASE_IDS` in `experiments/config.py` (in the correct
    execution order).
 
 3. Add the corresponding storage methods to `ExperimentStorage` if the phase
    needs new file types.
 
-4. Register the runner in `_PHASE_RUNNERS` in `coeval/runner.py`:
+4. Register the runner in `_PHASE_RUNNERS` in `experiments/runner.py`:
 
 ```python
 _PHASE_RUNNERS = {
@@ -765,25 +1031,35 @@ _PHASE_RUNNERS = {
 
 ## 9. Testing
 
-Tests live in `tests/` and require only `pytest` (no network, no LLM calls, no GPU).
+Tests live in `experiments/tests/` and `analysis/tests/`.  All tests require only
+`pytest` — no network, no LLM calls, no GPU.
 
 ```bash
 pip install pytest
-python -m pytest tests/ -v
+python -m pytest experiments/tests/ analysis/tests/ -v
 ```
+
+Run from the project root (`E:\Projects\CoEval\main\`).
 
 | File | Coverage |
 |------|----------|
-| `test_config.py` | V-01..V-11 validation, role-parameter merge, `get_phase_mode` defaults, duplicate names, reserved separator, character-set rules |
-| `test_storage.py` | `initialize()` folder creation and `FileExistsError`, `resume_from` copy, `meta.json` lifecycle, Phase 1–5 JSONL round-trips, `iter_response_files`, `get_responded_datapoint_ids` |
-| `test_prompts.py` | Resolution order (model > task > canonical), all 6 template IDs present and non-empty, variable substitution for each template, `{{` escaping |
+| `test_config.py` | V-01..V-17 validation, role-parameter merge, `get_phase_mode` defaults, `_skip_folder_validation`, duplicate names, reserved separator |
+| `test_storage.py` | `initialize()` folder creation and `FileExistsError`, `continue_in_place` re-open, `resume_from` copy, `meta.json` lifecycle, Phase 1–5 JSONL round-trips |
+| `test_prompts.py` | Resolution order (model > task > canonical), all 7 template IDs present and non-empty, variable substitution, `{{` escaping |
 | `test_utils.py` | `_extract_json` three strategies + edge cases, `extract_prompt_response` all accepted key names + error cases, `merge_attr_maps` deduplication, `merge_rubrics` first-wins, `QuotaTracker` full lifecycle |
+| `test_phase4_phase5.py` | Phase 4/5 in all modes, batch path disabled, `evaluated_resp_ids` skip logic |
+| `test_label_eval.py` | `extract_label` all strategies, `extract_multilabel`, `LabelEvaluator` accuracy/P/R/F1/Hamming |
+| `test_probe_and_estimator.py` | `run_probe` all modes, `probe_results.json`, `on_fail` dispatch, `get_prices`, `estimate_experiment_cost` (full + remaining-work mode) |
+| `test_commands.py` | `_skip_folder_validation` (5 tests), `cmd_probe` (7), `cmd_plan` (6), status helpers (11), `cmd_status` (9), CLI dispatch (3) |
 
-**Mocking pattern for interface tests** (not yet in the test suite but straightforward):
+**Current test count:** 454 tests across 8 test modules (experiments) + 3 analysis test modules.
+All tests run without network, GPU, or real LLM calls.
+
+**Mocking pattern for interface tests:**
 
 ```python
 from unittest.mock import MagicMock
-from coeval.interfaces.base import ModelInterface
+from experiments.interfaces.base import ModelInterface
 
 class FakeInterface(ModelInterface):
     def __init__(self, responses):
@@ -793,7 +1069,12 @@ class FakeInterface(ModelInterface):
 ```
 
 Pass a `FakeInterface` wherever `iface` is expected to test phase logic
-deterministically without any model.
+deterministically without any model.  Pre-populate a `ModelPool` with fake entries:
+
+```python
+pool = ModelPool()
+pool._cache['my-model'] = FakeInterface(['{"prompt": "p", "response": "r"}'])
+```
 
 ---
 
@@ -846,9 +1127,15 @@ deterministically without any model.
 > splitting the ID back into its parts would be ambiguous.
 
 **Q: `V-11` prevents running the same config twice.  Is there a way to bypass it?**
-> No bypass exists by design — overwriting an existing experiment silently would lose
-> all its data.  Instead, increment the `experiment.id` for a fresh run, or set
-> `resume_from` to continue the existing one.
+> Use `--continue` to restart an interrupted run in-place.  For a completely fresh run
+> with the same config, increment the `experiment.id`.  `resume_from` creates a new
+> experiment that inherits Phase 1–2 artifacts.
+
+**Q: What does `_skip_folder_validation` do?**
+> It suppresses both V-11 (folder must not exist) and V-14 (folder must exist with
+> `meta.json`).  Used by `coeval probe` and `coeval plan` (without `--continue`) to
+> allow them to run against any config regardless of whether the experiment folder
+> already exists.
 
 ---
 
@@ -890,10 +1177,11 @@ deterministically without any model.
 
 ### Extending CoEval
 
-**Q: How do I add support for a new model provider (e.g., Anthropic, Gemini)?**
+**Q: How do I add support for a new model provider?**
 > See §7.  In summary: subclass `ModelInterface`, implement `generate()`, register the
 > new interface name in `ModelPool.get()`, add the name to `VALID_INTERFACES` in
-> `config.py`, and write tests.  No phase code needs to change.
+> `config.py`, add a probe method in `probe.py`, and write tests.  No phase code needs
+> to change.
 
 **Q: How do I add a custom attribute-sampling strategy beyond `[min, max]` and `"all"`?**
 > The `_sample_attrs()` function in `phase3.py` checks for `target_spec == 'all'` and
@@ -910,7 +1198,7 @@ deterministically without any model.
 
 ### Testing
 
-**Q: The tests run in 0.5 seconds.  How is that possible without mocking LLM calls?**
+**Q: The tests run in under a second.  How is that possible without mocking LLM calls?**
 > No test touches a real model.  Config tests work entirely on in-memory dicts.  Storage
 > tests use `tmp_path` (a `pathlib.Path` to a real but temporary directory).  Prompt
 > tests check string manipulation.  Utils tests exercise pure functions.  The only
@@ -918,10 +1206,10 @@ deterministically without any model.
 > cleans up automatically.
 
 **Q: How do I write a test that exercises a phase without a real LLM?**
-> Create a `FakeInterface` (see the pattern at the end of §9), pre-load the storage
-> fixture with the required input artifacts, and pass the fake interface where the phase
-> would normally call `pool.get()`.  Because `ModelPool` is just a factory/cache, you
-> can also pass a pre-populated `ModelPool` with fake entries:
+> Create a `FakeInterface` (see the pattern in §9), pre-load the storage fixture with
+> the required input artifacts, and pass the fake interface where the phase would
+> normally call `pool.get()`.  Because `ModelPool` is just a factory/cache, you can
+> also pass a pre-populated `ModelPool` with fake entries:
 > ```python
 > pool = ModelPool()
 > pool._cache['my-model'] = FakeInterface(['{"prompt": "p", "response": "r"}'])

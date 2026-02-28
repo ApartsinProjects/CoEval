@@ -75,8 +75,9 @@ models:
         max_tokens: 128
 
   # --------------------------------------------------------------------------
-  # Qwen2.5-0.5B-Instruct: smallest capable HF model — all three roles
-  # Confirmed 3/3 quality-adjusted pass rate with few_shot strategy.
+  # Qwen2.5-0.5B-Instruct: smallest HF model — teacher + student only.
+  # NOTE: Removed from judge role — 0.5B model produces empty JSON output
+  # when acting as judge (insufficient capacity for structured scoring).
   # --------------------------------------------------------------------------
   - name: qwen2p5-0b5
     interface: huggingface
@@ -85,7 +86,8 @@ models:
       temperature: 0.7
       max_new_tokens: 512
       device: auto
-    roles: [teacher, student, judge]
+      load_in_4bit: true
+    roles: [teacher, student]
     role_parameters:
       teacher:
         temperature: 0.8
@@ -93,9 +95,6 @@ models:
       student:
         temperature: 0.7
         max_new_tokens: 256
-      judge:
-        temperature: 0.0
-        max_new_tokens: 128
 
   # --------------------------------------------------------------------------
   # Qwen2.5-1.5B-Instruct: second smallest capable HF model — all three roles
@@ -108,6 +107,7 @@ models:
       temperature: 0.7
       max_new_tokens: 512
       device: auto
+      load_in_4bit: true
     roles: [teacher, student, judge]
     role_parameters:
       teacher:
@@ -118,7 +118,7 @@ models:
         max_new_tokens: 256
       judge:
         temperature: 0.0
-        max_new_tokens: 128
+        max_new_tokens: 256   # increased: 1.5B needs more tokens to complete JSON scoring
 
   # --------------------------------------------------------------------------
   # SmolLM2-1.7B-Instruct: third smallest capable HF model — all three roles
@@ -131,6 +131,7 @@ models:
       temperature: 0.7
       max_new_tokens: 512
       device: auto
+      load_in_4bit: true
     roles: [teacher, student, judge]
     role_parameters:
       teacher:
@@ -141,7 +142,7 @@ models:
         max_new_tokens: 256
       judge:
         temperature: 0.0
-        max_new_tokens: 128
+        max_new_tokens: 256   # increased: 1.7B needs more tokens to complete JSON scoring
 
 
 # ─── TASKS ───────────────────────────────────────────────────────────────────
@@ -412,6 +413,10 @@ experiment:
   id: medium-benchmark-v1
   storage_folder: ./benchmark/runs
   log_level: INFO
+
+  # Retry failed datapoint generations up to this many times (default: 2).
+  # Each retry re-samples attributes and re-prompts the teacher model.
+  generation_retries: 2
 
   phases:
     attribute_mapping:   New

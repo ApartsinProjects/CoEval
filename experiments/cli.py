@@ -1,4 +1,23 @@
-"""CLI entry point for `coeval run` (REQ-8.1) and `coeval analyze` (REQ-A-8.1)."""
+"""CLI entry point for CoEval subcommands.
+
+Subcommands
+-----------
+run       Execute an evaluation experiment (EER).
+probe     Standalone model availability probe (no experiment phases started).
+plan      Standalone cost/time estimation (no experiment phases started).
+status    Experiment progress dashboard; optionally fetch completed batch results.
+generate  Run phases 1-2 (attribute + rubric mapping) and write a materialized
+          YAML config with static attributes and rubric ready for `coeval run`.
+models    List available text-generation models from each configured provider.
+analyze   Analyze an EES experiment folder (EEA).
+
+Provider key file
+-----------------
+A global provider key file (default: ~/.coeval/keys.yaml, or set COEVAL_KEYS_FILE
+env var) stores API keys/credentials shared across experiments.  Any subcommand
+that loads a config supports ``--keys PATH`` to point at a non-default key file.
+Per-model ``access_key`` values in the experiment YAML always take precedence.
+"""
 from __future__ import annotations
 
 import argparse
@@ -34,13 +53,255 @@ def _build_parser() -> argparse.ArgumentParser:
         ),
     )
     run_p.add_argument(
+        '--only-models', metavar='MODEL_IDS', default=None,
+        help=(
+            'Comma-separated model IDs to activate; all others are skipped. '
+            'Applied as teacher filter in Phase 3, student filter in Phase 4, '
+            'and judge filter in Phase 5. '
+            'Use with --continue to run OpenAI models in a separate parallel '
+            'process while HF models run in the main process. '
+            'When set, phase-completion markers are NOT written to meta.json '
+            'so the main process is unaffected.'
+        ),
+    )
+    run_p.add_argument(
         '--dry-run', action='store_true',
         help='Validate config and print execution plan without making LLM calls',
+    )
+    run_p.add_argument(
+        '--probe',
+        dest='probe_mode',
+        choices=['disable', 'full', 'resume'],
+        default=None,
+        metavar='MODE',
+        help=(
+            'Model availability probe mode (overrides experiment.probe_mode in config). '
+            '"full" (default) — probe all models; '
+            '"resume" — probe only models needed for remaining phases; '
+            '"disable" — skip the probe entirely.'
+        ),
+    )
+    run_p.add_argument(
+        '--probe-on-fail',
+        dest='probe_on_fail',
+        choices=['abort', 'warn'],
+        default=None,
+        metavar='MODE',
+        help=(
+            'What to do when a probed model is unavailable. '
+            '"abort" (default) — stop the run immediately; '
+            '"warn" — log a warning and continue (phases may fail later).'
+        ),
+    )
+    run_p.add_argument(
+        '--skip-probe', dest='skip_probe', action='store_true',
+        help=(
+            'Deprecated alias for --probe disable. '
+            'Skip the model availability pre-flight check entirely.'
+        ),
+    )
+    run_p.add_argument(
+        '--estimate-only', dest='estimate_only', action='store_true',
+        help=(
+            'Run the cost and time estimator, print a breakdown, write '
+            'cost_estimate.json, and exit without starting any pipeline phases. '
+            'Sample calls are made to calibrate latency (unless --estimate-samples 0).'
+        ),
+    )
+    run_p.add_argument(
+        '--estimate-samples', dest='estimate_samples', type=int, default=None,
+        metavar='N',
+        help=(
+            'Number of sample LLM calls per model for cost/time calibration '
+            '(overrides experiment.estimate_samples in config; default 2). '
+            'Set to 0 to use heuristics only without making real API calls.'
+        ),
     )
     run_p.add_argument(
         '--log-level', metavar='LEVEL',
         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
         help='Override the log level from config',
+    )
+    run_p.add_argument(
+        '--keys', metavar='PATH', default=None,
+        help=(
+            'Path to a provider key file (YAML). Overrides the default '
+            '~/.coeval/keys.yaml / COEVAL_KEYS_FILE location. '
+            'Keys in this file act as fallbacks; model-level access_key always wins.'
+        ),
+    )
+
+    # ---- coeval probe ----
+    probe_p = sub.add_parser(
+        'probe',
+        help='Test model availability without starting any experiment phases',
+    )
+    probe_p.add_argument(
+        '--config', required=True, metavar='PATH',
+        help='Path to the YAML configuration file',
+    )
+    probe_p.add_argument(
+        '--probe',
+        dest='probe_mode',
+        choices=['disable', 'full', 'resume'],
+        default=None,
+        metavar='MODE',
+        help=(
+            'Model probe scope (overrides experiment.probe_mode in config). '
+            '"full" (default) — test all models; '
+            '"resume" — test only models needed for remaining phases; '
+            '"disable" — skip probe (exits immediately).'
+        ),
+    )
+    probe_p.add_argument(
+        '--probe-on-fail',
+        dest='probe_on_fail',
+        choices=['abort', 'warn'],
+        default=None,
+        metavar='MODE',
+        help=(
+            'Behaviour when a model is unavailable. '
+            '"abort" (default) — exit with code 2; '
+            '"warn" — print a warning but exit 0.'
+        ),
+    )
+    probe_p.add_argument(
+        '--log-level', metavar='LEVEL',
+        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
+        default='INFO',
+        help='Console log level (default: INFO)',
+    )
+    probe_p.add_argument(
+        '--keys', metavar='PATH', default=None,
+        help='Path to a provider key file (YAML); overrides default ~/.coeval/keys.yaml',
+    )
+
+    # ---- coeval plan ----
+    plan_p = sub.add_parser(
+        'plan',
+        help='Estimate cost and runtime without starting any experiment phases',
+    )
+    plan_p.add_argument(
+        '--config', required=True, metavar='PATH',
+        help='Path to the YAML configuration file',
+    )
+    plan_p.add_argument(
+        '--continue', dest='continue_in_place', action='store_true',
+        help=(
+            'Estimate only remaining work for an already-started experiment. '
+            'Reads existing phase artifacts from storage to subtract completed '
+            'items from the full budget.'
+        ),
+    )
+    plan_p.add_argument(
+        '--estimate-samples', dest='estimate_samples', type=int, default=None,
+        metavar='N',
+        help=(
+            'Number of sample LLM calls per model for latency calibration '
+            '(overrides experiment.estimate_samples; default 2). '
+            'Set to 0 to use heuristics only without real API calls.'
+        ),
+    )
+    plan_p.add_argument(
+        '--log-level', metavar='LEVEL',
+        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
+        default='INFO',
+        help='Console log level (default: INFO)',
+    )
+    plan_p.add_argument(
+        '--keys', metavar='PATH', default=None,
+        help='Path to a provider key file (YAML); overrides default ~/.coeval/keys.yaml',
+    )
+
+    # ---- coeval status ----
+    status_p = sub.add_parser(
+        'status',
+        help='Show experiment progress and pending batch job status',
+    )
+    status_p.add_argument(
+        '--run', required=True, metavar='PATH',
+        help='Path to the experiment folder (EES run folder)',
+    )
+    status_p.add_argument(
+        '--fetch-batches', dest='fetch_batches', action='store_true',
+        help=(
+            'Poll provider APIs for each tracked batch job and, for completed '
+            'jobs, download and apply the results to the experiment storage. '
+            'Phase 4 and Phase 5 results are applied automatically; '
+            'Phase 3 results require a subsequent `--continue` run.'
+        ),
+    )
+
+    # ---- coeval generate ----
+    gen_p = sub.add_parser(
+        'generate',
+        help=(
+            'Run phases 1-2 (attribute + rubric mapping) and write a '
+            'materialized YAML config with static values ready for `coeval run`'
+        ),
+    )
+    gen_p.add_argument(
+        '--config', required=True, metavar='PATH',
+        help='Path to the draft YAML configuration file',
+    )
+    gen_p.add_argument(
+        '--out', required=True, metavar='PATH',
+        help='Output path for the materialized YAML design file',
+    )
+    gen_p.add_argument(
+        '--probe',
+        dest='probe_mode',
+        choices=['disable', 'full', 'resume'],
+        default=None,
+        metavar='MODE',
+        help=(
+            'Model availability probe mode before generation. '
+            '"full" (default) — probe all teacher models; '
+            '"disable" — skip probe.'
+        ),
+    )
+    gen_p.add_argument(
+        '--probe-on-fail',
+        dest='probe_on_fail',
+        choices=['abort', 'warn'],
+        default=None,
+        metavar='MODE',
+        help=(
+            'What to do when a probed model is unavailable. '
+            '"abort" (default) — stop immediately; '
+            '"warn" — log a warning and continue.'
+        ),
+    )
+    gen_p.add_argument(
+        '--log-level', metavar='LEVEL',
+        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
+        default='INFO',
+        help='Console log level (default: INFO)',
+    )
+    gen_p.add_argument(
+        '--keys', metavar='PATH', default=None,
+        help='Path to a provider key file (YAML); overrides default ~/.coeval/keys.yaml',
+    )
+
+    # ---- coeval models ----
+    models_p = sub.add_parser(
+        'models',
+        help='List available text-generation models from each configured provider',
+    )
+    models_p.add_argument(
+        '--providers', metavar='LIST', default=None,
+        help=(
+            'Comma-separated list of providers to query '
+            '(e.g. "openai,anthropic"). Default: all providers with credentials.'
+        ),
+    )
+    models_p.add_argument(
+        '--verbose', action='store_true',
+        help='Show additional model details (context window, capabilities, etc.)',
+    )
+    models_p.add_argument(
+        '--keys', metavar='PATH', default=None,
+        help='Path to a provider key file (YAML); overrides default ~/.coeval/keys.yaml',
     )
 
     # ---- coeval analyze ---- (REQ-A-8.1)
@@ -100,14 +361,29 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.command == 'run':
         _cmd_run(args)
+    elif args.command == 'probe':
+        from .commands.probe_cmd import cmd_probe
+        cmd_probe(args)
+    elif args.command == 'plan':
+        from .commands.plan_cmd import cmd_plan
+        cmd_plan(args)
+    elif args.command == 'status':
+        from .commands.status_cmd import cmd_status
+        cmd_status(args)
+    elif args.command == 'generate':
+        from .commands.generate_cmd import cmd_generate
+        cmd_generate(args)
+    elif args.command == 'models':
+        from .commands.models_cmd import cmd_models
+        cmd_models(args)
     elif args.command == 'analyze':
         _cmd_analyze(args)
 
 
 def _cmd_run(args: argparse.Namespace) -> None:
-    # Load config
+    # Load config (pass provider key file if supplied)
     try:
-        cfg = load_config(args.config)
+        cfg = load_config(args.config, keys_file=getattr(args, 'keys', None))
     except Exception as exc:
         print(f"ERROR: Failed to load config '{args.config}': {exc}", file=sys.stderr)
         sys.exit(1)
@@ -133,7 +409,21 @@ def _cmd_run(args: argparse.Namespace) -> None:
         print("Dry-run: config valid. Exiting without making LLM calls.")
         sys.exit(0)
 
-    exit_code = run_experiment(cfg, dry_run=False, continue_in_place=args.continue_in_place)
+    only_models: set[str] | None = None
+    if args.only_models:
+        only_models = {m.strip() for m in args.only_models.split(',') if m.strip()}
+
+    exit_code = run_experiment(
+        cfg,
+        dry_run=False,
+        continue_in_place=args.continue_in_place,
+        only_models=only_models,
+        skip_probe=args.skip_probe,
+        probe_mode=getattr(args, 'probe_mode', None),
+        probe_on_fail=getattr(args, 'probe_on_fail', None),
+        estimate_only=getattr(args, 'estimate_only', False),
+        estimate_samples=getattr(args, 'estimate_samples', None),
+    )
     sys.exit(exit_code)
 
 

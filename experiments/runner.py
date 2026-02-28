@@ -4,6 +4,7 @@ from __future__ import annotations
 import sys
 
 from .config import CoEvalConfig, PHASE_IDS
+from .exceptions import PartialPhaseFailure
 from .interfaces import ModelPool
 from .logger import RunLogger
 from .phases.phase1 import run_phase1
@@ -89,16 +90,61 @@ def run_experiment(
     cfg: CoEvalConfig,
     dry_run: bool = False,
     continue_in_place: bool = False,
+    only_models: set[str] | None = None,
+    skip_probe: bool = False,
+    probe_mode: str | None = None,
+    probe_on_fail: str | None = None,
+    estimate_only: bool = False,
+    estimate_samples: int | None = None,
 ) -> int:
     """Execute the full 5-phase pipeline.
 
-    If continue_in_place is True the existing experiment folder is re-opened,
-    already-completed phases are skipped, and in-progress phases resume at the
-    finest available granularity (per item for phases 3-5, per task for phases 1-2).
+    Parameters
+    ----------
+    cfg:
+        Loaded and validated experiment configuration.
+    dry_run:
+        Validate config and print execution plan only; no LLM calls made.
+    continue_in_place:
+        Re-open an existing experiment folder; skip completed phases and resume
+        in-progress phases at the finest available granularity.
+    only_models:
+        Set of model IDs to activate; others are skipped.  Phase-completion
+        markers are NOT written to meta.json in this mode.
+    skip_probe:
+        Deprecated shortcut for ``probe_mode='disable'``.  When True overrides
+        *probe_mode* to ``'disable'``.
+    probe_mode:
+        ``'full'`` (default), ``'resume'``, or ``'disable'``.  Overrides the
+        value in ``cfg.experiment.probe_mode``.
+    probe_on_fail:
+        ``'abort'`` (default) or ``'warn'``.  Overrides
+        ``cfg.experiment.probe_on_fail``.
+    estimate_only:
+        Run the cost/time estimator and exit without starting any pipeline
+        phases.  Writes ``cost_estimate.json`` to the experiment folder.
+    estimate_samples:
+        Number of real API sample calls per model for cost calibration.
+        Overrides ``cfg.experiment.estimate_samples``.
 
-    Returns exit code: 0 on success, 1 on failure.
+    Returns
+    -------
+    int
+        Exit code: 0 on success, 1 on failure.
     """
     exp = cfg.experiment
+
+    # Resolve probe settings (CLI overrides > config file)
+    effective_probe_mode   = (
+        'disable' if skip_probe
+        else (probe_mode or exp.probe_mode or 'full')
+    )
+    effective_probe_fail   = probe_on_fail or exp.probe_on_fail or 'abort'
+    effective_est_samples  = (
+        estimate_samples if estimate_samples is not None
+        else exp.estimate_samples
+    )
+    run_cost_estimate = estimate_only or exp.estimate_cost
 
     # Initialize storage
     storage = ExperimentStorage(exp.storage_folder, exp.id)
@@ -109,8 +155,14 @@ def run_experiment(
         continue_in_place=continue_in_place,
     )
 
-    # Set up logger (appends to run.log in EES)
-    logger = RunLogger(storage.log_path, min_level=exp.log_level)
+    # Set up logger — parallel model-filter runs get their own log file so
+    # entries don't interleave with the main process's run.log.
+    if only_models:
+        model_tag = '_'.join(sorted(only_models))[:40]
+        log_path = storage.log_path.parent / f'run_{model_tag}.log'
+    else:
+        log_path = storage.log_path
+    logger = RunLogger(log_path, min_level=exp.log_level)
     logger.info(f"Experiment {exp.id} {'continued' if continue_in_place else 'started'}")
 
     if dry_run:
@@ -119,18 +171,93 @@ def run_experiment(
         logger.info("Dry-run complete")
         return 0
 
-    # Read already-completed phases when continuing an existing experiment
-    completed_phases: set[str] = set()
+    # Read already-completed phases (needed for resume probe mode even before
+    # the main continue_in_place block below)
+    phases_completed_early: set[str] = set()
     if continue_in_place:
-        meta = storage.read_meta()
-        completed_phases = set(meta.get('phases_completed', []))
+        try:
+            meta = storage.read_meta()
+            phases_completed_early = set(meta.get('phases_completed', []))
+        except Exception:
+            pass
+
+    # --- Cost & time estimator -------------------------------------------
+    if run_cost_estimate:
+        from .interfaces.cost_estimator import estimate_experiment_cost
+        logger.info(
+            f"Running cost/time estimator "
+            f"(estimate_samples={effective_est_samples}) …"
+        )
+        estimate_experiment_cost(
+            cfg,
+            storage,
+            logger,
+            n_samples=effective_est_samples,
+            run_sample_calls=(effective_est_samples > 0),
+            continue_in_place=continue_in_place,
+            completed_phases=phases_completed_early,
+        )
+        if estimate_only:
+            logger.info("--estimate-only: exiting after cost estimate")
+            return 0
+
+    # --- Model availability probe ----------------------------------------
+    if effective_probe_mode != 'disable':
+        from .interfaces.probe import run_probe
+        logger.info(
+            f"Running model availability probe "
+            f"(mode='{effective_probe_mode}', on_fail='{effective_probe_fail}') …"
+        )
+        probe_results, _ = run_probe(
+            cfg,
+            logger,
+            mode=effective_probe_mode,
+            on_fail=effective_probe_fail,
+            phases_completed=phases_completed_early,
+            only_models=only_models,
+            probe_results_path=storage.run_path / 'probe_results.json',
+        )
+        unavailable = {
+            name: err for name, err in probe_results.items() if err != 'ok'
+        }
+        if unavailable and effective_probe_fail == 'abort':
+            logger.error(
+                f"Probe failed for {len(unavailable)} model(s): "
+                f"{sorted(unavailable.keys())} — aborting. "
+                "Fix the issues above, use --probe disable, or "
+                "set probe_on_fail: warn in your config to continue anyway."
+            )
+            return 1
+        elif unavailable:
+            logger.warning(
+                f"Probe: {len(unavailable)} model(s) unavailable "
+                f"({sorted(unavailable.keys())}) — continuing as probe_on_fail=warn"
+            )
+    else:
+        logger.info("Probe: disabled — skipping model availability check")
+
+    # Read already-completed phases when continuing an existing experiment
+    # (phases_completed_early is already populated above for the probe; reuse it)
+    completed_phases: set[str] = phases_completed_early
+    if only_models:
+        logger.info(f"Parallel model filter active — only_models={sorted(only_models)}")
+
+    if continue_in_place and not phases_completed_early:
+        # Re-read meta in case something changed between probe and now
+        try:
+            meta = storage.read_meta()
+            completed_phases = set(meta.get('phases_completed', []))
+        except Exception:
+            completed_phases = set()
+
+    if continue_in_place:
         logger.info(
             f"Continue mode — phases already completed: "
             f"{sorted(completed_phases) if completed_phases else 'none'}"
         )
 
-    # Create model pool and quota tracker
-    pool = ModelPool()
+    # Create model pool and quota tracker (pass provider keys for credential resolution)
+    pool = ModelPool(provider_keys=getattr(cfg, '_provider_keys', None))
     quota = QuotaTracker(exp.quota)
 
     exit_code = 0
@@ -150,24 +277,51 @@ def run_experiment(
         runner = _PHASE_RUNNERS[phase_id]
 
         logger.info(f"Phase '{phase_id}' starting (mode={mode})")
-        storage.update_meta(phase_started=phase_id)
+        if only_models is None:
+            storage.update_meta(phase_started=phase_id)
 
         try:
-            runner(cfg, storage, logger, pool, quota, mode)
-            storage.update_meta(phase_completed=phase_id)
+            runner(cfg, storage, logger, pool, quota, mode, only_models=only_models)
+            # When running with a model filter, do NOT write phase_completed so
+            # the main process continues to manage meta.json independently.
+            if only_models is None:
+                storage.update_meta(phase_completed=phase_id)
             logger.info(f"Phase '{phase_id}' completed")
+        except PartialPhaseFailure as exc:
+            # Some items failed but the phase produced usable output — log prominently,
+            # set exit_code=1 for the user's awareness, but CONTINUE the pipeline so
+            # downstream phases can process the available data.  Users can re-run
+            # with --continue to fill gaps.
+            logger.error(
+                f"Phase '{phase_id}' completed with partial failures "
+                f"({exc.n_failures} failed, {exc.n_successes} succeeded): {exc}"
+            )
+            if only_models is None:
+                storage.update_meta(phase_completed=phase_id)
+            exit_code = 1
         except Exception as exc:
             logger.error(f"Phase '{phase_id}' failed: {exc}")
-            storage.update_meta(phase_completed=phase_id, status='failed')
+            if only_models is None:
+                storage.update_meta(phase_completed=phase_id, status='failed')
             exit_code = 1
-            # Stop pipeline on phase failure (partial output preserved for resume)
+            # Stop pipeline on total phase failure (partial output preserved for resume)
             break
 
-    if exit_code == 0:
-        storage.update_meta(status='completed')
-        logger.info(f"Experiment {exp.id} completed successfully")
+    if only_models is None:
+        if exit_code == 0:
+            storage.update_meta(status='completed')
+            logger.info(f"Experiment {exp.id} completed successfully")
+        else:
+            storage.update_meta(status='failed')
+            logger.error(f"Experiment {exp.id} failed — artifacts preserved for --continue")
     else:
-        storage.update_meta(status='failed')
-        logger.error(f"Experiment {exp.id} failed — artifacts preserved for --continue")
+        if exit_code == 0:
+            logger.info(
+                f"Parallel run for {sorted(only_models)} finished successfully"
+            )
+        else:
+            logger.error(
+                f"Parallel run for {sorted(only_models)} finished with errors"
+            )
 
     return exit_code
