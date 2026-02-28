@@ -1,4 +1,4 @@
-"""Google Gemini model interface."""
+"""Google Gemini model interface (google-genai SDK)."""
 from __future__ import annotations
 
 import os
@@ -15,18 +15,19 @@ _STRIP_PARAMS = frozenset({'load_in_4bit', 'load_in_8bit', 'device', 'max_new_to
 
 
 class GeminiInterface(ModelInterface):
-    """Calls the Google Gemini generative AI API with exponential-backoff retry."""
+    """Calls the Google Gemini API via the google-genai SDK with exponential-backoff retry."""
 
     def __init__(self, access_key: str | None = None) -> None:
         try:
-            import google.generativeai as genai
+            from google import genai
+            from google.genai import types as genai_types
         except ImportError:
             raise ImportError(
-                "google-generativeai package is required: pip install google-generativeai"
+                "google-genai package is required: pip install google-genai"
             )
         key = access_key or os.environ.get('GEMINI_API_KEY') or os.environ.get('GOOGLE_API_KEY')
-        genai.configure(api_key=key)
-        self._genai = genai
+        self._client = genai.Client(api_key=key)
+        self._types = genai_types
 
     def generate(self, prompt: str, parameters: dict) -> str:
         params = {k: v for k, v in parameters.items() if k not in _STRIP_PARAMS}
@@ -36,21 +37,21 @@ class GeminiInterface(ModelInterface):
         # Gemini uses max_output_tokens; accept either name
         max_tokens = params.pop('max_tokens', None) or params.pop('max_output_tokens', None)
 
-        gen_config: dict = {'temperature': temperature}
-        if max_tokens is not None:
-            gen_config['max_output_tokens'] = max_tokens
-
-        model = self._genai.GenerativeModel(
-            model_name,
+        gen_config = self._types.GenerateContentConfig(
+            temperature=temperature,
+            max_output_tokens=max_tokens,
             system_instruction=system_prompt,
-            generation_config=gen_config,
         )
 
         delay = 1.0
         last_err: Exception | None = None
         for attempt in range(3):
             try:
-                response = model.generate_content(prompt)
+                response = self._client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config=gen_config,
+                )
                 return response.text.strip()
             except Exception as exc:
                 err_lower = str(exc).lower()

@@ -1,4 +1,4 @@
-"""Gemini concurrent-batch runner for CoEval pipeline phases.
+"""Gemini concurrent-batch runner for CoEval pipeline phases (google-genai SDK).
 
 Google Gemini's generative AI API does not offer a native asynchronous batch
 endpoint comparable to OpenAI's or Anthropic's (batch prediction through
@@ -46,14 +46,15 @@ class GeminiBatchRunner:
         max_workers: int = _DEFAULT_MAX_WORKERS,
     ) -> None:
         try:
-            import google.generativeai as genai
+            from google import genai
+            from google.genai import types as genai_types
         except ImportError:
             raise ImportError(
-                "google-generativeai package is required: pip install google-generativeai"
+                "google-genai package is required: pip install google-genai"
             )
         key = access_key or os.environ.get('GEMINI_API_KEY') or os.environ.get('GOOGLE_API_KEY')
-        genai.configure(api_key=key)
-        self._genai = genai
+        self._client = genai.Client(api_key=key)
+        self._types = genai_types
         self._workers = max_workers
         self._requests: list[dict] = []
         self._id_to_key: dict[str, str] = {}
@@ -76,9 +77,11 @@ class GeminiBatchRunner:
         temperature = p.pop('temperature', 0.7)
         max_tokens = p.pop('max_tokens', None) or p.pop('max_output_tokens', None)
 
-        gen_config: dict = {'temperature': temperature}
-        if max_tokens is not None:
-            gen_config['max_output_tokens'] = int(max_tokens)
+        gen_config = self._types.GenerateContentConfig(
+            temperature=temperature,
+            max_output_tokens=int(max_tokens) if max_tokens is not None else None,
+            system_instruction=system_prompt,
+        )
 
         custom_id = f"r{len(self._requests)}"
         self._id_to_key[custom_id] = key
@@ -86,7 +89,6 @@ class GeminiBatchRunner:
             'custom_id': custom_id,
             'prompt': prompt,
             'model_name': model_name,
-            'system_prompt': system_prompt,
             'gen_config': gen_config,
         })
 
@@ -101,7 +103,7 @@ class GeminiBatchRunner:
     def run(
         self,
         description: str = 'CoEval batch',
-        logger: RunLogger | None = None,
+        logger: 'RunLogger | None' = None,
     ) -> dict[str, str]:
         """Submit all pending requests concurrently and block until all complete.
 
@@ -158,16 +160,15 @@ class GeminiBatchRunner:
 
     def _call_one(self, req: dict) -> str:
         """Call Gemini API for one request; returns response text or raises."""
-        model = self._genai.GenerativeModel(
-            req['model_name'],
-            system_instruction=req['system_prompt'],
-            generation_config=req['gen_config'],
-        )
         delay = 1.0
         last_err: Exception | None = None
         for attempt in range(3):
             try:
-                response = model.generate_content(req['prompt'])
+                response = self._client.models.generate_content(
+                    model=req['model_name'],
+                    contents=req['prompt'],
+                    config=req['gen_config'],
+                )
                 return response.text.strip()
             except Exception as exc:
                 last_err = exc

@@ -250,18 +250,17 @@ def _probe_anthropic(model: 'ModelConfig') -> None:
 
 
 def _probe_gemini(model: 'ModelConfig') -> None:
-    """Call genai.list_models() — authenticates without consuming tokens."""
+    """Call client.models.list() via google-genai SDK — no tokens consumed."""
     try:
-        import google.generativeai as genai
+        from google import genai
     except ImportError:
         raise RuntimeError(
-            "google-generativeai package not installed "
-            "(pip install google-generativeai)"
+            "google-genai package not installed (pip install google-genai)"
         )
     key = (model.access_key or os.environ.get('GEMINI_API_KEY')
            or os.environ.get('GOOGLE_API_KEY'))
-    genai.configure(api_key=key)
-    next(iter(genai.list_models()), None)
+    client = genai.Client(api_key=key)
+    next(iter(client.models.list()), None)
 
 
 def _probe_huggingface(model: 'ModelConfig') -> None:

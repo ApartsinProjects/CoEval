@@ -297,12 +297,15 @@ def _list_anthropic_models(creds: dict, verbose: bool) -> list[dict]:
 
 
 def _list_gemini_models(creds: dict, verbose: bool) -> list[dict]:
-    import google.generativeai as genai
-    genai.configure(api_key=creds['api_key'])
+    from google import genai
+    client = genai.Client(api_key=creds['api_key'])
     models = []
-    for m in genai.list_models():
-        if 'generateContent' in (m.supported_generation_methods or []):
-            models.append({'id': m.name, 'name': getattr(m, 'display_name', m.name)})
+    for m in client.models.list():
+        mid = getattr(m, 'name', None) or getattr(m, 'id', str(m))
+        # Only include generative text models (skip embedding-only models)
+        if 'embed' in mid.lower():
+            continue
+        models.append({'id': mid, 'name': getattr(m, 'display_name', mid)})
     return sorted(models, key=lambda m: m['id'])
 
 
