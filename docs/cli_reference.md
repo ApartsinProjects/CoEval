@@ -276,11 +276,10 @@ coeval status --run benchmark/runs/medium-benchmark-v1 --fetch-batches
 
 ## `coeval repair`
 
-Scan Phase 3, 4, and 5 JSONL files for **invalid records** and mark them with
-`status='failed'` so that a subsequent `coeval run --continue` regenerates
-the minimum necessary set — no valid data is discarded.
+Scan Phase 3, 4, and 5 JSONL files for two classes of problems and prepare
+the minimum set of re-generation needed — no valid data is discarded.
 
-**What counts as invalid?**
+**Class 1 — Invalid records** (exist but have empty/null required fields):
 
 | Phase | File suffix | Invalid when … |
 |-------|-------------|----------------|
@@ -289,6 +288,20 @@ the minimum necessary set — no valid data is discarded.
 | 5 — evaluations | `.evaluations.jsonl` | `scores` is empty/all-null, or `status='failed'` |
 
 Any JSONL line that cannot be parsed as JSON is also reported.
+These are marked `status='failed'` in-place so that `--continue` Extend mode
+regenerates them (and only them) on the next run.
+
+**Class 2 — Coverage gaps** (records expected but entirely missing):
+
+Cross-references upstream phases to find files with fewer records than
+expected: Phase 4 gaps compare response JSONL vs Phase 3 datapoint IDs;
+Phase 5 gaps compare evaluation JSONL vs Phase 4 response IDs.  When gaps
+are found, the affected phase is **removed from `phases_completed`** in
+`meta.json` so that `--continue` re-runs it in Extend mode, which skips
+already-present records and generates only the missing ones.
+
+> **Typical cause:** HuggingFace models running out of memory or crashing
+> mid-phase, leaving large gaps in evaluation or response files.
 
 **Repair workflow**
 
@@ -296,20 +309,15 @@ Any JSONL line that cannot be parsed as JSON is also reported.
 # Step 1 — scan only (read-only audit, nothing modified)
 coeval repair --run benchmark/runs/my-exp --dry-run
 
-# Step 2 — scan and mark invalid records as failed (in-place file rewrite)
+# Step 2 — repair: mark invalid records + re-open gapped phases in meta.json
 coeval repair --run benchmark/runs/my-exp
 
-# Step 3 — re-generate the marked records (only the failed ones)
+# Step 3 — re-generate the missing/failed records (only those)
 coeval run --config my-experiment.yaml --continue
 ```
 
-After step 2 the affected JSONL files are rewritten with
-`"status": "failed"` added to each invalid record.  The existing
-**Extend-mode skip logic** in phases 3–5 already excludes `status='failed'`
-records, so `--continue` regenerates exactly those records and nothing else.
-
-> **Note:** `coeval repair` only modifies JSONL data files.  It never deletes
-> records, phases, or experiment metadata.  All valid data is fully preserved.
+> **Note:** `coeval repair` never deletes records or clears entire phases.
+> All valid, present data is fully preserved.
 
 ### Required
 
