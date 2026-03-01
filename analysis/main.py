@@ -10,12 +10,14 @@ from .reports.coverage import write_coverage_summary
 from .reports.excel import write_complete_report
 from .reports.export_benchmark import export_benchmark
 from .reports.html_base import get_plotly_js
+from .reports.index_page import write_index_page
 from .reports.interaction import write_interaction_matrix
 from .reports.judge_report import write_judge_report
 from .reports.consistency import write_judge_consistency
 from .reports.robust import write_robust_summary
 from .reports.score_dist import write_score_distribution
 from .reports.student_report import write_student_report
+from .reports.summary_report import write_summary_report
 from .reports.teacher_report import write_teacher_report
 
 
@@ -128,6 +130,10 @@ def run_analyze(
             write_robust_summary(model, out_p, **robust_kwargs)
             print(f"Written: {out_p / 'index.html'}")
 
+        elif subcommand == 'summary-report':
+            write_summary_report(model, out_p)
+            print(f"Written: {out_p / 'index.html'}")
+
         elif subcommand == 'export-benchmark':
             export_benchmark(
                 model, out_p, **robust_kwargs,
@@ -171,6 +177,7 @@ def _run_all(model, out_p: Path, robust_kwargs: dict) -> None:
         ('interaction_matrix',   write_interaction_matrix,  {}),
         ('judge_consistency',    write_judge_consistency,   {}),
         ('robust_summary',       write_robust_summary,      robust_kwargs),
+        ('summary',              write_summary_report,      {}),
     ]
 
     for folder_name, fn, extra_kwargs in reports:
@@ -184,6 +191,13 @@ def _run_all(model, out_p: Path, robust_kwargs: dict) -> None:
             print(f"  Skipped: {folder_name} (robust filter produced 0 datapoints)")
         except Exception as exc:
             print(f"  WARNING: {folder_name} failed: {exc}", file=sys.stderr)
+
+    # Generate the portal index page last (so it can detect which subdirs exist)
+    try:
+        idx_path = write_index_page(model, out_p)
+        print(f"  Written: {idx_path}")
+    except Exception as exc:
+        print(f"  WARNING: index page failed: {exc}", file=sys.stderr)
 
     print(f"\nAll reports written to: {out_p}")
 

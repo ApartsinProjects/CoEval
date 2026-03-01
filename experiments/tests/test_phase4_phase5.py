@@ -476,9 +476,13 @@ def test_phase5_partial_failure_recorded_on_scoring_error(tmp_path):
     _seed_responses(store, 'task_bad', 'teacher1', 'student1', n=1)
     store.write_rubric('task_bad', rubric)
 
+    # Use huggingface interface to force sequential (not threaded) execution so
+    # the call-count ordering is deterministic: task_good first, task_bad second.
+    judge_hf = _make_model('judge1', interface='huggingface', roles=['judge'])
+
     cfg = _make_cfg_mock(
         tasks=[task_good, task_bad],
-        models_by_role_fn=lambda role: [teacher] if role == 'teacher' else [judge],
+        models_by_role_fn=lambda role: [teacher] if role == 'teacher' else [judge_hf],
     )
 
     # Make the interface error on the second call (for task_bad)

@@ -341,6 +341,7 @@ def _build_parser() -> argparse.ArgumentParser:
         ('coverage-summary',  'HTML: EES artifact coverage and error breakdown'),
         ('robust-summary',    'HTML: robust student ranking with filtered datapoints'),
         ('export-benchmark',  'JSONL/Parquet: export robust benchmark datapoints'),
+        ('summary-report',    'HTML: interactive single-page summary dashboard'),
         ('all',               'Generate all HTML reports + Excel into subdirectories'),
     ]
 
