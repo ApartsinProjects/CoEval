@@ -62,9 +62,6 @@ models:
     model: Qwen/Qwen2.5-0.5B-Instruct
     temperature: 0.7
   role_parameters:
-    judge:
-      max_new_tokens: 128
-      temperature: 0.0
     student:
       max_new_tokens: 256
       temperature: 0.7
@@ -74,7 +71,6 @@ models:
   roles:
   - teacher
   - student
-  - judge
 - interface: huggingface
   name: qwen2p5-1b5
   parameters:
@@ -84,7 +80,7 @@ models:
     temperature: 0.7
   role_parameters:
     judge:
-      max_new_tokens: 128
+      max_new_tokens: 256
       temperature: 0.0
     student:
       max_new_tokens: 256
@@ -105,7 +101,7 @@ models:
     temperature: 0.7
   role_parameters:
     judge:
-      max_new_tokens: 128
+      max_new_tokens: 256
       temperature: 0.0
     student:
       max_new_tokens: 256

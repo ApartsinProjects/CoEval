@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CoEval Run Summary — medium-benchmark-v1</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+       background: #f4f6f9; color: #24292f; line-height: 1.5; }
+.container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 4px; }
+h2 { font-size: 1.1rem; font-weight: 600; margin: 24px 0 12px; color: #1f6feb; }
+.subtitle { color: #656d76; font-size: 0.9rem; margin-bottom: 20px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.card { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; padding: 18px; }
+.card .label { font-size: 0.75rem; color: #656d76; text-transform: uppercase; letter-spacing: 0.04em; }
+.card .value { font-size: 2rem; font-weight: 700; margin: 4px 0 2px; }
+.card .sub { font-size: 0.8rem; color: #57606a; }
+.status-badge { display: inline-block; padding: 2px 10px; border-radius: 20px;
+                font-size: 0.78rem; font-weight: 600; }
+.status-completed { background: #dafbe1; color: #1a7f37; }
+.status-in_progress { background: #fff8c5; color: #9a6700; }
+.status-failed { background: #ffebe9; color: #cf222e; }
+.status-pending { background: #f6f8fa; color: #57606a; }
+table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+th { background: #f6f8fa; border: 1px solid #d0d7de; padding: 7px 12px;
+     text-align: left; font-weight: 600; }
+td { border: 1px solid #d0d7de; padding: 6px 12px; }
+tr:nth-child(even) td { background: #f6f8fa; }
+.prog-bar-bg { background: #eaeef2; border-radius: 4px; height: 8px; min-width: 80px; }
+.prog-bar { background: #2da44e; border-radius: 4px; height: 8px; }
+.prog-bar.warn { background: #d29922; }
+.prog-bar.danger { background: #cf222e; }
+.warn-box { background: #fff8c5; border: 1px solid #e3b341; border-radius: 6px;
+            padding: 10px 14px; margin: 8px 0; font-size: 0.85rem; }
+.ok-box { background: #dafbe1; border: 1px solid #2da44e; border-radius: 6px;
+          padding: 10px 14px; margin: 8px 0; font-size: 0.85rem; }
+.section { background: #fff; border: 1px solid #d0d7de; border-radius: 8px;
+           padding: 20px; margin-bottom: 18px; }
+.mono { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+        font-size: 0.82rem; }
+footer { text-align: center; color: #8c959f; font-size: 0.78rem; margin-top: 32px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>CoEval Run Summary</h1>
+  <p class="subtitle">
+    Run: <strong>medium-benchmark-v1</strong> &nbsp;·&nbsp;
+    Status: <span class="status-badge status-in_progress">in_progress</span> &nbsp;·&nbsp;
+    Generated: 2026-02-26 17:53 UTC
+  </p>
+
+  <!-- Stat grid -->
+  <div class="grid"><div class="card"><div class="label">Experiment ID</div><div class="value">medium-benchmark-v1</div><div class="sub"></div></div><div class="card"><div class="label">Status</div><div class="value"><span class="status-badge status-in_progress">in_progress</span></div><div class="sub">Started: ?</div></div><div class="card"><div class="label">Phases done</div><div class="value">2</div><div class="sub">of 5</div></div><div class="card"><div class="label">Datapoints (P3)</div><div class="value">305</div><div class="sub">4 tasks</div></div><div class="card"><div class="label">Responses (P4)</div><div class="value">1,228</div><div class="sub">collected</div></div><div class="card"><div class="label">Eval records (P5)</div><div class="value">892</div><div class="sub">892 valid</div></div><div class="card"><div class="label">Analytical units</div><div class="value">4,460</div><div class="sub">valid (response × aspect)</div></div><div class="card"><div class="label">Load warnings</div><div class="value">0</div><div class="sub"></div></div></div>
+
+  <!-- Phase pipeline -->
+  <h2>Pipeline Phases</h2>
+  <div class="section">
+    <table>
+      <thead><tr><th>Phase</th><th>Status</th><th>Details</th></tr></thead>
+      <tbody><tr><td>Phase 1 — Attribute Mapping</td><td><span class="status-badge status-completed">completed</span></td><td class="mono">0 attribute file(s)</td></tr>
+<tr><td>Phase 2 — Rubric Mapping</td><td><span class="status-badge status-completed">completed</span></td><td class="mono">4 rubric file(s)</td></tr>
+<tr><td>Phase 3 — Data Generation</td><td><span class="status-badge status-in_progress">in_progress</span></td><td class="mono">305 items across 20 files · 14/20 slots full · <div class="prog-bar-bg" style="width:100px"><div class="prog-bar warn" style="width:70%"></div></div><small>70%</small></td></tr>
+<tr><td>Phase 4 — Response Collection</td><td><span class="status-badge status-pending">pending</span></td><td class="mono">1,228 responses across 83 files · 57/83 slots full · <div class="prog-bar-bg" style="width:100px"><div class="prog-bar warn" style="width:69%"></div></div><small>69%</small></td></tr>
+<tr><td>Phase 5 — Evaluation</td><td><span class="status-badge status-pending">pending</span></td><td class="mono">892 evaluations across 11 files · 8/11 slots done · <div class="prog-bar-bg" style="width:100px"><div class="prog-bar warn" style="width:73%"></div></div><small>73%</small></td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- Model inventory -->
+  <h2>Model Inventory</h2>
+  <div class="section">
+    <table>
+      <thead>
+        <tr><th>Name</th><th>Interface</th><th>Model ID</th><th>Roles</th><th>Max tokens</th></tr>
+      </thead>
+      <tbody><tr><td>gpt-4o-mini</td><td>openai</td><td>gpt-4o-mini</td><td>teacher, student, judge</td><td>512</td></tr>
+<tr><td>gpt-3.5-turbo</td><td>openai</td><td>gpt-3.5-turbo</td><td>teacher, student, judge</td><td>512</td></tr>
+<tr><td>qwen2p5-0b5</td><td>huggingface</td><td>Qwen/Qwen2.5-0.5B-Instruct</td><td>teacher, student</td><td>512</td></tr>
+<tr><td>qwen2p5-1b5</td><td>huggingface</td><td>Qwen/Qwen2.5-1.5B-Instruct</td><td>teacher, student, judge</td><td>512</td></tr>
+<tr><td>smollm2-1b7</td><td>huggingface</td><td>HuggingFaceTB/SmolLM2-1.7B-Instruct</td><td>teacher, student, judge</td><td>512</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- Per-task data -->
+  <h2>Per-Task Data Counts</h2>
+  <div class="section">
+    <table>
+      <thead>
+        <tr>
+          <th>Task</th>
+          <th>Phase 3 datapoints</th>
+          <th>Phase 4 responses</th>
+          <th>Phase 5 evaluations</th>
+          <th>Valid units</th>
+          <th>Rubric aspects</th>
+        </tr>
+      </thead>
+      <tbody><tr><td>code_explanation</td><td>85 (5 teachers) <div class="prog-bar-bg" style="width:60px"><div class="prog-bar" style="width:85%"></div></div><small>85%</small></td><td>315 (20 files)</td><td>0 (0 files)</td><td>0</td><td>6</td></tr>
+<tr><td>data_interpretation</td><td>65 (5 teachers) <div class="prog-bar-bg" style="width:60px"><div class="prog-bar warn" style="width:65%"></div></div><small>65%</small></td><td>158 (13 files)</td><td>0 (0 files)</td><td>0</td><td>6</td></tr>
+<tr><td>email_composition</td><td>69 (5 teachers) <div class="prog-bar-bg" style="width:60px"><div class="prog-bar warn" style="width:69%"></div></div><small>69%</small></td><td>325 (25 files)</td><td>0 (0 files)</td><td>0</td><td>5</td></tr>
+<tr><td>text_summarization</td><td>86 (5 teachers) <div class="prog-bar-bg" style="width:60px"><div class="prog-bar" style="width:86%"></div></div><small>86%</small></td><td>430 (25 files)</td><td>892 (11 files)</td><td>4,460</td><td>5</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- Rubric aspects and attributes -->
+  <h2>Tasks — Rubric Aspects & Target Attributes</h2>
+  <div class="section">
+    <table>
+      <thead><tr><th>Task</th><th>Rubric aspects</th><th>Target attributes</th></tr></thead>
+      <tbody><tr><td>code_explanation</td><td>appropriate_level, clarity, completeness, practical_value, structure, technical_accuracy</td><td class='mono'>depth (3 vals), explanation_style (4 vals), complexity (3 vals), audience (4 vals), language (5 vals), snippet_type (5 vals)</td></tr>
+<tr><td>data_interpretation</td><td>accuracy, actionability, appropriate_caveats, clarity, insight_quality, statistical_literacy</td><td class='mono'>domain (5 vals), trend_type (4 vals), complexity (3 vals), insight_depth (3 vals), data_type (6 vals), audience (4 vals)</td></tr>
+<tr><td>email_composition</td><td>actionability, appropriate_tone, clarity, completeness, professionalism</td><td class='mono'>urgency (4 vals), formality (5 vals), tone (5 vals), length (3 vals), purpose (5 vals)</td></tr>
+<tr><td>text_summarization</td><td>accuracy, completeness, conciseness, readability, tone_consistency</td><td class='mono'>audience (4 vals), complexity (4 vals), format (3 vals), tone (4 vals), length (3 vals)</td></tr>
+</tbody>
+    </table>
+  </div>
+
+  <!-- Warnings -->
+  <h2>Load Warnings (0)</h2>
+  <div class="section"><div class="ok-box">No load warnings.</div></div>
+
+  <!-- Meta JSON -->
+  <h2>Raw meta.json</h2>
+  <div class="section">
+    <pre class="mono">{
+  "experiment_id": "medium-benchmark-v1",
+  "status": "in_progress",
+  "created_at": "2026-02-24T12:22:23Z",
+  "updated_at": "2026-02-26T17:47:27Z",
+  "phases_completed": [
+    "attribute_mapping",
+    "rubric_mapping"
+  ],
+  "phases_in_progress": [
+    "data_generation"
+  ],
+  "resume_from": null
+}</pre>
+  </div>
+
+  <footer>CoEval run summary &nbsp;·&nbsp; 2026-02-26 17:53 UTC</footer>
+</div>
+</body>
+</html>
