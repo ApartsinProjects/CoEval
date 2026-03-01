@@ -3,7 +3,9 @@ Tests for coeval repair — invalid-record scanning and marking.
 
 Covers:
 - scan_experiment: detects invalid records in all three phases
+- scan_coverage_gaps: detects missing records by cross-referencing upstream data
 - fix_invalid_records: marks invalid records as status='failed'
+- reopen_phases: removes phases from phases_completed in meta.json
 - storage.mark_failed_records: low-level rewrite helper
 - storage.count_datapoints: skips status='failed' records (Extend mode fix)
 """
@@ -14,7 +16,9 @@ from pathlib import Path
 from experiments.storage import ExperimentStorage
 from experiments.commands.repair_cmd import (
     scan_experiment,
+    scan_coverage_gaps,
     fix_invalid_records,
+    reopen_phases,
     _is_invalid_p3,
     _is_invalid_p4,
     _is_invalid_p5,
@@ -349,7 +353,7 @@ class TestCountDatapointsSkipsFailed:
         ])
         assert s.count_datapoints('task1', 'teacher1') == 0
 
-    def test_extend_mode_regenerates_after_repair(self, tmp_path):
+    def test_extend_mode_regenerates_after_repair(self, tmp_path):  # noqa: E501
         """End-to-end: repair marks failed → count drops → Extend mode detects gap."""
         s = ExperimentStorage(str(tmp_path), 'exp')
         s.initialize({'experiment': {'id': 'exp'}})
@@ -367,4 +371,127 @@ class TestCountDatapointsSkipsFailed:
         s.mark_failed_records(dp_path, {'dp2'})
 
         assert s.count_datapoints('task1', 'teacher1') == 2  # after repair
-        # Extend mode would compute: total=3, existing=2 → generate 1 more ✓
+        # Extend mode would compute: total=3, existing=2 → generate 1 more
+
+
+# ---------------------------------------------------------------------------
+# scan_coverage_gaps
+# ---------------------------------------------------------------------------
+
+class TestScanCoverageGaps:
+    def _setup_p3(self, run_path, task, teacher, dp_ids):
+        f = run_path / 'phase3_datapoints' / f'{task}.{teacher}.datapoints.jsonl'
+        _write_jsonl(f, [
+            {'id': dp, 'task_id': task, 'teacher_model_id': teacher,
+             'reference_response': 'ok'}
+            for dp in dp_ids
+        ])
+
+    def _setup_p4(self, run_path, task, teacher, student, dp_ids, respond_ids=None):
+        if respond_ids is None:
+            respond_ids = dp_ids
+        f = run_path / 'phase4_responses' / f'{task}.{teacher}.{student}.responses.jsonl'
+        _write_jsonl(f, [
+            {'id': f'{dp}__{student}', 'task_id': task,
+             'teacher_model_id': teacher, 'student_model_id': student,
+             'datapoint_id': dp, 'response': 'answer'}
+            for dp in respond_ids
+        ])
+
+    def _setup_p5(self, run_path, task, teacher, student, judge, resp_ids,
+                  eval_ids=None):
+        if eval_ids is None:
+            eval_ids = resp_ids
+        f = run_path / 'phase5_evaluations' / f'{task}.{teacher}.{judge}.evaluations.jsonl'
+        _write_jsonl(f, [
+            {'id': f'{r}__{judge}', 'task_id': task,
+             'teacher_model_id': teacher, 'judge_model_id': judge,
+             'response_id': r, 'scores': {'clarity': 'High'}}
+            for r in eval_ids
+        ])
+
+    def test_no_gaps_returns_empty(self, tmp_path):
+        run_path, _ = _make_exp(tmp_path)
+        dp_ids = ['dp1', 'dp2', 'dp3']
+        resp_ids = [f'{dp}__stu' for dp in dp_ids]
+        self._setup_p3(run_path, 'task', 'tch', dp_ids)
+        self._setup_p4(run_path, 'task', 'tch', 'stu', dp_ids)
+        self._setup_p5(run_path, 'task', 'tch', 'stu', 'jud', resp_ids)
+        gaps = scan_coverage_gaps(run_path)
+        assert gaps['phase4_gaps'] == []
+        assert gaps['phase5_gaps'] == []
+        assert gaps['phases_to_reopen'] == set()
+
+    def test_detects_phase5_missing_evaluations(self, tmp_path):
+        run_path, _ = _make_exp(tmp_path)
+        dp_ids = ['dp1', 'dp2', 'dp3']
+        resp_ids = [f'{dp}__stu' for dp in dp_ids]
+        self._setup_p3(run_path, 'task', 'tch', dp_ids)
+        self._setup_p4(run_path, 'task', 'tch', 'stu', dp_ids)
+        # Judge only evaluated 1 of 3 responses
+        self._setup_p5(run_path, 'task', 'tch', 'stu', 'jud', resp_ids,
+                       eval_ids=[resp_ids[0]])
+        gaps = scan_coverage_gaps(run_path)
+        assert len(gaps['phase5_gaps']) == 1
+        assert gaps['phase5_gaps'][0]['missing'] == 2
+        assert 'evaluation' in gaps['phases_to_reopen']
+
+    def test_detects_phase4_missing_responses(self, tmp_path):
+        run_path, _ = _make_exp(tmp_path)
+        dp_ids = ['dp1', 'dp2', 'dp3']
+        self._setup_p3(run_path, 'task', 'tch', dp_ids)
+        # Student only responded to 2 of 3 datapoints
+        self._setup_p4(run_path, 'task', 'tch', 'stu', dp_ids,
+                       respond_ids=['dp1', 'dp2'])
+        gaps = scan_coverage_gaps(run_path)
+        assert len(gaps['phase4_gaps']) == 1
+        assert gaps['phase4_gaps'][0]['missing'] == 1
+        assert 'response_collection' in gaps['phases_to_reopen']
+
+    def test_complete_coverage_no_reopen(self, tmp_path):
+        run_path, _ = _make_exp(tmp_path)
+        dp_ids = ['dp1', 'dp2']
+        resp_ids = [f'{dp}__stu' for dp in dp_ids]
+        self._setup_p3(run_path, 'task', 'tch', dp_ids)
+        self._setup_p4(run_path, 'task', 'tch', 'stu', dp_ids)
+        self._setup_p5(run_path, 'task', 'tch', 'stu', 'jud', resp_ids)
+        gaps = scan_coverage_gaps(run_path)
+        assert gaps['phases_to_reopen'] == set()
+
+
+# ---------------------------------------------------------------------------
+# reopen_phases
+# ---------------------------------------------------------------------------
+
+class TestReopenPhases:
+    def test_removes_phase_from_completed(self, tmp_path):
+        run_path, s = _make_exp(tmp_path)
+        s.update_meta(phase_completed='evaluation')
+        assert 'evaluation' in s.read_meta()['phases_completed']
+        removed = reopen_phases(run_path, {'evaluation'})
+        assert removed == ['evaluation']
+        assert 'evaluation' not in s.read_meta()['phases_completed']
+
+    def test_sets_status_to_in_progress(self, tmp_path):
+        run_path, s = _make_exp(tmp_path)
+        s.update_meta(phase_completed='evaluation')
+        reopen_phases(run_path, {'evaluation'})
+        assert s.read_meta()['status'] == 'in_progress'
+
+    def test_phase_not_completed_returns_empty(self, tmp_path):
+        run_path, s = _make_exp(tmp_path)
+        # 'evaluation' was never marked completed
+        removed = reopen_phases(run_path, {'evaluation'})
+        assert removed == []
+
+    def test_removes_only_specified_phases(self, tmp_path):
+        run_path, s = _make_exp(tmp_path)
+        s.update_meta(phase_completed='attribute_mapping')
+        s.update_meta(phase_completed='rubric_mapping')
+        s.update_meta(phase_completed='evaluation')
+        removed = reopen_phases(run_path, {'evaluation'})
+        assert removed == ['evaluation']
+        meta = s.read_meta()
+        assert 'attribute_mapping' in meta['phases_completed']
+        assert 'rubric_mapping' in meta['phases_completed']
+        assert 'evaluation' not in meta['phases_completed']
