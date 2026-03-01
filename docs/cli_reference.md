@@ -327,9 +327,14 @@ coeval run --config my-experiment.yaml --continue
 
 ### Optional
 
-| Flag | Description |
-|------|-------------|
-| `--dry-run` | Scan and print a report without modifying any files |
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--dry-run` | off | Scan and print a report without modifying any files. Safe to run at any time. |
+| `--stats` | off | Print a compact per-phase summary table (valid / invalid / gap counts) and exit. No files are modified. |
+| `--examples N` | 5 | Number of example records to show per issue group. Use `0` to suppress examples entirely; `-1` to show all. |
+| `--phase PHASE` | all | Restrict scan and report to a single phase (`3`, `4`, or `5`). |
+| `--breakdown` | off | Show a per-file breakdown table with valid/invalid/gap counts for every JSONL file. Can be combined with `--stats`. |
+| `--show-valid N` | 0 | Show *N* example **valid** records per phase for spot-checking data quality (0 = disabled). |
 
 ### Exit codes
 
@@ -338,14 +343,86 @@ coeval run --config my-experiment.yaml --continue
 | 0 | Scan complete (0 or more issues found; files patched if not `--dry-run`) |
 | 1 | Fatal error (experiment folder not found, no `meta.json`, etc.) |
 
+### Diagnostic flag guide
+
+#### `--stats` — phase-level summary
+
+Prints a single compact table that gives a quick health check across all
+three phases:
+
+```
+Phase    Valid   Invalid    Gaps
+phase3    1600         0       0
+phase4    7987         0       0
+phase5    7978         9       0
+```
+
+Useful as a first pass to see whether any problems exist.  Combine with
+`--phase` to focus on one phase.
+
+#### `--breakdown` — per-file detail
+
+Expands the phase-level view into a row per JSONL file, showing how valid,
+invalid, and gap counts are distributed across individual (task, teacher,
+model) combinations.  Files with any invalid or gap records are highlighted
+with a `!` indicator.  Combine with `--stats` for the full picture:
+
+```bash
+coeval repair --run benchmark/runs/my-exp --stats --breakdown
+```
+
+#### `--examples N` — control example verbosity
+
+By default, the detailed report shows 5 examples per issue group.  Set a
+higher number to see more context, or `0` to suppress examples and keep the
+output compact:
+
+```bash
+# Verbose: 10 examples per group
+coeval repair --run benchmark/runs/my-exp --dry-run --examples 10
+
+# Silent: counts only, no records shown
+coeval repair --run benchmark/runs/my-exp --dry-run --examples 0
+```
+
+#### `--phase PHASE` — focus on one phase
+
+Filter all output to a single phase.  Useful when you know the problem is
+confined to evaluation (phase 5) or responses (phase 4):
+
+```bash
+# Investigate only phase 5 failures in detail
+coeval repair --run benchmark/runs/my-exp --phase 5 --examples 20 --dry-run
+```
+
+#### `--show-valid N` — spot-check good records
+
+Samples up to *N* valid records per phase and prints their key fields
+(`reference_response` for phase 3, `response` for phase 4, `scores` dict
+for phase 5).  Helps verify that data quality is acceptable even among
+records that passed validation, without opening the raw JSONL files:
+
+```bash
+coeval repair --run benchmark/runs/my-exp --show-valid 3 --dry-run
+```
+
 ### Examples
 
 ```bash
-# Audit a completed experiment without touching files
-coeval repair --run benchmark/runs/medium-benchmark-v1 --dry-run
+# Quick health check: phase summary table
+coeval repair --run benchmark/runs/my-exp --stats
 
-# Mark any invalid records and prepare for --continue
-coeval repair --run benchmark/runs/medium-benchmark-v1
+# Full health check: phase summary + per-file breakdown
+coeval repair --run benchmark/runs/my-exp --stats --breakdown
+
+# Audit without touching files, show 10 examples per issue group
+coeval repair --run benchmark/runs/my-exp --dry-run --examples 10
+
+# Focus on phase 5 only, with spot-check of valid records
+coeval repair --run benchmark/runs/my-exp --phase 5 --show-valid 3 --dry-run
+
+# Repair: mark invalid records and update meta.json (no --dry-run)
+coeval repair --run benchmark/runs/my-exp
 
 # Regenerate only the repaired records
 coeval run --config benchmark/medium-benchmark-v1.yaml --continue
@@ -612,6 +689,31 @@ coeval run --config experiments/my_exp.yaml --continue
 
 # Estimate remaining cost before resuming
 coeval plan --config experiments/my_exp.yaml --continue --estimate-samples 0
+```
+
+### Diagnose and repair a failed experiment
+
+```bash
+# 1. Quick health check — phase-level summary table
+coeval repair --run benchmark/runs/my-exp --stats
+
+# 2. Full audit — per-phase + per-file breakdown, no changes made
+coeval repair --run benchmark/runs/my-exp --stats --breakdown --dry-run
+
+# 3. Investigate specific failures in detail
+coeval repair --run benchmark/runs/my-exp --phase 5 --examples 10 --dry-run
+
+# 4. Spot-check valid records to verify data quality
+coeval repair --run benchmark/runs/my-exp --show-valid 3 --dry-run
+
+# 5. Apply repair: mark invalid records as failed, reopen gapped phases
+coeval repair --run benchmark/runs/my-exp
+
+# 6. Regenerate only the marked/missing records
+coeval run --config benchmark/my-exp.yaml --continue
+
+# 7. Confirm the experiment is now clean
+coeval repair --run benchmark/runs/my-exp --stats
 ```
 
 ### Discover available models
