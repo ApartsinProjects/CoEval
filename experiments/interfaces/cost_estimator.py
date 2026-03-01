@@ -59,17 +59,30 @@ PRICE_TABLE: dict[str, tuple[float, float]] = {
     'o1-mini':                (3.00,  12.00),
     'o1':                     (15.00, 60.00),
     'o3-mini':                (1.10,   4.40),
+    'o4-mini':                (1.10,   4.40),
+    'gpt-4.1-mini':           (0.40,   1.60),
+    'gpt-4.1-nano':           (0.10,   0.40),
+    'gpt-4.1':                (2.00,   8.00),
     # Anthropic
     'claude-3-5-sonnet':      (3.00,  15.00),
     'claude-3-5-haiku':       (0.80,   4.00),
     'claude-3-opus':          (15.00, 75.00),
     'claude-3-sonnet':        (3.00,  15.00),
     'claude-3-haiku':         (0.25,   1.25),
-    # Gemini
+    'claude-opus-4':          (15.00, 75.00),
+    'claude-sonnet-4':        (3.00,  15.00),
+    'claude-haiku-4':         (0.80,   4.00),
+    # Gemini (google-genai SDK model names)
+    'gemini-2.5-pro':         (1.25,  10.00),
+    'gemini-2.5-flash':       (0.15,   0.60),
+    'gemini-2.5-flash-lite':  (0.075,  0.30),
     'gemini-2.0-flash':       (0.10,   0.40),
+    'gemini-2.0-flash-lite':  (0.075,  0.30),
     'gemini-1.5-flash':       (0.075,  0.30),
     'gemini-1.5-pro':         (1.25,   5.00),
     'gemini-1.0-pro':         (0.50,   1.50),
+    # OpenRouter (pass-through; approximate median across providers)
+    'openrouter':             (1.00,   3.00),
 }
 
 #: Fallback prices when the model is not found in PRICE_TABLE.
@@ -367,6 +380,9 @@ def estimate_experiment_cost(
     total_cost = 0.0
     total_time_s = 0.0
 
+    # Per-provider accumulator  {interface_name: {calls, cost_usd, time_s, models}}
+    per_provider: dict[str, dict] = {}
+
     def _add_phase_cost(
         phase_id: str,
         model_cfg: 'ModelConfig',
@@ -404,6 +420,16 @@ def estimate_experiment_cost(
         total_calls += n_calls
         total_cost  += phase_cost
         total_time_s += phase_time
+
+        # Accumulate per-provider
+        if iface not in per_provider:
+            per_provider[iface] = {'calls': 0, 'cost_usd': 0.0, 'time_s': 0.0, 'models': []}
+        prov = per_provider[iface]
+        prov['calls'] += n_calls
+        prov['cost_usd'] += phase_cost
+        prov['time_s'] += phase_time
+        if name not in prov['models']:
+            prov['models'].append(name)
 
     if continue_in_place:
         # ------------------------------------------------------------------
@@ -600,6 +626,19 @@ def estimate_experiment_cost(
             }
             for pid, pdata in per_phase.items()
         },
+        'per_provider': {
+            iface: {
+                'calls':    pdata['calls'],
+                'cost_usd': round(pdata['cost_usd'], 4),
+                'time_min': round(pdata['time_s'] / 60.0, 2),
+                'models':   pdata['models'],
+            }
+            for iface, pdata in sorted(
+                per_provider.items(),
+                key=lambda kv: kv[1]['cost_usd'],
+                reverse=True,
+            )
+        },
         'per_model':       per_model,
         'assumptions': {
             'token_counts':        _TOKENS,
@@ -685,6 +724,20 @@ def _print_estimate(report: dict, logger: 'RunLogger') -> None:
             f"  {pid:<25}  {calls:>7}  "
             f"${pdata['cost_usd']:>10.4f}  {pdata['time_min']:>10.1f}"
         )
+    if report.get('per_provider'):
+        lines += [
+            '',
+            '  Per-provider breakdown:',
+            f"  {'Provider':<16}  {'Calls':>7}  {'Cost (USD)':>12}  {'Time (min)':>11}  Models",
+            '  ' + '-' * 72,
+        ]
+        for iface, pdata in report['per_provider'].items():
+            models_str = ', '.join(pdata['models'])
+            lines.append(
+                f"  {iface:<16}  {pdata['calls']:>7}  "
+                f"${pdata['cost_usd']:>10.4f}  {pdata['time_min']:>10.1f}"
+                f"  {models_str}"
+            )
     lines += [
         '',
         '  Per-model breakdown:',
