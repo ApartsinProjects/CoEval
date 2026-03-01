@@ -230,28 +230,34 @@ def _render_html(model: EESDataModel, data: dict) -> str:
 
 <div id="control-panel">
   <div class="cp-group">
-    <label>Teacher formula:</label>
+    <label data-tip="Controls which teacher score formula is used to decide which teachers are &apos;effective&apos;. Only effective teachers contribute to student rankings.">Teacher formula:</label>
     <div class="btn-group" id="teacher-formula-btns">
-      <button class="btn-toggle" data-value="v1" onclick="setTeacherFormula('v1')">V1 Variance</button>
-      <button class="btn-toggle" data-value="s2" onclick="setTeacherFormula('s2')">S2 Spread</button>
-      <button class="btn-toggle" data-value="r3" onclick="setTeacherFormula('r3')">R3 Range</button>
+      <button class="btn-toggle" data-value="v1" onclick="setTeacherFormula('v1')"
+        data-tip="V1 Variance: score = Var(student scores) * coverage. Rewards teachers whose questions produce high variance across student responses — a strong signal of discrimination between strong and weak students.">V1 Variance</button>
+      <button class="btn-toggle" data-value="s2" onclick="setTeacherFormula('s2')"
+        data-tip="S2 Spread: score = mean(|score - mean|) * coverage. Mean absolute deviation of student scores around the teacher mean. Rewards questions that elicit a spread of response quality without being skewed by outliers.">S2 Spread</button>
+      <button class="btn-toggle" data-value="r3" onclick="setTeacherFormula('r3')"
+        data-tip="R3 Range: score = (max - min) * coverage. Range of student scores for this teacher. Simple and interpretable: a wide range means at least one student answered well and at least one answered poorly.">R3 Range</button>
     </div>
   </div>
   <div class="cp-group">
-    <label>Teacher threshold: <b id="t-thr-label">0</b></label>
+    <label data-tip="Teachers with a score below this threshold are excluded from student ranking. Default is the median score across all teachers. Drag left to include more teachers, right to be stricter.">Teacher threshold: <b id="t-thr-label">0</b></label>
     <input type="range" id="teacher-threshold" min="0" max="1" step="0.0001"
            oninput="onTeacherThreshold(this.value)"/>
   </div>
   <div class="cp-group">
-    <label>Judge metric:</label>
+    <label data-tip="Controls which agreement metric is used to rank judges and decide which are &apos;consensus&apos; judges. Only consensus judges contribute to student rankings.">Judge metric:</label>
     <div class="btn-group" id="judge-metric-btns">
-      <button class="btn-toggle" data-value="spa" onclick="setJudgeMetric('spa')">SPA</button>
-      <button class="btn-toggle" data-value="wpa" onclick="setJudgeMetric('wpa')">WPA</button>
-      <button class="btn-toggle" data-value="kappa" onclick="setKappaMetric('kappa')">Kappa</button>
+      <button class="btn-toggle" data-value="spa" onclick="setJudgeMetric('spa')"
+        data-tip="SPA (Strict Pair Agreement): fraction of (judgeA, judgeB) response-score pairs that agree exactly on the same ordinal level (High / Medium / Low). The strictest agreement metric.">SPA</button>
+      <button class="btn-toggle" data-value="wpa" onclick="setJudgeMetric('wpa')"
+        data-tip="WPA (Weighted Pair Agreement): like SPA but gives partial credit for near-misses (adjacent levels, e.g. High vs Medium). More lenient than SPA and less sensitive to small disagreements.">WPA</button>
+      <button class="btn-toggle" data-value="kappa" onclick="setKappaMetric('kappa')"
+        data-tip="Cohen kappa: agreement corrected for chance. kappa = (p_observed - p_expected) / (1 - p_expected). Interpretation: &lt;0.2 slight, 0.2-0.4 fair, 0.4-0.6 moderate, 0.6-0.8 substantial, &gt;0.8 near-perfect.">Kappa</button>
     </div>
   </div>
   <div class="cp-group">
-    <label>Judge threshold: <b id="j-thr-label">0.5</b></label>
+    <label data-tip="Judges with an agreement score below this threshold are excluded from student ranking. Default is the median score across all judges. Drag left to include more judges, right to be stricter.">Judge threshold: <b id="j-thr-label">0.5</b></label>
     <input type="range" id="judge-threshold" min="0" max="1" step="0.001"
            oninput="onJudgeThreshold(this.value)"/>
   </div>
@@ -523,6 +529,50 @@ footer {
   text-align: center; padding: 20px; font-size: 0.72rem; color: #aaa;
   border-top: 1px solid var(--border); margin-top: 8px;
 }
+
+/* ---- Tooltips ---- */
+[data-tip] { position: relative; }
+[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%; transform: translateX(-50%);
+  background: #1e293b; color: #f1f5f9;
+  padding: 7px 11px; border-radius: 7px;
+  font-size: 0.71rem; font-weight: 400;
+  white-space: normal; width: 280px;
+  line-height: 1.5; z-index: 9999;
+  pointer-events: none; opacity: 0;
+  transition: opacity 0.18s;
+  box-shadow: 0 6px 18px rgba(0,0,0,.28);
+  text-align: left;
+}
+[data-tip]::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 3px);
+  left: 50%; transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #1e293b;
+  z-index: 9999; opacity: 0;
+  transition: opacity 0.18s;
+  pointer-events: none;
+}
+[data-tip]:hover::after,
+[data-tip]:hover::before { opacity: 1; }
+
+/* Prevent right-edge overflow for last columns */
+table.tbl th:last-child[data-tip]::after,
+table.tbl th:nth-last-child(2)[data-tip]::after {
+  left: auto; right: 0; transform: none;
+}
+table.tbl th:last-child[data-tip]::before,
+table.tbl th:nth-last-child(2)[data-tip]::before {
+  left: auto; right: 20px; transform: none;
+}
+
+/* Tooltip on control-panel labels */
+.cp-group label[data-tip] { cursor: help; border-bottom: 1px dashed var(--text-muted); }
 """
 
 # ---------------------------------------------------------------------------
@@ -530,6 +580,38 @@ footer {
 # ---------------------------------------------------------------------------
 
 _JS = r"""
+// -----------------------------------------------------------------------
+// Tooltip content for metrics and formulas
+// -----------------------------------------------------------------------
+var FORMULA_TIPS = {
+  v1: "V1 Variance: score = Var(student scores) \u00d7 coverage. Rewards teachers whose questions produce high variance in student scores \u2014 a strong signal that the questions discriminate between strong and weak students.",
+  s2: "S2 Spread: score = mean(|score \u2212 mean|) \u00d7 coverage. Mean absolute deviation of student scores around the teacher mean. Rewards questions that elicit a spread of response quality without being skewed by outliers.",
+  r3: "R3 Range: score = (max \u2212 min) \u00d7 coverage. Range of student scores for this teacher. Simple and interpretable: a wide range means at least one student answered well and at least one answered poorly."
+};
+
+var METRIC_TIPS = {
+  spa: "SPA (Strict Pair Agreement): fraction of (judgeA, judgeB) score-pairs on the same response that agree exactly on the same ordinal level (High / Medium / Low). The strictest agreement metric.",
+  wpa: "WPA (Weighted Pair Agreement): like SPA but tolerates near-misses with partial credit (adjacent levels count as partial agreement). More lenient than SPA, less sensitive to small disagreements.",
+  kappa: "Cohen \u03ba: inter-rater reliability corrected for chance. \u03ba = (p_observed \u2212 p_expected) / (1 \u2212 p_expected). Interpretation: <0.2 slight, 0.2\u20130.4 fair, 0.4\u20130.6 moderate, 0.6\u20130.8 substantial, >0.8 near-perfect."
+};
+
+var COL_TIPS = {
+  teacher_score:    "Discriminativeness score for this teacher under the selected formula. Higher = questions that better separate strong from weak students.",
+  teacher_dp:       "Number of reference datapoints generated by this teacher across all tasks.",
+  teacher_tasks:    "Tasks for which this teacher generated reference datapoints.",
+  teacher_eff:      "A teacher is Effective when their score \u2265 the current threshold. Only effective teachers contribute to student rankings.",
+  judge_spa:        "Strict Pair Agreement: fraction of judge-pairs that give the exact same score level (High / Medium / Low) on the same response.",
+  judge_wpa:        "Weighted Pair Agreement: like SPA but with partial credit for adjacent-level disagreements.",
+  judge_kappa:      "Cohen \u03ba: agreement corrected for chance. Higher = more reliable and consistent scoring.",
+  judge_evals:      "Number of phase-5 evaluation records produced by this judge that have valid (non-null) scores.",
+  judge_cons:       "A judge is Consensus when their agreement score \u2265 the current threshold. Only consensus judges contribute to student rankings.",
+  student_filtered: "Average normalised score (0\u20131) across datapoints from effective teachers, evaluated by consensus judges. Reflects the current formula / metric / threshold settings.",
+  student_all:      "Average normalised score using all teachers and judges, before any filtering. Serves as the unfiltered baseline for comparison.",
+  student_delta:    "Filtered score minus all-data score. Positive = student performs relatively better when evaluated by consensus judges on effective-teacher datapoints.",
+  student_overall:  "Mean score across all tasks, using only effective teachers and consensus judges.",
+  student_cons_avg: "Mean score across all consensus judges, using only effective teachers."
+};
+
 // -----------------------------------------------------------------------
 // State
 // -----------------------------------------------------------------------
@@ -759,10 +841,10 @@ function renderTeacherTable() {
   var html = '<table class="tbl" id="teacher-tbl">';
   html += '<thead><tr>';
   html += _th('teacher-tbl', 'teacher', 'Teacher');
-  html += _th('teacher-tbl', f, 'Score (' + f.toUpperCase() + ')');
-  html += _th('teacher-tbl', 'datapoints', 'Datapoints');
-  html += '<th>Tasks</th>';
-  html += '<th>Effective</th>';
+  html += _th('teacher-tbl', f, 'Score (' + f.toUpperCase() + ')', FORMULA_TIPS[f]);
+  html += _th('teacher-tbl', 'datapoints', 'Datapoints', COL_TIPS.teacher_dp);
+  html += '<th data-tip="' + COL_TIPS.teacher_tasks + '">Tasks</th>';
+  html += '<th data-tip="' + COL_TIPS.teacher_eff + '">Effective</th>';
   html += '</tr></thead><tbody>';
 
   rows.forEach(function(r) {
@@ -851,11 +933,11 @@ function renderJudgeTable() {
   var html = '<table class="tbl" id="judge-tbl">';
   html += '<thead><tr>';
   html += _th('judge-tbl', 'judge', 'Judge');
-  html += _th('judge-tbl', 'spa',   'SPA');
-  html += _th('judge-tbl', 'wpa',   'WPA');
-  html += _th('judge-tbl', 'kappa', 'Kappa');
-  html += _th('judge-tbl', 'valid_evals', 'Valid Evals');
-  html += '<th>Consensus</th>';
+  html += _th('judge-tbl', 'spa',   'SPA',   COL_TIPS.judge_spa);
+  html += _th('judge-tbl', 'wpa',   'WPA',   COL_TIPS.judge_wpa);
+  html += _th('judge-tbl', 'kappa', 'Kappa', COL_TIPS.judge_kappa);
+  html += _th('judge-tbl', 'valid_evals', 'Valid Evals', COL_TIPS.judge_evals);
+  html += '<th data-tip="' + COL_TIPS.judge_cons + '">Consensus</th>';
   html += '</tr></thead><tbody>';
 
   rows.forEach(function(r) {
@@ -969,9 +1051,9 @@ function renderStudentOverall() {
   var html = '<table class="tbl" id="student-overall-tbl">';
   html += '<thead><tr>';
   html += _th('student-overall-tbl', 'student',    'Student');
-  html += _th('student-overall-tbl', 'filtered',   'Score (filtered)');
-  html += _th('student-overall-tbl', 'unfiltered', 'Score (all data)');
-  html += _th('student-overall-tbl', 'delta',      'Delta');
+  html += _th('student-overall-tbl', 'filtered',   'Score (filtered)',   COL_TIPS.student_filtered);
+  html += _th('student-overall-tbl', 'unfiltered', 'Score (all data)',   COL_TIPS.student_all);
+  html += _th('student-overall-tbl', 'delta',      'Delta',              COL_TIPS.student_delta);
   html += '</tr></thead><tbody>';
 
   rows.forEach(function(r) {
@@ -1023,7 +1105,7 @@ function renderStudentByTask() {
   tasks.forEach(function(t) {
     html += _th('student-task-tbl', t, _shortName(t, 16));
   });
-  html += _th('student-task-tbl', '_overall', 'Overall');
+  html += _th('student-task-tbl', '_overall', 'Overall', COL_TIPS.student_overall);
   html += '</tr></thead><tbody>';
 
   rows.forEach(function(r) {
@@ -1074,7 +1156,7 @@ function renderStudentByJudge() {
     var mark = consJudges.has(j) ? '' : ' <span class="na">[excl]</span>';
     html += _th('student-judge-tbl', j, _shortName(j, 16) + mark);
   });
-  html += _th('student-judge-tbl', '_overall', 'Consensus Avg');
+  html += _th('student-judge-tbl', '_overall', 'Consensus Avg', COL_TIPS.student_cons_avg);
   html += '</tr></thead><tbody>';
 
   rows.forEach(function(r) {
@@ -1134,7 +1216,9 @@ function renderStudentSideBySide() {
       var key = f + '_' + m;
       var label = f.toUpperCase() + '+' + m.toUpperCase();
       var style = (key === currentKey) ? ' style="color:var(--accent);font-weight:700"' : '';
-      html += '<th' + style + '>' + label + '</th>';
+      var tip = (FORMULA_TIPS[f] || '') + ' | ' + (METRIC_TIPS[m] || '');
+      var tipAttr = ' data-tip="' + tip.replace(/"/g, '&quot;') + '"';
+      html += '<th' + style + tipAttr + '>' + label + '</th>';
     });
   });
   html += '</tr></thead><tbody>';
@@ -1189,11 +1273,12 @@ function _sortRows(rows, ss) {
   });
 }
 
-function _th(tblId, col, label) {
+function _th(tblId, col, label, tip) {
   var ss = _getSortState(tblId);
   var sortCls = '';
   if (ss.col === col) sortCls = ' sort-active ' + (ss.dir === 'asc' ? 'sort-asc' : 'sort-desc');
-  return '<th class="' + sortCls + '" data-tbl="' + tblId + '" data-col="' + col + '">'
+  var tipAttr = tip ? ' data-tip="' + String(tip).replace(/"/g, '&quot;') + '"' : '';
+  return '<th class="' + sortCls + '" data-tbl="' + tblId + '" data-col="' + col + '"' + tipAttr + '>'
        + label + '</th>';
 }
 

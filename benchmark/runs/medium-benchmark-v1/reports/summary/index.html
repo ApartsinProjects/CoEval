@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Summary Dashboard — medium-benchmark-v1</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <script>const DATA = {"teachers": [{"teacher": "gpt-3.5-turbo", "v1": 0.0022, "s2": 0.0782, "r3": 0.1061, "datapoints": 80, "tasks": ["code_explanation", "data_interpretation", "email_composition", "text_summarization"]}, {"teacher": "gpt-4o-mini", "v1": 0.0039, "s2": 0.0865, "r3": 0.1388, "datapoints": 80, "tasks": ["code_explanation", "data_interpretation", "email_composition", "text_summarization"]}, {"teacher": "qwen2p5-0b5", "v1": 0.0015, "s2": 0.0693, "r3": 0.0835, "datapoints": 80, "tasks": ["code_explanation", "data_interpretation", "email_composition", "text_summarization"]}, {"teacher": "qwen2p5-1b5", "v1": 0.003, "s2": 0.0836, "r3": 0.1193, "datapoints": 80, "tasks": ["code_explanation", "data_interpretation", "email_composition", "text_summarization"]}, {"teacher": "smollm2-1b7", "v1": 0.0046, "s2": 0.1224, "r3": 0.1571, "datapoints": 77, "tasks": ["code_explanation", "data_interpretation", "email_composition", "text_summarization"]}], "judges": [{"judge": "gpt-3.5-turbo", "spa": 0.6638, "wpa": 0.8093, "kappa": 0.1369, "valid_evals": 11006, "degenerate": false}, {"judge": "gpt-4o-mini", "spa": 0.626, "wpa": 0.7924, "kappa": 0.1353, "valid_evals": 11006, "degenerate": false}, {"judge": "qwen2p5-0b5", "spa": 0.7333, "wpa": 0.8667, "kappa": 0.0, "valid_evals": 15, "degenerate": false}, {"judge": "qwen2p5-1b5", "spa": 0.6198, "wpa": 0.773, "kappa": 0.0872, "valid_evals": 10946, "degenerate": false}, {"judge": "smollm2-1b7", "spa": 0.3225, "wpa": 0.6532, "kappa": 0.0223, "valid_evals": 10892, "degenerate": false}], "students": [{"student": "gpt-3.5-turbo", "overall": 0.7684, "by_task": {"code_explanation": 0.8184, "data_interpretation": 0.6692, "email_composition": 0.7995, "text_summarization": 0.794}, "by_judge": {"gpt-3.5-turbo": 0.8488, "gpt-4o-mini": 0.8288, "qwen2p5-1b5": 0.8018, "smollm2-1b7": 0.5921, "qwen2p5-0b5": 1.0}, "valid_evals": 8737}, {"student": "gpt-4o-mini", "overall": 0.8074, "by_task": {"code_explanation": 0.8394, "data_interpretation": 0.776, "email_composition": 0.821, "text_summarization": 0.7925}, "by_judge": {"gpt-3.5-turbo": 0.918, "gpt-4o-mini": 0.8767, "qwen2p5-1b5": 0.8048, "smollm2-1b7": 0.6296}, "valid_evals": 8722}, {"student": "qwen2p5-0b5", "overall": 0.713, "by_task": {"code_explanation": 0.7428, "data_interpretation": 0.6078, "email_composition": 0.7562, "text_summarization": 0.7602}, "by_judge": {"gpt-3.5-turbo": 0.7277, "gpt-4o-mini": 0.6422, "qwen2p5-1b5": 0.8127, "smollm2-1b7": 0.6691}, "valid_evals": 8764}, {"student": "qwen2p5-1b5", "overall": 0.7799, "by_task": {"code_explanation": 0.8494, "data_interpretation": 0.6782, "email_composition": 0.821, "text_summarization": 0.774}, "by_judge": {"gpt-3.5-turbo": 0.8429, "gpt-4o-mini": 0.7866, "qwen2p5-1b5": 0.8302, "smollm2-1b7": 0.6572}, "valid_evals": 8884}, {"student": "smollm2-1b7", "overall": 0.761, "by_task": {"code_explanation": 0.8297, "data_interpretation": 0.6543, "email_composition": 0.7865, "text_summarization": 0.7817}, "by_judge": {"gpt-3.5-turbo": 0.8156, "gpt-4o-mini": 0.758, "qwen2p5-1b5": 0.8261, "smollm2-1b7": 0.6432}, "valid_evals": 8758}], "tasks": ["code_explanation", "data_interpretation", "email_composition", "text_summarization"], "units": [{"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "score": 0.925}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "score": 0.925}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "score": 0.8583}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "score": 0.9042}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "score": 0.8583}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "score": 0.8792}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "score": 0.9167}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "score": 0.5833}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "score": 0.8875}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "score": 0.75}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "score": 0.9375}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "score": 0.95}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "score": 0.9375}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "score": 0.9417}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "score": 0.9542}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "score": 0.6125}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "score": 0.675}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "score": 0.6542}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "score": 0.6542}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "smollm2-1b7", "score": 0.6375}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "score": 0.9042}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "score": 0.9458}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "score": 0.7583}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "score": 0.9278}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "score": 0.9}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "score": 0.8375}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "score": 0.8792}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "score": 0.5292}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "score": 0.8}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "score": 0.725}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "score": 0.9833}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "score": 0.9792}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "score": 0.9542}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "score": 0.9708}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "score": 0.9917}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "score": 0.6583}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "score": 0.65}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "score": 0.7292}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "score": 0.7167}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "smollm2-1b7", "score": 0.6792}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "score": 0.8792}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "score": 0.8542}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "score": 0.825}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "score": 0.925}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "score": 0.925}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "score": 0.85}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "score": 0.8417}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "score": 0.7042}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "score": 0.8583}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "score": 0.8042}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "score": 0.9542}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "score": 0.9375}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "score": 0.9}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "score": 0.9417}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "score": 0.9583}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "score": 0.6083}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "score": 0.625}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "score": 0.6792}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "score": 0.6333}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "score": 0.6083}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "score": 0.9167}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "score": 0.9375}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "score": 0.875}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "score": 0.925}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "score": 0.9125}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "score": 0.9042}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "score": 0.8833}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "score": 0.6708}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "score": 0.8542}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "score": 0.8375}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "score": 0.975}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "score": 0.9417}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "score": 0.9042}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "score": 0.9625}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "score": 0.9583}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "score": 0.6083}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "score": 0.6375}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "score": 0.925}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "score": 1.0}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "score": 1.0}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "score": 0.636}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "score": 0.6798}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "score": 0.3333}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "score": 0.5614}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "score": 0.557}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "score": 0.7018}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "score": 0.5746}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "score": 0.193}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "score": 0.557}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "score": 0.6096}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "score": 0.9649}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "score": 0.9474}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "score": 0.886}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "score": 0.9693}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "score": 0.9781}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "score": 0.614}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "score": 1.0}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "score": 0.9352}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "score": 0.9722}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "smollm2-1b7", "score": 0.951}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "score": 0.7583}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "score": 0.925}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "score": 0.675}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "score": 0.7708}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "score": 0.7792}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "score": 0.7125}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "score": 0.8917}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "score": 0.5167}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "score": 0.6917}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "score": 0.6625}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "score": 0.7042}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "score": 0.7042}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "score": 0.7417}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "score": 0.7292}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "score": 0.7375}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "score": 0.5125}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "score": 0.5167}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "score": 0.5417}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "score": 0.5125}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "smollm2-1b7", "score": 0.5083}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "score": 0.5708}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "score": 0.9417}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "score": 0.4}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "score": 0.6208}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "score": 0.5625}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "score": 0.7}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "score": 0.9083}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "score": 0.4875}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "score": 0.675}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "score": 0.5583}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "score": 0.7083}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "score": 0.7208}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "score": 0.7375}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "score": 0.7417}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "score": 0.7375}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "score": 0.5042}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "score": 0.5083}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "score": 0.5167}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "score": 0.4958}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "smollm2-1b7", "score": 0.5}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "score": 0.8292}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "score": 0.9667}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "score": 0.8542}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "score": 0.9417}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "score": 0.8583}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "score": 0.775}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "score": 0.9292}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "score": 0.6917}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "score": 0.8375}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "score": 0.7417}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "score": 0.7083}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "score": 0.7125}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "score": 0.6917}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "score": 0.6833}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "score": 0.7208}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "score": 0.525}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "score": 0.5125}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "score": 0.5417}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "score": 0.5167}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "score": 0.5208}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "score": 0.7}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "score": 0.9292}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "score": 0.5167}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "score": 0.7458}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "score": 0.6625}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "score": 0.725}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "score": 0.8958}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "score": 0.5042}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "score": 0.6583}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "score": 0.6083}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "score": 0.7042}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "score": 0.7125}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "score": 0.7208}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "score": 0.7417}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "score": 0.7292}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "score": 0.5083}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "score": 0.5083}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "score": 0.5125}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "score": 0.5292}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "score": 0.5}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "score": 0.5972}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "score": 0.838}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "score": 0.4833}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "score": 0.6042}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "score": 0.5625}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "score": 0.6574}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "score": 0.8657}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "score": 0.4917}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "score": 0.5208}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "score": 0.5792}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "score": 0.7361}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "score": 0.7361}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "score": 0.7375}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "score": 0.7458}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "score": 0.75}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "score": 0.7598}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "score": 0.8137}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "score": 0.8026}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "score": 0.807}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "smollm2-1b7", "score": 0.8158}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "score": 0.96}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "score": 0.99}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "score": 0.815}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "score": 0.905}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "score": 0.905}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "score": 0.905}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "score": 0.945}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "score": 0.75}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "score": 0.88}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "score": 0.9}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "score": 0.78}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "score": 0.825}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "score": 0.83}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "score": 0.85}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "score": 0.84}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "score": 0.645}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "score": 0.66}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "score": 0.73}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "score": 0.715}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "smollm2-1b7", "score": 0.69}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "score": 0.935}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "score": 0.94}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "score": 0.745}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "score": 0.895}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "score": 0.87}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "score": 0.9}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "score": 0.925}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "score": 0.7}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "score": 0.765}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "score": 0.84}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "score": 0.77}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "score": 0.72}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "score": 0.83}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "score": 0.88}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "score": 0.76}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "score": 0.685}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "score": 0.68}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "score": 0.705}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "score": 0.77}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "smollm2-1b7", "score": 0.625}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "score": 0.85}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "score": 0.905}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "score": 0.69}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "score": 0.81}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "score": 0.765}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "score": 0.86}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "score": 0.9}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "score": 0.74}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "score": 0.875}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "score": 0.75}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "score": 0.73}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "score": 0.73}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "score": 0.79}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "score": 0.9}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "score": 0.77}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "score": 0.6}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "score": 0.68}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "score": 0.675}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "score": 0.725}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "score": 0.62}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "score": 0.885}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "score": 0.865}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "score": 0.755}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "score": 0.72}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "score": 0.8}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "score": 0.905}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "score": 0.93}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "score": 0.745}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "score": 0.82}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "score": 0.825}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "score": 0.83}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "score": 0.79}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "score": 0.84}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "score": 0.83}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "score": 0.79}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "score": 0.65}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "score": 0.695}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "score": 0.675}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "score": 0.725}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "score": 0.685}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "score": 0.88}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "score": 0.915}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "score": 0.74}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "score": 0.875}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "score": 0.84}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "score": 0.855}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "score": 0.855}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "score": 0.725}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "score": 0.84}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "score": 0.84}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "score": 0.75}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "score": 0.835}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "score": 0.98}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "score": 0.98}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "score": 0.97}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "score": 0.615}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "score": 0.635}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "score": 0.665}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "score": 0.66}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "smollm2-1b7", "score": 0.645}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "score": 0.985}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "score": 0.94}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "score": 0.825}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "score": 0.985}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "score": 0.91}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "score": 0.91}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "score": 0.885}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "score": 0.755}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "score": 0.895}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "score": 0.865}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "qwen2p5-0b5", "score": 1.0}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "score": 1.0}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "score": 1.0}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "score": 1.0}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "score": 1.0}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "score": 1.0}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "score": 0.635}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "score": 0.675}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "score": 0.78}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "score": 0.57}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "smollm2-1b7", "score": 0.57}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "score": 0.99}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "score": 0.995}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "score": 0.98}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "score": 0.98}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "score": 0.98}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "score": 0.905}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "score": 0.9}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "score": 0.87}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "score": 0.905}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "score": 0.875}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "score": 1.0}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "score": 1.0}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "score": 1.0}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "score": 1.0}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "score": 1.0}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "score": 0.535}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "score": 0.545}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "score": 0.655}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "score": 0.54}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "smollm2-1b7", "score": 0.685}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "score": 0.985}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "score": 0.995}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "score": 0.925}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "score": 0.975}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "score": 0.955}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "score": 0.895}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "score": 0.92}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "score": 0.85}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "score": 0.875}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "score": 0.88}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "score": 1.0}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "score": 1.0}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "score": 1.0}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "score": 1.0}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "score": 1.0}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "score": 0.52}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "score": 0.52}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "score": 0.54}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "score": 0.54}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "score": 0.515}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "score": 1.0}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "score": 0.98}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "score": 0.96}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "score": 0.99}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "score": 0.965}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "score": 0.89}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "score": 0.905}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "score": 0.8}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "score": 0.905}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "score": 0.865}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "score": 0.255}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "score": 0.27}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "score": 0.27}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "score": 0.255}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "score": 0.36}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "score": 0.515}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "score": 0.53}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "score": 0.545}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "score": 0.51}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "score": 0.54}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "score": 0.9}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "score": 0.915}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "score": 0.655}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "score": 0.83}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "score": 0.845}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "score": 0.89}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "score": 0.8}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "score": 0.72}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "score": 0.715}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "score": 0.775}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "score": 0.475}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "score": 0.525}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "score": 0.49}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "score": 0.465}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "score": 0.475}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "score": 0.565}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "score": 0.55}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "score": 0.585}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "score": 0.545}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "smollm2-1b7", "score": 0.575}], "defaults": {"teacher_thresholds": {"v1": 0.003, "s2": 0.0836, "r3": 0.1193}, "judge_thresholds": {"spa": 0.626, "wpa": 0.7924, "kappa": 0.0872}}, "meta": {"experiment_id": "medium-benchmark-v1", "status": "completed", "n_tasks": 4, "n_teachers": 5, "n_students": 5, "n_judges": 5, "total_evals": 7987, "valid_evals": 7978, "analysis_date": "2026-03-01T08:56:50Z"}};</script>
+  <style>
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f4f6fa;
+  --card-bg: #fff;
+  --header-bg: #14213d;
+  --cp-bg: #fff;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --green: #16a34a;
+  --green-bg: #dcfce7;
+  --gray: #9ca3af;
+  --gray-bg: #f3f4f6;
+  --border: #e5e7eb;
+  --text: #1f2937;
+  --text-muted: #6b7280;
+  --th-bg: #f0f4f8;
+  --row-hover: #f8fafc;
+  --bar-color: #bfdbfe;
+  --bar-effective: #86efac;
+  --shadow: 0 1px 3px rgba(0,0,0,.10);
+}
+
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+       background: var(--bg); color: var(--text); font-size: 14px; }
+
+/* ---- Header ---- */
+#header {
+  background: var(--header-bg); color: #fff;
+  padding: 12px 24px; display: flex; justify-content: space-between;
+  align-items: center; flex-wrap: wrap; gap: 12px;
+}
+#header h1 { font-size: 1.1rem; font-weight: 700; }
+.header-sub { font-size: 0.8rem; opacity: 0.8; margin-top: 2px; display: block; }
+#header-badges { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.badge {
+  background: rgba(255,255,255,.12); border-radius: 5px;
+  padding: 3px 10px; font-size: 0.75rem; white-space: nowrap;
+}
+.badge-status { text-transform: capitalize; }
+.badge-status.completed { background: #16a34a33; }
+.badge-status.partial, .badge-status.running { background: #d9770633; }
+
+.partial-notice {
+  background: #fef3c7; color: #92400e; padding: 8px 24px;
+  font-size: 0.82rem; font-weight: 500; border-bottom: 1px solid #fde68a;
+}
+
+/* ---- Control Panel ---- */
+#control-panel {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--cp-bg); border-bottom: 1px solid var(--border);
+  padding: 10px 24px; display: flex; flex-wrap: wrap; gap: 20px;
+  align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,.06);
+}
+.cp-group { display: flex; align-items: center; gap: 8px; }
+.cp-group label { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
+
+.btn-group { display: flex; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+.btn-toggle {
+  background: #fff; border: none; padding: 4px 10px; font-size: 0.75rem;
+  cursor: pointer; transition: background 0.15s;
+  border-right: 1px solid var(--border); color: var(--text);
+}
+.btn-toggle:last-child { border-right: none; }
+.btn-toggle:hover { background: #f0f4f8; }
+.btn-toggle.active { background: var(--accent); color: #fff; }
+
+input[type="range"] { width: 120px; accent-color: var(--accent); cursor: pointer; }
+
+/* ---- Main content ---- */
+#main { padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
+
+.card {
+  background: var(--card-bg); border-radius: 10px; box-shadow: var(--shadow);
+  margin-bottom: 20px; overflow: hidden;
+  border: 1px solid var(--border);
+}
+.card-header { padding: 14px 20px; border-bottom: 1px solid var(--border); }
+.card-header h2 { font-size: 1rem; font-weight: 700; color: var(--header-bg); }
+.card-desc { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; }
+.card-body { padding: 16px 20px; }
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr minmax(260px, 380px);
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 800px) {
+  .two-col { grid-template-columns: 1fr; }
+}
+
+.chart-side { max-width: 380px; }
+.chart-side canvas { width: 100% !important; }
+
+/* ---- Filter row ---- */
+.filter-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.name-filter {
+  border: 1px solid var(--border); border-radius: 5px; padding: 4px 10px;
+  font-size: 0.78rem; width: 200px; outline: none;
+}
+.name-filter:focus { border-color: var(--accent); }
+.coverage-info { font-size: 0.75rem; color: var(--text-muted); }
+
+/* ---- Tables ---- */
+table.tbl {
+  border-collapse: collapse; width: 100%; font-size: 0.80rem;
+}
+table.tbl th {
+  background: var(--th-bg); text-align: left;
+  padding: 6px 10px; border-bottom: 2px solid var(--border);
+  font-weight: 600; color: #444; white-space: nowrap;
+  user-select: none; cursor: pointer;
+}
+table.tbl th:hover { background: #e4eaf2; }
+table.tbl th.sort-asc::after { content: " ↑"; color: var(--accent); }
+table.tbl th.sort-desc::after { content: " ↓"; color: var(--accent); }
+table.tbl th.sort-active { color: var(--accent); }
+table.tbl td {
+  padding: 5px 10px; border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+}
+table.tbl tr:hover td { background: var(--row-hover); }
+
+/* Score bar in cells */
+.score-cell { position: relative; min-width: 80px; }
+.score-bar {
+  display: inline-block; height: 10px; border-radius: 3px;
+  vertical-align: middle; margin-right: 4px;
+  transition: width 0.2s;
+}
+
+/* Badges */
+.badge-eff {
+  display: inline-block; padding: 1px 7px; border-radius: 4px;
+  font-size: 0.7rem; font-weight: 600; white-space: nowrap;
+}
+.badge-eff.yes { background: var(--green-bg); color: var(--green); }
+.badge-eff.no  { background: var(--gray-bg);  color: var(--gray); }
+
+/* ---- View tabs ---- */
+.view-tabs { display: flex; gap: 4px; margin-bottom: 12px; border-bottom: 2px solid var(--border); padding-bottom: 6px; }
+.tab-btn {
+  background: none; border: 1px solid var(--border); border-radius: 5px 5px 0 0;
+  padding: 5px 14px; font-size: 0.78rem; cursor: pointer; color: var(--text-muted);
+  transition: background 0.15s;
+}
+.tab-btn:hover { background: #f0f4f8; color: var(--text); }
+.tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ---- Delta column ---- */
+.delta-pos { color: var(--green); }
+.delta-neg { color: #dc2626; }
+.delta-zero { color: var(--gray); }
+
+/* ---- Pivot table ---- */
+table.tbl td.pivot-score {
+  text-align: center;
+}
+
+/* ---- N/A ---- */
+.na { color: #aaa; font-style: italic; font-size: 0.75rem; }
+
+footer {
+  text-align: center; padding: 20px; font-size: 0.72rem; color: #aaa;
+  border-top: 1px solid var(--border); margin-top: 8px;
+}
+
+/* ---- Tooltips ---- */
+[data-tip] { position: relative; }
+[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%; transform: translateX(-50%);
+  background: #1e293b; color: #f1f5f9;
+  padding: 7px 11px; border-radius: 7px;
+  font-size: 0.71rem; font-weight: 400;
+  white-space: normal; width: 280px;
+  line-height: 1.5; z-index: 9999;
+  pointer-events: none; opacity: 0;
+  transition: opacity 0.18s;
+  box-shadow: 0 6px 18px rgba(0,0,0,.28);
+  text-align: left;
+}
+[data-tip]::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 3px);
+  left: 50%; transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #1e293b;
+  z-index: 9999; opacity: 0;
+  transition: opacity 0.18s;
+  pointer-events: none;
+}
+[data-tip]:hover::after,
+[data-tip]:hover::before { opacity: 1; }
+
+/* Prevent right-edge overflow for last columns */
+table.tbl th:last-child[data-tip]::after,
+table.tbl th:nth-last-child(2)[data-tip]::after {
+  left: auto; right: 0; transform: none;
+}
+table.tbl th:last-child[data-tip]::before,
+table.tbl th:nth-last-child(2)[data-tip]::before {
+  left: auto; right: 20px; transform: none;
+}
+
+/* Tooltip on control-panel labels */
+.cp-group label[data-tip] { cursor: help; border-bottom: 1px dashed var(--text-muted); }
+
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <div id="header-left">
+    <h1>CoEval &mdash; Summary Dashboard</h1>
+    <span class="header-sub">Experiment: <b>medium-benchmark-v1</b></span>
+  </div>
+  <div id="header-badges">
+    <span class="badge badge-status" id="status-badge">completed</span>
+    <span class="badge">Tasks: <b id="hdr-tasks">?</b></span>
+    <span class="badge">Models: <b id="hdr-models">?</b></span>
+    <span class="badge">Evals: <b id="hdr-evals">?</b></span>
+    <span class="badge">Analyzed: <b id="hdr-date">?</b></span>
+  </div>
+</div>
+
+<div id="control-panel">
+  <div class="cp-group">
+    <label data-tip="Controls which teacher score formula is used to decide which teachers are &apos;effective&apos;. Only effective teachers contribute to student rankings.">Teacher formula:</label>
+    <div class="btn-group" id="teacher-formula-btns">
+      <button class="btn-toggle" data-value="v1" onclick="setTeacherFormula('v1')"
+        data-tip="V1 Variance: score = Var(student scores) * coverage. Rewards teachers whose questions produce high variance across student responses — a strong signal of discrimination between strong and weak students.">V1 Variance</button>
+      <button class="btn-toggle" data-value="s2" onclick="setTeacherFormula('s2')"
+        data-tip="S2 Spread: score = mean(|score - mean|) * coverage. Mean absolute deviation of student scores around the teacher mean. Rewards questions that elicit a spread of response quality without being skewed by outliers.">S2 Spread</button>
+      <button class="btn-toggle" data-value="r3" onclick="setTeacherFormula('r3')"
+        data-tip="R3 Range: score = (max - min) * coverage. Range of student scores for this teacher. Simple and interpretable: a wide range means at least one student answered well and at least one answered poorly.">R3 Range</button>
+    </div>
+  </div>
+  <div class="cp-group">
+    <label data-tip="Teachers with a score below this threshold are excluded from student ranking. Default is the median score across all teachers. Drag left to include more teachers, right to be stricter.">Teacher threshold: <b id="t-thr-label">0</b></label>
+    <input type="range" id="teacher-threshold" min="0" max="1" step="0.0001"
+           oninput="onTeacherThreshold(this.value)"/>
+  </div>
+  <div class="cp-group">
+    <label data-tip="Controls which agreement metric is used to rank judges and decide which are &apos;consensus&apos; judges. Only consensus judges contribute to student rankings.">Judge metric:</label>
+    <div class="btn-group" id="judge-metric-btns">
+      <button class="btn-toggle" data-value="spa" onclick="setJudgeMetric('spa')"
+        data-tip="SPA (Strict Pair Agreement): fraction of (judgeA, judgeB) response-score pairs that agree exactly on the same ordinal level (High / Medium / Low). The strictest agreement metric.">SPA</button>
+      <button class="btn-toggle" data-value="wpa" onclick="setJudgeMetric('wpa')"
+        data-tip="WPA (Weighted Pair Agreement): like SPA but gives partial credit for near-misses (adjacent levels, e.g. High vs Medium). More lenient than SPA and less sensitive to small disagreements.">WPA</button>
+      <button class="btn-toggle" data-value="kappa" onclick="setKappaMetric('kappa')"
+        data-tip="Cohen kappa: agreement corrected for chance. kappa = (p_observed - p_expected) / (1 - p_expected). Interpretation: &lt;0.2 slight, 0.2-0.4 fair, 0.4-0.6 moderate, 0.6-0.8 substantial, &gt;0.8 near-perfect.">Kappa</button>
+    </div>
+  </div>
+  <div class="cp-group">
+    <label data-tip="Judges with an agreement score below this threshold are excluded from student ranking. Default is the median score across all judges. Drag left to include more judges, right to be stricter.">Judge threshold: <b id="j-thr-label">0.5</b></label>
+    <input type="range" id="judge-threshold" min="0" max="1" step="0.001"
+           oninput="onJudgeThreshold(this.value)"/>
+  </div>
+</div>
+
+<div id="main">
+
+  <!-- ============================================================ -->
+  <!-- Section 1: Teacher Effectiveness                             -->
+  <!-- ============================================================ -->
+  <div class="card" id="section-teacher">
+    <div class="card-header">
+      <h2>1. Teacher Effectiveness</h2>
+      <p class="card-desc">
+        Higher scores indicate more discriminative questions that reveal
+        student ability differences. Effective teachers are highlighted.
+      </p>
+    </div>
+    <div class="card-body two-col">
+      <div class="table-side">
+        <div class="filter-row">
+          <input type="text" class="name-filter" id="filter-teachers"
+                 placeholder="Filter teachers..." oninput="renderTeacherTable()"/>
+        </div>
+        <div id="teacher-table-wrap"></div>
+      </div>
+      <div class="chart-side">
+        <canvas id="teacher-chart" height="260"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- Section 2: Judge Effectiveness                               -->
+  <!-- ============================================================ -->
+  <div class="card" id="section-judge">
+    <div class="card-header">
+      <h2>2. Judge Agreement</h2>
+      <p class="card-desc">
+        Higher agreement = judge is more aligned with consensus scoring.
+        Consensus judges pass the current threshold.
+      </p>
+    </div>
+    <div class="card-body two-col">
+      <div class="table-side">
+        <div class="filter-row">
+          <input type="text" class="name-filter" id="filter-judges"
+                 placeholder="Filter judges..." oninput="renderJudgeTable()"/>
+        </div>
+        <div id="judge-table-wrap"></div>
+      </div>
+      <div class="chart-side">
+        <canvas id="judge-chart" height="260"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- Section 3: Student Ranking                                   -->
+  <!-- ============================================================ -->
+  <div class="card" id="section-student">
+    <div class="card-header">
+      <h2>3. Student Ranking</h2>
+      <p class="card-desc">
+        Rankings computed using only effective teachers and consensus judges.
+        Adjust thresholds above to see how rankings change.
+      </p>
+    </div>
+    <div class="card-body">
+      <div class="view-tabs" id="student-view-tabs">
+        <button class="tab-btn active" onclick="setStudentView('overall')">Overall</button>
+        <button class="tab-btn" onclick="setStudentView('by-task')">By Task</button>
+        <button class="tab-btn" onclick="setStudentView('by-judge')">By Judge</button>
+        <button class="tab-btn" onclick="setStudentView('side-by-side')">Side-by-Side</button>
+      </div>
+      <div class="filter-row">
+        <input type="text" class="name-filter" id="filter-students"
+               placeholder="Filter students..." oninput="renderStudentSection()"/>
+        <span id="student-coverage-info" class="coverage-info"></span>
+      </div>
+      <div id="student-section-body"></div>
+    </div>
+  </div>
+
+</div><!-- #main -->
+
+<footer>
+  Generated by CoEval EEA &mdash;
+  <span id="ftr-date"></span>
+</footer>
+
+<script>
+
+// -----------------------------------------------------------------------
+// Tooltip content for metrics and formulas
+// -----------------------------------------------------------------------
+var FORMULA_TIPS = {
+  v1: "V1 Variance: score = Var(student scores) \u00d7 coverage. Rewards teachers whose questions produce high variance in student scores \u2014 a strong signal that the questions discriminate between strong and weak students.",
+  s2: "S2 Spread: score = mean(|score \u2212 mean|) \u00d7 coverage. Mean absolute deviation of student scores around the teacher mean. Rewards questions that elicit a spread of response quality without being skewed by outliers.",
+  r3: "R3 Range: score = (max \u2212 min) \u00d7 coverage. Range of student scores for this teacher. Simple and interpretable: a wide range means at least one student answered well and at least one answered poorly."
+};
+
+var METRIC_TIPS = {
+  spa: "SPA (Strict Pair Agreement): fraction of (judgeA, judgeB) score-pairs on the same response that agree exactly on the same ordinal level (High / Medium / Low). The strictest agreement metric.",
+  wpa: "WPA (Weighted Pair Agreement): like SPA but tolerates near-misses with partial credit (adjacent levels count as partial agreement). More lenient than SPA, less sensitive to small disagreements.",
+  kappa: "Cohen \u03ba: inter-rater reliability corrected for chance. \u03ba = (p_observed \u2212 p_expected) / (1 \u2212 p_expected). Interpretation: <0.2 slight, 0.2\u20130.4 fair, 0.4\u20130.6 moderate, 0.6\u20130.8 substantial, >0.8 near-perfect."
+};
+
+var COL_TIPS = {
+  teacher_score:    "Discriminativeness score for this teacher under the selected formula. Higher = questions that better separate strong from weak students.",
+  teacher_dp:       "Number of reference datapoints generated by this teacher across all tasks.",
+  teacher_tasks:    "Tasks for which this teacher generated reference datapoints.",
+  teacher_eff:      "A teacher is Effective when their score \u2265 the current threshold. Only effective teachers contribute to student rankings.",
+  judge_spa:        "Strict Pair Agreement: fraction of judge-pairs that give the exact same score level (High / Medium / Low) on the same response.",
+  judge_wpa:        "Weighted Pair Agreement: like SPA but with partial credit for adjacent-level disagreements.",
+  judge_kappa:      "Cohen \u03ba: agreement corrected for chance. Higher = more reliable and consistent scoring.",
+  judge_evals:      "Number of phase-5 evaluation records produced by this judge that have valid (non-null) scores.",
+  judge_cons:       "A judge is Consensus when their agreement score \u2265 the current threshold. Only consensus judges contribute to student rankings.",
+  student_filtered: "Average normalised score (0\u20131) across datapoints from effective teachers, evaluated by consensus judges. Reflects the current formula / metric / threshold settings.",
+  student_all:      "Average normalised score using all teachers and judges, before any filtering. Serves as the unfiltered baseline for comparison.",
+  student_delta:    "Filtered score minus all-data score. Positive = student performs relatively better when evaluated by consensus judges on effective-teacher datapoints.",
+  student_overall:  "Mean score across all tasks, using only effective teachers and consensus judges.",
+  student_cons_avg: "Mean score across all consensus judges, using only effective teachers."
+};
+
+// -----------------------------------------------------------------------
+// State
+// -----------------------------------------------------------------------
+var state = {
+  teacherFormula: 's2',
+  teacherThreshold: null,   // set from DATA.defaults on init
+  judgeMetric: 'spa',
+  judgeThreshold: null,
+  studentView: 'overall',
+  sortState: {},            // key: tableId, value: {col, dir}
+};
+
+var teacherChartInst = null;
+var judgeChartInst = null;
+
+// -----------------------------------------------------------------------
+// Initialisation
+// -----------------------------------------------------------------------
+document.addEventListener('DOMContentLoaded', function() {
+  var m = DATA.meta;
+  document.getElementById('hdr-tasks').textContent = m.n_tasks;
+  document.getElementById('hdr-models').textContent =
+    (new Set(
+      DATA.teachers.map(function(r){return r.teacher;}).concat(
+      DATA.students.map(function(r){return r.student;})).concat(
+      DATA.judges.map(function(r){return r.judge;}))
+    )).size;
+  document.getElementById('hdr-evals').textContent = m.valid_evals;
+  document.getElementById('hdr-date').textContent = m.analysis_date;
+  document.getElementById('ftr-date').textContent = m.analysis_date;
+
+  var sbEl = document.getElementById('status-badge');
+  sbEl.classList.add(m.status === 'completed' ? 'completed' : 'partial');
+
+  // Set initial thresholds from DATA.defaults
+  var defs = DATA.defaults;
+  state.teacherThreshold = defs.teacher_thresholds[state.teacherFormula] || 0;
+  state.judgeThreshold   = defs.judge_thresholds[state.judgeMetric]    || 0.5;
+
+  // Sync sliders
+  _syncTeacherSlider();
+  _syncJudgeSlider();
+
+  // Activate initial button states
+  _activateBtn('teacher-formula-btns', state.teacherFormula);
+  _activateBtn('judge-metric-btns', state.judgeMetric);
+
+  renderAll();
+});
+
+// -----------------------------------------------------------------------
+// Control handlers
+// -----------------------------------------------------------------------
+function setTeacherFormula(f) {
+  state.teacherFormula = f;
+  state.teacherThreshold = DATA.defaults.teacher_thresholds[f] || 0;
+  _activateBtn('teacher-formula-btns', f);
+  _syncTeacherSlider();
+  renderAll();
+}
+
+function setJudgeMetric(m) {
+  state.judgeMetric = m;
+  state.judgeThreshold = DATA.defaults.judge_thresholds[m] || 0.5;
+  _activateBtn('judge-metric-btns', m);
+  _syncJudgeSlider();
+  renderAll();
+}
+
+function setKappaMetric(m) { setJudgeMetric(m); }
+
+function onTeacherThreshold(v) {
+  state.teacherThreshold = parseFloat(v);
+  document.getElementById('t-thr-label').textContent = parseFloat(v).toFixed(4);
+  renderAll();
+}
+
+function onJudgeThreshold(v) {
+  state.judgeThreshold = parseFloat(v);
+  document.getElementById('j-thr-label').textContent = parseFloat(v).toFixed(3);
+  renderAll();
+}
+
+function setStudentView(v) {
+  state.studentView = v;
+  var tabs = document.querySelectorAll('#student-view-tabs .tab-btn');
+  var views = ['overall', 'by-task', 'by-judge', 'side-by-side'];
+  tabs.forEach(function(btn, i) {
+    btn.classList.toggle('active', views[i] === v);
+  });
+  renderStudentSection();
+}
+
+function _activateBtn(groupId, value) {
+  var btns = document.querySelectorAll('#' + groupId + ' .btn-toggle');
+  btns.forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.value === value);
+  });
+}
+
+function _syncTeacherSlider() {
+  var sl = document.getElementById('teacher-threshold');
+  var rows = DATA.teachers;
+  var maxVal = rows.reduce(function(mx, r){ return Math.max(mx, r[state.teacherFormula]||0); }, 0);
+  sl.max = maxVal > 0 ? (maxVal * 1.05).toFixed(4) : '1';
+  sl.value = state.teacherThreshold;
+  document.getElementById('t-thr-label').textContent =
+    parseFloat(state.teacherThreshold).toFixed(4);
+}
+
+function _syncJudgeSlider() {
+  var sl = document.getElementById('judge-threshold');
+  sl.max = '1';
+  sl.value = state.judgeThreshold;
+  document.getElementById('j-thr-label').textContent =
+    parseFloat(state.judgeThreshold).toFixed(3);
+}
+
+// -----------------------------------------------------------------------
+// Derived helpers
+// -----------------------------------------------------------------------
+function getEffectiveTeachers() {
+  var f = state.teacherFormula;
+  var thr = state.teacherThreshold;
+  return DATA.teachers
+    .filter(function(r){ return (r[f] || 0) >= thr; })
+    .map(function(r){ return r.teacher; });
+}
+
+function getConsensusJudges() {
+  var m = state.judgeMetric;
+  var thr = state.judgeThreshold;
+  return DATA.judges
+    .filter(function(r){ return r[m] !== null && r[m] >= thr; })
+    .map(function(r){ return r.judge; });
+}
+
+function getFilteredStudentScores(groupByTask, groupByJudge) {
+  var effTeachers = new Set(getEffectiveTeachers());
+  var consJudges  = new Set(getConsensusJudges());
+
+  // Filter units by effective teacher + consensus judge
+  var filtered = DATA.units.filter(function(u) {
+    return effTeachers.has(u.teacher) && consJudges.has(u.judge);
+  });
+
+  if (groupByTask) {
+    // Returns {student -> {task -> [scores]}}
+    var agg = {};
+    filtered.forEach(function(u) {
+      if (!agg[u.student]) agg[u.student] = {};
+      if (!agg[u.student][u.task]) agg[u.student][u.task] = [];
+      agg[u.student][u.task].push(u.score);
+    });
+    var result = {};
+    Object.keys(agg).forEach(function(s) {
+      result[s] = {};
+      Object.keys(agg[s]).forEach(function(t) {
+        var arr = agg[s][t];
+        result[s][t] = arr.reduce(function(a,b){return a+b;},0)/arr.length;
+      });
+    });
+    return result;
+  }
+
+  if (groupByJudge) {
+    // Returns {student -> {judge -> avg_score}}
+    var agg2 = {};
+    filtered.forEach(function(u) {
+      if (!agg2[u.student]) agg2[u.student] = {};
+      if (!agg2[u.student][u.judge]) agg2[u.student][u.judge] = [];
+      agg2[u.student][u.judge].push(u.score);
+    });
+    var result2 = {};
+    Object.keys(agg2).forEach(function(s) {
+      result2[s] = {};
+      Object.keys(agg2[s]).forEach(function(j) {
+        var arr = agg2[s][j];
+        result2[s][j] = arr.reduce(function(a,b){return a+b;},0)/arr.length;
+      });
+    });
+    return result2;
+  }
+
+  // Returns {student -> avg_score}
+  var agg3 = {};
+  filtered.forEach(function(u) {
+    if (!agg3[u.student]) agg3[u.student] = [];
+    agg3[u.student].push(u.score);
+  });
+  var result3 = {};
+  Object.keys(agg3).forEach(function(s) {
+    var arr = agg3[s];
+    result3[s] = arr.reduce(function(a,b){return a+b;},0)/arr.length;
+  });
+  return result3;
+}
+
+// -----------------------------------------------------------------------
+// Render all
+// -----------------------------------------------------------------------
+function renderAll() {
+  renderTeacherTable();
+  renderTeacherChart();
+  renderJudgeTable();
+  renderJudgeChart();
+  renderStudentSection();
+}
+
+// -----------------------------------------------------------------------
+// Teacher table
+// -----------------------------------------------------------------------
+function renderTeacherTable() {
+  var f = state.teacherFormula;
+  var thr = state.teacherThreshold;
+  var nameFilter = document.getElementById('filter-teachers').value.toLowerCase();
+
+  var rows = DATA.teachers.slice();
+  if (nameFilter) rows = rows.filter(function(r){ return r.teacher.toLowerCase().includes(nameFilter); });
+
+  // Sort
+  var ss = _getSortState('teacher-tbl');
+  rows = _sortRows(rows, ss);
+
+  var maxScore = rows.reduce(function(mx, r){ return Math.max(mx, r[f]||0); }, 0) || 1;
+
+  var html = '<table class="tbl" id="teacher-tbl">';
+  html += '<thead><tr>';
+  html += _th('teacher-tbl', 'teacher', 'Teacher');
+  html += _th('teacher-tbl', f, 'Score (' + f.toUpperCase() + ')', FORMULA_TIPS[f]);
+  html += _th('teacher-tbl', 'datapoints', 'Datapoints', COL_TIPS.teacher_dp);
+  html += '<th data-tip="' + COL_TIPS.teacher_tasks + '">Tasks</th>';
+  html += '<th data-tip="' + COL_TIPS.teacher_eff + '">Effective</th>';
+  html += '</tr></thead><tbody>';
+
+  rows.forEach(function(r) {
+    var score = r[f] || 0;
+    var isEff = score >= thr;
+    var barW = maxScore > 0 ? Math.round(score / maxScore * 100) : 0;
+    var barColor = isEff ? 'var(--bar-effective)' : 'var(--bar-color)';
+    html += '<tr>';
+    html += '<td>' + _esc(r.teacher) + '</td>';
+    html += '<td class="score-cell">'
+          + '<span class="score-bar" style="width:' + barW + 'px;background:' + barColor + '"></span>'
+          + score.toFixed(4)
+          + '</td>';
+    html += '<td>' + r.datapoints + '</td>';
+    html += '<td>' + (r.tasks || []).map(_esc).join(', ') + '</td>';
+    html += '<td><span class="badge-eff ' + (isEff ? 'yes' : 'no') + '">'
+          + (isEff ? 'Effective' : 'Inactive') + '</span></td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('teacher-table-wrap').innerHTML = html;
+  _attachSortHandlers('teacher-tbl', renderTeacherTable);
+}
+
+// -----------------------------------------------------------------------
+// Teacher chart
+// -----------------------------------------------------------------------
+function renderTeacherChart() {
+  var f = state.teacherFormula;
+  var thr = state.teacherThreshold;
+  var rows = DATA.teachers.slice().sort(function(a,b){ return (b[f]||0)-(a[f]||0); });
+  var labels = rows.map(function(r){ return _shortName(r.teacher); });
+  var vals   = rows.map(function(r){ return r[f]||0; });
+  var colors = rows.map(function(r){ return (r[f]||0) >= thr ? '#4ade80' : '#93c5fd'; });
+
+  var canvas = document.getElementById('teacher-chart');
+  if (teacherChartInst) { teacherChartInst.destroy(); }
+  teacherChartInst = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Score (' + f.toUpperCase() + ')',
+        data: vals,
+        backgroundColor: colors,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              return rows[ctx.dataIndex].teacher + ': ' + ctx.raw.toFixed(4);
+            }
+          }
+        }
+      },
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: 'Score (' + f.toUpperCase() + ')' } },
+        x: { ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+// -----------------------------------------------------------------------
+// Judge table
+// -----------------------------------------------------------------------
+function renderJudgeTable() {
+  var m  = state.judgeMetric;
+  var thr = state.judgeThreshold;
+  var nameFilter = document.getElementById('filter-judges').value.toLowerCase();
+
+  var rows = DATA.judges.slice();
+  if (nameFilter) rows = rows.filter(function(r){ return r.judge.toLowerCase().includes(nameFilter); });
+
+  var ss = _getSortState('judge-tbl');
+  rows = _sortRows(rows, ss);
+
+  var maxScore = rows.reduce(function(mx, r){ return Math.max(mx, r[m] !== null ? r[m] : 0); }, 0) || 1;
+
+  var html = '<table class="tbl" id="judge-tbl">';
+  html += '<thead><tr>';
+  html += _th('judge-tbl', 'judge', 'Judge');
+  html += _th('judge-tbl', 'spa',   'SPA',   COL_TIPS.judge_spa);
+  html += _th('judge-tbl', 'wpa',   'WPA',   COL_TIPS.judge_wpa);
+  html += _th('judge-tbl', 'kappa', 'Kappa', COL_TIPS.judge_kappa);
+  html += _th('judge-tbl', 'valid_evals', 'Valid Evals', COL_TIPS.judge_evals);
+  html += '<th data-tip="' + COL_TIPS.judge_cons + '">Consensus</th>';
+  html += '</tr></thead><tbody>';
+
+  rows.forEach(function(r) {
+    var score = r[m] !== null ? r[m] : null;
+    var isCons = score !== null && score >= thr;
+    var barW = (score !== null && maxScore > 0) ? Math.round(score / maxScore * 100) : 0;
+    var barColor = isCons ? 'var(--bar-effective)' : 'var(--bar-color)';
+    html += '<tr>';
+    html += '<td>' + _esc(r.judge) + '</td>';
+    html += '<td class="score-cell">'
+          + '<span class="score-bar" style="width:' + barW + 'px;background:' + barColor + '"></span>'
+          + _fmtScore(r.spa) + '</td>';
+    html += '<td>' + _fmtScore(r.wpa) + '</td>';
+    html += '<td>' + _fmtScore(r.kappa) + '</td>';
+    html += '<td>' + r.valid_evals + '</td>';
+    html += '<td><span class="badge-eff ' + (isCons ? 'yes' : 'no') + '">'
+          + (isCons ? 'Consensus' : 'Excluded') + '</span></td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('judge-table-wrap').innerHTML = html;
+  _attachSortHandlers('judge-tbl', renderJudgeTable);
+}
+
+// -----------------------------------------------------------------------
+// Judge chart
+// -----------------------------------------------------------------------
+function renderJudgeChart() {
+  var m = state.judgeMetric;
+  var thr = state.judgeThreshold;
+  var rows = DATA.judges.slice().sort(function(a,b){ return (b[m]||0)-(a[m]||0); });
+  var labels = rows.map(function(r){ return _shortName(r.judge); });
+  var vals   = rows.map(function(r){ return r[m] !== null ? r[m] : 0; });
+  var colors = rows.map(function(r){ return (r[m] !== null && r[m] >= thr) ? '#4ade80' : '#93c5fd'; });
+
+  var canvas = document.getElementById('judge-chart');
+  if (judgeChartInst) { judgeChartInst.destroy(); }
+  judgeChartInst = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: m.toUpperCase(),
+        data: vals,
+        backgroundColor: colors,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              return rows[ctx.dataIndex].judge + ': ' + ctx.raw.toFixed(4);
+            }
+          }
+        }
+      },
+      scales: {
+        y: { min: 0, max: 1, title: { display: true, text: m.toUpperCase() } },
+        x: { ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+// -----------------------------------------------------------------------
+// Student section dispatcher
+// -----------------------------------------------------------------------
+function renderStudentSection() {
+  var nEff  = getEffectiveTeachers().length;
+  var nCons = getConsensusJudges().length;
+  var infoEl = document.getElementById('student-coverage-info');
+  infoEl.textContent = 'Using ' + nEff + ' effective teacher(s) and ' + nCons + ' consensus judge(s).';
+
+  var v = state.studentView;
+  if (v === 'overall')      renderStudentOverall();
+  else if (v === 'by-task') renderStudentByTask();
+  else if (v === 'by-judge')renderStudentByJudge();
+  else                      renderStudentSideBySide();
+}
+
+// -----------------------------------------------------------------------
+// Student — Overall view
+// -----------------------------------------------------------------------
+function renderStudentOverall() {
+  var nameFilter = document.getElementById('filter-students').value.toLowerCase();
+  var filtScores   = getFilteredStudentScores(false, false);  // {student -> avg}
+
+  // Build unfiltered scores from DATA.students (original baseline)
+  var unfiltScores = {};
+  DATA.students.forEach(function(r) { unfiltScores[r.student] = r.overall; });
+
+  // Build row array
+  var students = DATA.students.map(function(r){ return r.student; });
+  if (nameFilter) students = students.filter(function(s){ return s.toLowerCase().includes(nameFilter); });
+
+  var rows = students.map(function(s) {
+    var filtered = filtScores[s] !== undefined ? filtScores[s] : null;
+    var unfiltered = unfiltScores[s] !== undefined ? unfiltScores[s] : null;
+    var delta = (filtered !== null && unfiltered !== null) ? filtered - unfiltered : null;
+    return { student: s, filtered: filtered, unfiltered: unfiltered, delta: delta };
+  });
+
+  var ss = _getSortState('student-overall-tbl');
+  rows = _sortRows(rows, ss);
+
+  var html = '<table class="tbl" id="student-overall-tbl">';
+  html += '<thead><tr>';
+  html += _th('student-overall-tbl', 'student',    'Student');
+  html += _th('student-overall-tbl', 'filtered',   'Score (filtered)',   COL_TIPS.student_filtered);
+  html += _th('student-overall-tbl', 'unfiltered', 'Score (all data)',   COL_TIPS.student_all);
+  html += _th('student-overall-tbl', 'delta',      'Delta',              COL_TIPS.student_delta);
+  html += '</tr></thead><tbody>';
+
+  rows.forEach(function(r) {
+    var cls = r.delta === null ? 'delta-zero'
+            : r.delta > 0.001 ? 'delta-pos'
+            : r.delta < -0.001 ? 'delta-neg' : 'delta-zero';
+    html += '<tr>';
+    html += '<td>' + _esc(r.student) + '</td>';
+    html += '<td>' + _fmtScoreBar(r.filtered, 1.0) + '</td>';
+    html += '<td>' + _fmtScore(r.unfiltered) + '</td>';
+    html += '<td class="' + cls + '">' + (r.delta !== null ? (r.delta >= 0 ? '+' : '') + r.delta.toFixed(4) : '<span class="na">—</span>') + '</td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('student-section-body').innerHTML = html;
+  _attachSortHandlers('student-overall-tbl', renderStudentSection);
+}
+
+// -----------------------------------------------------------------------
+// Student — By Task view
+// -----------------------------------------------------------------------
+function renderStudentByTask() {
+  var nameFilter = document.getElementById('filter-students').value.toLowerCase();
+  var byTask = getFilteredStudentScores(true, false);  // {student -> {task -> avg}}
+  var tasks = DATA.tasks;
+
+  var students = DATA.students.map(function(r){ return r.student; });
+  if (nameFilter) students = students.filter(function(s){ return s.toLowerCase().includes(nameFilter); });
+
+  // Sort by first task score descending (or by 'student' key)
+  var ss = _getSortState('student-task-tbl');
+  var rows = students.map(function(s) {
+    var row = { student: s };
+    tasks.forEach(function(t) {
+      var v = (byTask[s] && byTask[s][t] !== undefined) ? byTask[s][t] : null;
+      row[t] = v;
+    });
+    // compute overall for sort
+    var vals = tasks.map(function(t){ return row[t]; }).filter(function(v){ return v !== null; });
+    row._overall = vals.length ? vals.reduce(function(a,b){return a+b;},0)/vals.length : null;
+    return row;
+  });
+  rows = _sortRows(rows, ss);
+
+  var html = '<table class="tbl" id="student-task-tbl">';
+  html += '<thead><tr>';
+  html += _th('student-task-tbl', 'student', 'Student');
+  tasks.forEach(function(t) {
+    html += _th('student-task-tbl', t, _shortName(t, 16));
+  });
+  html += _th('student-task-tbl', '_overall', 'Overall', COL_TIPS.student_overall);
+  html += '</tr></thead><tbody>';
+
+  rows.forEach(function(r) {
+    html += '<tr><td>' + _esc(r.student) + '</td>';
+    tasks.forEach(function(t) {
+      html += '<td class="pivot-score">' + _fmtScore(r[t]) + '</td>';
+    });
+    html += '<td class="pivot-score"><b>' + _fmtScore(r._overall) + '</b></td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('student-section-body').innerHTML = html;
+  _attachSortHandlers('student-task-tbl', renderStudentSection);
+}
+
+// -----------------------------------------------------------------------
+// Student — By Judge view
+// -----------------------------------------------------------------------
+function renderStudentByJudge() {
+  var nameFilter = document.getElementById('filter-students').value.toLowerCase();
+  var byJudge = getFilteredStudentScores(false, true);  // {student -> {judge -> avg}}
+  var judges = DATA.judges.map(function(r){ return r.judge; });
+  var consJudges = new Set(getConsensusJudges());
+
+  var students = DATA.students.map(function(r){ return r.student; });
+  if (nameFilter) students = students.filter(function(s){ return s.toLowerCase().includes(nameFilter); });
+
+  var ss = _getSortState('student-judge-tbl');
+  var rows = students.map(function(s) {
+    var row = { student: s };
+    judges.forEach(function(j) {
+      var v = (byJudge[s] && byJudge[s][j] !== undefined) ? byJudge[s][j] : null;
+      row[j] = v;
+    });
+    // overall
+    var activeJudges = judges.filter(function(j){ return consJudges.has(j); });
+    var vals = activeJudges.map(function(j){ return row[j]; }).filter(function(v){ return v !== null; });
+    row._overall = vals.length ? vals.reduce(function(a,b){return a+b;},0)/vals.length : null;
+    return row;
+  });
+  rows = _sortRows(rows, ss);
+
+  var html = '<table class="tbl" id="student-judge-tbl">';
+  html += '<thead><tr>';
+  html += _th('student-judge-tbl', 'student', 'Student');
+  judges.forEach(function(j) {
+    var mark = consJudges.has(j) ? '' : ' <span class="na">[excl]</span>';
+    html += _th('student-judge-tbl', j, _shortName(j, 16) + mark);
+  });
+  html += _th('student-judge-tbl', '_overall', 'Consensus Avg', COL_TIPS.student_cons_avg);
+  html += '</tr></thead><tbody>';
+
+  rows.forEach(function(r) {
+    html += '<tr><td>' + _esc(r.student) + '</td>';
+    judges.forEach(function(j) {
+      var cls = consJudges.has(j) ? '' : ' style="opacity:0.45"';
+      html += '<td class="pivot-score"' + cls + '>' + _fmtScore(r[j]) + '</td>';
+    });
+    html += '<td class="pivot-score"><b>' + _fmtScore(r._overall) + '</b></td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('student-section-body').innerHTML = html;
+  _attachSortHandlers('student-judge-tbl', renderStudentSection);
+}
+
+// -----------------------------------------------------------------------
+// Student — Side-by-Side view (compare formulas/metrics)
+// -----------------------------------------------------------------------
+function renderStudentSideBySide() {
+  var nameFilter = document.getElementById('filter-students').value.toLowerCase();
+  var formulas = ['v1', 's2', 'r3'];
+  var metrics  = ['spa', 'wpa', 'kappa'];
+
+  // Compute scores for every formula/metric combination
+  var rankData = {};  // key: "f_m", value: {student -> score}
+  formulas.forEach(function(f) {
+    metrics.forEach(function(m) {
+      // temporarily override state
+      var savedF = state.teacherFormula;
+      var savedM = state.judgeMetric;
+      var savedThr = state.teacherThreshold;
+      var savedJThr = state.judgeThreshold;
+      state.teacherFormula = f;
+      state.judgeMetric = m;
+      state.teacherThreshold = DATA.defaults.teacher_thresholds[f] || 0;
+      state.judgeThreshold   = DATA.defaults.judge_thresholds[m]   || 0.5;
+      rankData[f + '_' + m] = getFilteredStudentScores(false, false);
+      state.teacherFormula = savedF;
+      state.judgeMetric = savedM;
+      state.teacherThreshold = savedThr;
+      state.judgeThreshold = savedJThr;
+    });
+  });
+
+  var students = DATA.students.map(function(r){ return r.student; });
+  if (nameFilter) students = students.filter(function(s){ return s.toLowerCase().includes(nameFilter); });
+
+  // Build header: current combination first, then others
+  var currentKey = state.teacherFormula + '_' + state.judgeMetric;
+
+  var html = '<div style="overflow-x:auto"><table class="tbl" id="student-sbs-tbl">';
+  html += '<thead><tr><th>Student</th>';
+  formulas.forEach(function(f) {
+    metrics.forEach(function(m) {
+      var key = f + '_' + m;
+      var label = f.toUpperCase() + '+' + m.toUpperCase();
+      var style = (key === currentKey) ? ' style="color:var(--accent);font-weight:700"' : '';
+      var tip = (FORMULA_TIPS[f] || '') + ' | ' + (METRIC_TIPS[m] || '');
+      var tipAttr = ' data-tip="' + tip.replace(/"/g, '&quot;') + '"';
+      html += '<th' + style + tipAttr + '>' + label + '</th>';
+    });
+  });
+  html += '</tr></thead><tbody>';
+
+  // Sort by current key descending
+  var rows = students.map(function(s) {
+    var row = { student: s, _current: rankData[currentKey][s] || null };
+    formulas.forEach(function(f) {
+      metrics.forEach(function(m) {
+        row[f + '_' + m] = rankData[f + '_' + m][s] !== undefined ? rankData[f + '_' + m][s] : null;
+      });
+    });
+    return row;
+  });
+  rows.sort(function(a, b) { return (b._current || 0) - (a._current || 0); });
+
+  rows.forEach(function(r) {
+    html += '<tr><td>' + _esc(r.student) + '</td>';
+    formulas.forEach(function(f) {
+      metrics.forEach(function(m) {
+        var key = f + '_' + m;
+        var v = r[key];
+        var style = (key === currentKey) ? ' style="font-weight:600"' : '';
+        html += '<td class="pivot-score"' + style + '>' + _fmtScore(v) + '</td>';
+      });
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  document.getElementById('student-section-body').innerHTML = html;
+}
+
+// -----------------------------------------------------------------------
+// Sortable table helpers
+// -----------------------------------------------------------------------
+function _getSortState(tblId) {
+  return state.sortState[tblId] || { col: null, dir: 'desc' };
+}
+
+function _sortRows(rows, ss) {
+  if (!ss.col) return rows;
+  var col = ss.col;
+  var dir = ss.dir === 'asc' ? 1 : -1;
+  return rows.slice().sort(function(a, b) {
+    var av = a[col], bv = b[col];
+    // Null-last
+    if (av === null || av === undefined) return 1;
+    if (bv === null || bv === undefined) return -1;
+    if (typeof av === 'string') return dir * av.localeCompare(bv);
+    return dir * (av - bv);
+  });
+}
+
+function _th(tblId, col, label, tip) {
+  var ss = _getSortState(tblId);
+  var sortCls = '';
+  if (ss.col === col) sortCls = ' sort-active ' + (ss.dir === 'asc' ? 'sort-asc' : 'sort-desc');
+  var tipAttr = tip ? ' data-tip="' + String(tip).replace(/"/g, '&quot;') + '"' : '';
+  return '<th class="' + sortCls + '" data-tbl="' + tblId + '" data-col="' + col + '"' + tipAttr + '>'
+       + label + '</th>';
+}
+
+function _attachSortHandlers(tblId, renderFn) {
+  var el = document.getElementById(tblId);
+  if (!el) return;
+  el.querySelectorAll('th[data-col]').forEach(function(th) {
+    th.addEventListener('click', function() {
+      var col = this.dataset.col;
+      var ss = _getSortState(tblId);
+      if (ss.col === col) {
+        state.sortState[tblId] = { col: col, dir: ss.dir === 'asc' ? 'desc' : 'asc' };
+      } else {
+        state.sortState[tblId] = { col: col, dir: 'desc' };
+      }
+      renderFn();
+    });
+  });
+}
+
+// -----------------------------------------------------------------------
+// Formatting helpers
+// -----------------------------------------------------------------------
+function _fmtScore(v) {
+  if (v === null || v === undefined) return '<span class="na">—</span>';
+  return parseFloat(v).toFixed(4);
+}
+
+function _fmtScoreBar(v, max) {
+  if (v === null || v === undefined) return '<span class="na">—</span>';
+  var pct = max > 0 ? Math.round(v / max * 100) : 0;
+  return '<span class="score-bar" style="width:' + pct + 'px;background:var(--bar-effective)"></span>'
+       + parseFloat(v).toFixed(4);
+}
+
+function _shortName(s, maxLen) {
+  maxLen = maxLen || 20;
+  return s.length > maxLen ? s.slice(0, maxLen - 1) + '…' : s;
+}
+
+function _esc(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+</script>
+</body>
+</html>
