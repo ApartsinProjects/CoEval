@@ -48,6 +48,16 @@ def run_phase3(
         [t for t in all_teachers if t.name in only_models]
         if only_models is not None else all_teachers
     )
+
+    # Benchmark teachers have data pre-written by `coeval ingest`; skip them entirely
+    benchmark_teachers = [t for t in teachers if t.interface == 'benchmark']
+    teachers = [t for t in teachers if t.interface != 'benchmark']
+    if benchmark_teachers:
+        bnames = ', '.join(t.name for t in benchmark_teachers)
+        logger.info(
+            f"Phase 3: skipping {len(benchmark_teachers)} benchmark teacher(s) "
+            f"(data already ingested): {bnames}"
+        )
     generation_retries = cfg.experiment.generation_retries
     errors: list[str] = []
 
@@ -118,18 +128,20 @@ def run_phase3(
                 logger.error(msg)
                 errors.append(msg)
 
-    if not teachers:
+    # All active teachers (including benchmark teachers whose data was pre-ingested)
+    all_active = teachers + benchmark_teachers
+    if not all_active:
         return  # nothing active — nothing to verify
 
     # Verify at least one datapoint per task across all active teachers
     for task in cfg.tasks:
         total_for_task = sum(
-            storage.count_datapoints(task.name, t.name) for t in teachers
+            storage.count_datapoints(task.name, t.name) for t in all_active
         )
         if total_for_task == 0:
             raise RuntimeError(
-                f"Phase 3: no datapoints were generated for task '{task.name}' "
-                f"— all {len(teachers)} teacher(s) failed"
+                f"Phase 3: no datapoints found for task '{task.name}' "
+                f"— all {len(all_active)} teacher(s) failed or were not yet ingested"
             )
 
     if errors:

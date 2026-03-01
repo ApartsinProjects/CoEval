@@ -18,7 +18,12 @@ _EXPERIMENT_ID_RE = re.compile(r'^[A-Za-z0-9._-]+$')
 _RESERVED_SEP = '__'
 
 VALID_ROLES = {'student', 'teacher', 'judge'}
-VALID_INTERFACES = {'openai', 'anthropic', 'gemini', 'huggingface', 'azure_openai', 'azure_ai', 'bedrock', 'vertex', 'openrouter'}
+VALID_INTERFACES = {
+    'openai', 'anthropic', 'gemini', 'huggingface',
+    'azure_openai', 'azure_ai', 'bedrock', 'vertex', 'openrouter',
+    # Virtual interface — benchmark data pre-written by `coeval ingest`; Phase 3 is skipped
+    'benchmark',
+}
 VALID_LOG_LEVELS = {'DEBUG', 'INFO', 'WARNING', 'ERROR'}
 VALID_EVAL_MODES = {'single', 'per_factor'}
 VALID_PHASE_MODES = {'New', 'Keep', 'Extend', 'Model'}

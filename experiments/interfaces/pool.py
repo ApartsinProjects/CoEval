@@ -160,6 +160,16 @@ class ModelPool:
                 ),
             )
 
+        # Benchmark virtual interface — data pre-written by `coeval ingest`.
+        # Phase 3 skips these teachers entirely; the pool should never be asked
+        # to create one, but we return a clear error just in case.
+        if iface == 'benchmark':
+            raise ValueError(
+                f"Model '{model_cfg.name}' uses the 'benchmark' interface which is "
+                "virtual (data pre-ingested). It cannot be called through the ModelPool. "
+                "Check that Phase 3 correctly skips benchmark teachers."
+            )
+
         # HuggingFace (GPU-based): evict other HF models from VRAM first
         self._evict_hf_models(keep=model_cfg.name)
         hf_token = (

@@ -12,6 +12,9 @@ wizard    Interactive LLM-assisted wizard: describe your goal in plain English
           and get a ready-to-run YAML configuration.
 generate  Run phases 1-2 (attribute + rubric mapping) and write a materialized
           YAML config with static attributes and rubric ready for `coeval run`.
+ingest    Inject downloaded benchmark data as a virtual teacher into an existing
+          EES run; updates config.yaml so `coeval run --continue` includes the
+          benchmark teacher in Phases 4-5.
 models    List available text-generation models from each configured provider.
 analyze   Analyze an EES experiment folder (EEA).
 
@@ -363,6 +366,55 @@ def _build_parser() -> argparse.ArgumentParser:
         help='Path to a provider key file (YAML); overrides default ~/.coeval/keys.yaml',
     )
 
+    # ---- coeval ingest ----
+    ingest_p = sub.add_parser(
+        'ingest',
+        help=(
+            'Inject downloaded benchmark data as a virtual teacher into an existing '
+            'EES run. Updates config.yaml so `coeval run --continue` runs Phases 4–5 '
+            'on the benchmark teacher.'
+        ),
+    )
+    ingest_p.add_argument(
+        '--run', required=True, metavar='PATH',
+        help='Path to the existing EES experiment folder',
+    )
+    ingest_p.add_argument(
+        '--benchmarks', nargs='+', required=True, metavar='NAME',
+        help=(
+            'One or more benchmark names to ingest '
+            '(e.g. mmlu hellaswag humaneval). '
+            'Available: mmlu, hellaswag, truthfulqa, humaneval, medqa, gsm8k'
+        ),
+    )
+    ingest_p.add_argument(
+        '--data-dir', dest='data_dir', default='stdbenchmarks/data', metavar='PATH',
+        help=(
+            'Directory containing downloaded benchmark JSONL files '
+            '(default: stdbenchmarks/data). '
+            'Run `python stdbenchmarks/download_benchmarks.py` first.'
+        ),
+    )
+    ingest_p.add_argument(
+        '--split', default=None, metavar='SPLIT',
+        help='Dataset split to ingest (default: per-benchmark default, usually "test")',
+    )
+    ingest_p.add_argument(
+        '--limit', type=int, default=None, metavar='N',
+        help='Maximum number of items to ingest per benchmark (default: all)',
+    )
+    ingest_p.add_argument(
+        '--task-name', dest='task_name', default=None, metavar='NAME',
+        help=(
+            'Override the CoEval task name (default: benchmark name). '
+            'Useful when mapping a benchmark onto an existing task.'
+        ),
+    )
+    ingest_p.add_argument(
+        '--verbose', action='store_true',
+        help='Print progress every 100 items',
+    )
+
     # ---- coeval models ----
     models_p = sub.add_parser(
         'models',
@@ -460,6 +512,9 @@ def main(argv: list[str] | None = None) -> None:
     elif args.command == 'generate':
         from .commands.generate_cmd import cmd_generate
         cmd_generate(args)
+    elif args.command == 'ingest':
+        from .commands.ingest_cmd import cmd_ingest
+        cmd_ingest(args)
     elif args.command == 'models':
         from .commands.models_cmd import cmd_models
         cmd_models(args)

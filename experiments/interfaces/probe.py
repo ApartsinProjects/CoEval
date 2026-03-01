@@ -207,6 +207,9 @@ def _models_needed(
 def _probe_one(model: 'ModelConfig') -> None:
     """Probe a single model.  Raises on any failure."""
     iface = model.interface
+    if iface == 'benchmark':
+        # Virtual interface — no API to probe; data pre-ingested by `coeval ingest`
+        return
     if iface == 'openai':
         _probe_openai(model)
     elif iface == 'anthropic':
