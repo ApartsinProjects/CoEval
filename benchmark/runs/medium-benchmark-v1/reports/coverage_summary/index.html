@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Coverage Summary — medium-benchmark-v1</title>
+  <script src="../plotly.min.js"></script>
+  <script>
+const DATA = {"coverage_rows": [{"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 30, "valid": 30, "invalid": 0, "coverage_pct": 150.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 30, "valid": 30, "invalid": 0, "coverage_pct": 150.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 19, "valid": 18, "invalid": 1, "coverage_pct": 90.0, "errors": "INCOMPLETE_SCORES:1"}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 19, "valid": 18, "invalid": 1, "coverage_pct": 90.0, "errors": "INCOMPLETE_SCORES:1"}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 19, "valid": 17, "invalid": 2, "coverage_pct": 85.0, "errors": "INCOMPLETE_SCORES:2"}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 18, "valid": 18, "invalid": 0, "coverage_pct": 90.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 18, "valid": 18, "invalid": 0, "coverage_pct": 90.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 18, "valid": 18, "invalid": 0, "coverage_pct": 90.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 18, "valid": 17, "invalid": 1, "coverage_pct": 85.0, "errors": "INCOMPLETE_SCORES:1"}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 18, "valid": 18, "invalid": 0, "coverage_pct": 90.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 18, "valid": 18, "invalid": 0, "coverage_pct": 90.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 18, "valid": 18, "invalid": 0, "coverage_pct": 90.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 18, "valid": 17, "invalid": 1, "coverage_pct": 85.0, "errors": "INCOMPLETE_SCORES:1"}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 19, "invalid": 1, "coverage_pct": 95.0, "errors": "INCOMPLETE_SCORES:1"}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 19, "invalid": 1, "coverage_pct": 95.0, "errors": "INCOMPLETE_SCORES:1"}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 19, "invalid": 1, "coverage_pct": 95.0, "errors": "INCOMPLETE_SCORES:1"}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "qwen2p5-0b5", "expected": 20, "actual": 3, "valid": 3, "invalid": 0, "coverage_pct": 15.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}], "waterfall": [{"task": "code_explanation", "datapoints": 99, "responses": 495, "eval_actual": 2000, "eval_valid": 1996}, {"task": "data_interpretation", "datapoints": 98, "responses": 490, "eval_actual": 1984, "eval_valid": 1979}, {"task": "email_composition", "datapoints": 100, "responses": 500, "eval_actual": 2000, "eval_valid": 2000}, {"task": "text_summarization", "datapoints": 100, "responses": 500, "eval_actual": 2003, "eval_valid": 2003}], "error_totals": {"INCOMPLETE_SCORES": 9}, "meta_panel": {"experiment_id": "medium-benchmark-v1", "status": "completed", "created_at": "2026-02-24T12:22:23Z", "updated_at": "2026-03-01T07:28:19Z", "phases_completed": ["attribute_mapping", "rubric_mapping", "data_generation", "response_collection", "evaluation"], "phases_in_progress": [], "tasks": 4, "teachers": 5, "students": 5, "judges": 5, "datapoints": 397, "total_evals": 7987, "valid_evals": 7978}};
+  </script>
+  <style>
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+       background: #f5f5f5; color: #333; }
+#header { background: #1a1a2e; color: #fff; padding: 14px 20px;
+          display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+#header h1 { font-size: 1.1rem; font-weight: 600; }
+.header-meta { font-size: 0.78rem; opacity: 0.8; }
+.header-badge { background: rgba(255,255,255,.15); border-radius: 4px;
+                padding: 2px 8px; font-size: 0.75rem; }
+.partial-notice { background: #f59e0b; color: #000; padding: 8px 20px;
+                  font-size: 0.85rem; font-weight: 500; }
+#filter-panel { background: #fff; border-bottom: 1px solid #e0e0e0;
+                padding: 10px 20px; display: flex; flex-wrap: wrap; gap: 12px;
+                align-items: center; }
+.filter-group { display: flex; align-items: center; gap: 6px; }
+.filter-group label { font-size: 0.8rem; font-weight: 500; color: #555; }
+.filter-group select { font-size: 0.8rem; border: 1px solid #ccc;
+                        border-radius: 4px; padding: 3px 6px; }
+#stats-bar { background: #e8f4f8; padding: 6px 20px; font-size: 0.78rem;
+             color: #555; border-bottom: 1px solid #c9e3ee; }
+#main { padding: 16px 20px; }
+.view-section { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.1);
+                padding: 16px; margin-bottom: 16px; }
+.view-section h2 { font-size: 1rem; font-weight: 600; margin-bottom: 12px; color: #1a1a2e; }
+.view-section p.note { font-size: 0.8rem; color: #666; background: #fffbeb;
+                       border-left: 3px solid #f59e0b; padding: 6px 10px;
+                       margin-bottom: 10px; border-radius: 0 4px 4px 0; }
+.chart-container { min-height: 360px; }
+table.data-table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
+table.data-table th { background: #f0f4f8; text-align: left;
+                       padding: 6px 10px; border-bottom: 2px solid #d0d8e0;
+                       font-weight: 600; color: #444; white-space: nowrap; }
+table.data-table td { padding: 5px 10px; border-bottom: 1px solid #eee; }
+table.data-table tr:hover td { background: #f8f9fb; }
+.warn-flag { color: #d97706; font-size: 0.85em; cursor: help; }
+.degenerate-notice { background: #fef3c7; border: 1px solid #fbbf24;
+                     border-radius: 6px; padding: 10px 14px; margin-bottom: 12px;
+                     font-size: 0.82rem; }
+.na { color: #aaa; font-style: italic; }
+.tag { display: inline-block; font-size: 0.7rem; border-radius: 3px;
+       padding: 1px 5px; margin: 0 2px; }
+.tag-partial { background: #fef3c7; color: #92400e; }
+.tag-completed { background: #d1fae5; color: #065f46; }
+footer { text-align: center; padding: 16px; font-size: 0.75rem; color: #999; }
+/* ---- Collapsible figure explanations ---- */
+details.fig-explain { margin-top: 12px; border-top: 1px dashed #e2e8f0; padding-top: 8px; }
+details.fig-explain summary {
+  font-size: 0.75rem; color: #64748b; cursor: pointer; user-select: none;
+  display: inline-flex; align-items: center; gap: 5px; outline: none;
+  list-style: none;
+}
+details.fig-explain summary::-webkit-details-marker { display: none; }
+details.fig-explain summary::before { content: "ℹ"; color: #94a3b8; }
+details.fig-explain[open] summary { color: #1e40af; }
+details.fig-explain[open] summary::before { content: "ℹ"; color: #1e40af; }
+details.fig-explain .explain-body {
+  font-size: 0.78rem; color: #475569; line-height: 1.65; margin-top: 8px;
+  padding: 10px 14px; background: #f8fafc; border-radius: 6px;
+  border-left: 3px solid #94a3b8;
+}
+details.fig-explain .explain-body b { color: #1e293b; }
+details.fig-explain .explain-body code {
+  background: #e2e8f0; padding: 1px 4px; border-radius: 3px; font-size: 0.85em;
+}
+
+  </style>
+</head>
+<body>
+
+
+<div id="header">
+  <h1>CoEval EEA &mdash; Coverage Summary</h1>
+  <span class="header-meta">Experiment: <b>medium-benchmark-v1</b></span>
+  <span class="header-badge tag-completed">completed</span>
+  <span class="header-meta">Tasks: 4</span>
+  <span class="header-meta">Models: 5</span>
+  <span class="header-meta">Datapoints: 397</span>
+  <span class="header-meta">Self-judging: 1592</span>
+  <span class="header-meta">Self-teaching: 1599</span>
+  <span class="header-meta">Analyzed: 2026-03-01T09:06:20Z</span>
+</div>
+<div id="stats-bar">Total eval records: 7987 | Valid: 7978 | Invalid: 9</div>
+<div id="filter-panel">
+<div class="filter-group"><label for="flt_task">Task:</label><select id="flt_task" onchange="applyFilters()"><option value="__all__">All</option><option value="code_explanation">code_explanation</option><option value="data_interpretation">data_interpretation</option><option value="email_composition">email_composition</option><option value="text_summarization">text_summarization</option></select></div>
+</div>
+<div id="main">
+
+<style>
+/* ---- Coverage report interactive panels ---- */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.stat-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 16px;
+  text-align: center;
+}
+.stat-card .stat-val {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e3a5f;
+  line-height: 1;
+}
+.stat-card .stat-lbl {
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-top: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.stat-card.good  .stat-val { color: #16a34a; }
+.stat-card.warn  .stat-val { color: #d97706; }
+.stat-card.bad   .stat-val { color: #dc2626; }
+
+.phase-timeline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.phase-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.73rem;
+  font-weight: 600;
+  border: 1px solid;
+}
+.phase-badge.done     { background: #dcfce7; color: #15803d; border-color: #86efac; }
+.phase-badge.running  { background: #fef3c7; color: #b45309; border-color: #fcd34d; }
+.phase-badge.pending  { background: #f1f5f9; color: #64748b; border-color: #cbd5e1; }
+.phase-badge .ph-dot  { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+.coverage-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+.coverage-controls label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+}
+.coverage-controls select {
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  padding: 4px 8px;
+  font-size: 0.78rem;
+  background: #fff;
+}
+.coverage-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-left: auto;
+}
+.legend-bar {
+  width: 80px;
+  height: 10px;
+  border-radius: 4px;
+  background: linear-gradient(to right, #ef4444, #facc15, #22c55e);
+  border: 1px solid #e2e8f0;
+}
+</style>
+
+<!-- ============================================================ -->
+<!-- Panel 1 — Experiment Overview                                -->
+<!-- ============================================================ -->
+<div class="view-section" id="view-meta">
+  <h2>Overview</h2>
+  <div id="stat-grid-container"></div>
+  <div id="phase-timeline-container"></div>
+  <details class="fig-explain">
+    <summary>About this panel</summary>
+    <div class="explain-body">
+      <b>Stat cards</b> summarise the experiment at a glance: number of tasks, teacher/student/judge
+      models, generated datapoints, and overall valid-evaluation coverage.<br>
+      <b>Coverage %</b> = valid evaluations ÷ expected evaluations × 100. Values below 90 % are
+      flagged amber; below 80 % are flagged red.<br>
+      <b>Phase timeline</b> shows which pipeline phases have completed (<span style="color:#15803d">✓ done</span>),
+      are in progress (<span style="color:#b45309">… running</span>), or are still pending
+      (<span style="color:#64748b">○ pending</span>).
+    </div>
+  </details>
+</div>
+
+<!-- ============================================================ -->
+<!-- Panel 2 — Coverage Heatmaps                                  -->
+<!-- ============================================================ -->
+<div class="view-section" id="view-coverage">
+  <h2>Coverage Heatmaps</h2>
+  <div class="coverage-controls">
+    <label>Judge:</label>
+    <select id="cov-judge-select" onchange="renderCoverageHeatmaps()"></select>
+    <div class="coverage-legend" id="cov-legend-label">
+      <span id="cov-legend-low">0 %</span>
+      <div class="legend-bar" id="cov-legend-bar"></div>
+      <span id="cov-legend-high">100 %</span>
+    </div>
+  </div>
+  <div id="coverage-heatmap-container"></div>
+  <details class="fig-explain">
+    <summary>About this figure</summary>
+    <div class="explain-body">
+      <b>What it shows:</b> One heatmap per task. Each cell represents a
+      (teacher&nbsp;×&nbsp;student) pair evaluated by the selected judge. Cell colour
+      encodes the valid-evaluation coverage percentage for that combination.<br>
+      <b>Colour scale:</b> The palette is selected dynamically based on the actual data
+      range. When all values are tightly clustered (range &lt; 20 pp), a high-contrast
+      sequential scale is used to reveal small differences. When values span a wide range,
+      a diverging red→yellow→green scale is used.<br>
+      <b>How to read it:</b> A fully green heatmap means every expected evaluation record
+      was generated and is valid. Red or orange cells indicate missing or invalid evaluations
+      — often caused by judge model failures or API timeouts. Hover over a cell for counts
+      and error codes.
+    </div>
+  </details>
+</div>
+
+<!-- ============================================================ -->
+<!-- Panel 3 — Phase Coverage Waterfall                           -->
+<!-- ============================================================ -->
+<div class="view-section" id="view-waterfall">
+  <h2>Phase Coverage Waterfall</h2>
+  <div id="waterfall-chart" class="chart-container"></div>
+  <details class="fig-explain">
+    <summary>About this figure</summary>
+    <div class="explain-body">
+      <b>What it shows:</b> A grouped bar chart showing artifact counts at each pipeline
+      stage, broken down by task.<br>
+      <b>Bars:</b>
+      <b>Datapoints (P3)</b> = items generated by teacher models in Phase 3;
+      <b>Responses (P4)</b> = student-model responses collected in Phase 4;
+      <b>Evals total</b> = all evaluation records written in Phase 5 (including invalid);
+      <b>Evals valid</b> = evaluation records that passed validation and carry usable scores.<br>
+      <b>How to read it:</b> The bars should form a waterfall: Datapoints ≥ Responses ≥ Evals.
+      A large gap between <em>Evals total</em> and <em>Evals valid</em> signals systematic
+      judge failures for that task. A gap between <em>Datapoints</em> and <em>Responses</em>
+      indicates student models that failed or were skipped.
+    </div>
+  </details>
+</div>
+
+<!-- ============================================================ -->
+<!-- Panel 4 — Error Code Breakdown                               -->
+<!-- ============================================================ -->
+<div class="view-section" id="view-errors">
+  <h2>Error Code Breakdown</h2>
+  <div id="error-chart" class="chart-container"></div>
+  <details class="fig-explain">
+    <summary>About this figure</summary>
+    <div class="explain-body">
+      <b>What it shows:</b> A bar chart of error code frequencies across all invalid
+      evaluation records in the experiment. Each bar is labelled with its percentage
+      share of total errors.<br>
+      <b>Common error codes:</b>
+      <code>empty_output</code> — judge produced no text;
+      <code>json_parse</code> — judge output could not be parsed as JSON;
+      <code>missing_scores</code> — parsed JSON lacked required score fields;
+      <code>api_error</code> — provider API returned an error.<br>
+      <b>How to read it:</b> The dominant error code usually reveals the root cause.
+      <code>empty_output</code> and <code>json_parse</code> together typically indicate
+      that the judge model is too small to reliably follow the structured evaluation prompt.
+    </div>
+  </details>
+</div>
+
+</div>
+<footer>Generated by CoEval EEA &mdash; 2026-03-01T09:06:20Z</footer>
+<script>
+
+function getFilter(id) {
+  var el = document.getElementById('flt_' + id);
+  return el ? el.value : '__all__';
+}
+
+function applyFilters() {
+  if (typeof renderAll === 'function') renderAll();
+}
+
+function fmt(v, decimals) {
+  if (v === null || v === undefined) return '<span class="na">N/A</span>';
+  return parseFloat(v).toFixed(decimals !== undefined ? decimals : 3);
+}
+
+function fmtPct(v) {
+  if (v === null || v === undefined) return '<span class="na">N/A</span>';
+  return (parseFloat(v) * 100).toFixed(1) + '%';
+}
+
+function selfFlag(is_self_judging, is_self_teaching) {
+  var flags = [];
+  if (is_self_judging) flags.push('<span class="warn-flag" title="Self-evaluation: judge model = student model.">⚠SJ</span>');
+  if (is_self_teaching) flags.push('<span class="warn-flag" title="Self-teaching: teacher model = student model.">⚠ST</span>');
+  return flags.join(' ');
+}
+
+// Colour helpers
+function scoreColor(v) {
+  if (v === null || v === undefined) return '#eee';
+  var r = Math.round(255 * (1 - v));
+  var g = Math.round(200 * v);
+  return 'rgb(' + r + ',' + g + ',60)';
+}
+
+// -----------------------------------------------------------------------
+// Main render entry
+// -----------------------------------------------------------------------
+function renderAll() {
+  renderMeta();
+  populateJudgeSelect();
+  renderCoverageHeatmaps();
+  renderWaterfall();
+  renderErrors();
+}
+
+// -----------------------------------------------------------------------
+// Panel 1 — Overview stat cards + phase timeline
+// -----------------------------------------------------------------------
+function renderMeta() {
+  var m = DATA.meta_panel;
+  var validPct = m.total_evals > 0
+    ? Math.round(m.valid_evals / m.total_evals * 100) : 100;
+
+  var statClass = validPct === 100 ? 'good' : (validPct >= 90 ? 'warn' : 'bad');
+
+  var stats = [
+    { val: m.tasks,      lbl: 'Tasks',       cls: '' },
+    { val: m.teachers,   lbl: 'Teachers',    cls: '' },
+    { val: m.students,   lbl: 'Students',    cls: '' },
+    { val: m.judges,     lbl: 'Judges',      cls: '' },
+    { val: m.datapoints, lbl: 'Datapoints',  cls: '' },
+    { val: m.total_evals,lbl: 'Total Evals', cls: '' },
+    { val: m.valid_evals,lbl: 'Valid Evals', cls: statClass },
+    { val: validPct + '%', lbl: 'Coverage',  cls: statClass },
+  ];
+
+  var gridHtml = '<div class="stat-grid">';
+  stats.forEach(function(s) {
+    gridHtml += '<div class="stat-card ' + s.cls + '">'
+              + '<div class="stat-val">' + s.val + '</div>'
+              + '<div class="stat-lbl">' + s.lbl + '</div>'
+              + '</div>';
+  });
+  gridHtml += '</div>';
+  document.getElementById('stat-grid-container').innerHTML = gridHtml;
+
+  // Phase timeline
+  var allPhases = [
+    'attribute_mapping', 'rubric_mapping', 'data_generation',
+    'response_collection', 'evaluation'
+  ];
+  var phaseLabels = {
+    attribute_mapping:  'Attr Mapping',
+    rubric_mapping:     'Rubric Mapping',
+    data_generation:    'Data Gen',
+    response_collection:'Resp Collection',
+    evaluation:         'Evaluation'
+  };
+  var completed = new Set(m.phases_completed || []);
+  var inProgress = new Set(m.phases_in_progress || []);
+
+  var tlHtml = '<div class="phase-timeline">';
+  allPhases.forEach(function(ph) {
+    var cls = completed.has(ph) ? 'done' : (inProgress.has(ph) ? 'running' : 'pending');
+    var icon = completed.has(ph) ? '✓' : (inProgress.has(ph) ? '…' : '○');
+    tlHtml += '<span class="phase-badge ' + cls + '">'
+            + '<span class="ph-dot"></span>'
+            + icon + ' ' + (phaseLabels[ph] || ph)
+            + '</span>';
+  });
+  tlHtml += '</div>';
+  document.getElementById('phase-timeline-container').innerHTML = tlHtml;
+}
+
+// -----------------------------------------------------------------------
+// Panel 2 — Coverage heatmaps (one Plotly heatmap per task)
+// -----------------------------------------------------------------------
+function _getUniqueValues(rows, key) {
+  var seen = {};
+  var vals = [];
+  rows.forEach(function(r) {
+    if (!seen[r[key]]) { seen[r[key]] = true; vals.push(r[key]); }
+  });
+  return vals.sort();
+}
+
+function populateJudgeSelect() {
+  var judges = _getUniqueValues(DATA.coverage_rows, 'judge');
+  var sel = document.getElementById('cov-judge-select');
+  sel.innerHTML = '';
+  judges.forEach(function(j) {
+    var opt = document.createElement('option');
+    opt.value = j; opt.textContent = j;
+    sel.appendChild(opt);
+  });
+}
+
+function renderCoverageHeatmaps() {
+  var taskFilter = getFilter('task');
+  var judgeFilter = document.getElementById('cov-judge-select').value;
+
+  var rows = DATA.coverage_rows.filter(function(r) {
+    return r.judge === judgeFilter &&
+           (taskFilter === '__all__' || r.task === taskFilter);
+  });
+
+  var tasks = _getUniqueValues(rows, 'task');
+  var container = document.getElementById('coverage-heatmap-container');
+
+  if (rows.length === 0) {
+    container.innerHTML = '<p style="color:#94a3b8;padding:20px">No data for this selection.</p>';
+    return;
+  }
+
+  // One div per task
+  container.innerHTML = '';
+  tasks.forEach(function(task, idx) {
+    var taskRows = rows.filter(function(r) { return r.task === task; });
+    var teachers = _getUniqueValues(taskRows, 'teacher');
+    var students = _getUniqueValues(taskRows, 'student');
+
+    // Build z-matrix [teacher_index][student_index] = coverage_pct
+    var z = teachers.map(function(t) {
+      return students.map(function(s) {
+        var match = taskRows.find(function(r){ return r.teacher === t && r.student === s; });
+        return match ? match.coverage_pct : null;
+      });
+    });
+
+    // Hover text
+    var text = teachers.map(function(t) {
+      return students.map(function(s) {
+        var r = taskRows.find(function(r){ return r.teacher === t && r.student === s; });
+        if (!r) return 'No data';
+        return 'Teacher: ' + r.teacher
+          + '<br>Student: ' + r.student
+          + '<br>Expected: ' + r.expected
+          + '<br>Actual: ' + r.actual
+          + '<br>Valid: ' + r.valid
+          + '<br>Invalid: ' + r.invalid
+          + '<br>Coverage: ' + r.coverage_pct + '%'
+          + (r.errors ? '<br>Errors: ' + r.errors : '');
+      });
+    });
+
+    // --- Dynamic colour scale based on actual data range ---
+    var validZ = [];
+    z.forEach(function(row) { row.forEach(function(v) { if (v !== null) validZ.push(v); }); });
+    var dataMin = validZ.length ? Math.min.apply(null, validZ) : 0;
+    var dataMax = validZ.length ? Math.max.apply(null, validZ) : 100;
+    var dataRange = dataMax - dataMin;
+
+    var colorscale, zminVal, zmaxVal, legendLow, legendHigh, barGradient;
+    if (dataRange < 15) {
+      // Very tight range — sequential high-contrast blue scale, padded ±5 pp
+      zminVal = Math.max(0, dataMin - 5);
+      zmaxVal = Math.min(100, dataMax + 5);
+      colorscale = [[0,'#0369a1'],[0.35,'#38bdf8'],[0.7,'#a5f3fc'],[1.0,'#ecfdf5']];
+      barGradient = 'linear-gradient(to right, #0369a1, #38bdf8, #ecfdf5)';
+      legendLow = dataMin.toFixed(0) + ' %';
+      legendHigh = dataMax.toFixed(0) + ' %';
+    } else if (dataMin >= 75) {
+      // All high — green gradient with precise scaling
+      zminVal = Math.max(50, dataMin - 10);
+      zmaxVal = 100;
+      colorscale = [[0,'#fef9c3'],[0.4,'#86efac'],[1.0,'#15803d']];
+      barGradient = 'linear-gradient(to right, #fef9c3, #86efac, #15803d)';
+      legendLow = zminVal.toFixed(0) + ' %';
+      legendHigh = '100 %';
+    } else {
+      // Wide or mixed range — vivid 5-stop RdYlGn
+      zminVal = 0; zmaxVal = 100;
+      colorscale = [
+        [0.0,  '#7f0000'],
+        [0.2,  '#d73027'],
+        [0.5,  '#ffffbf'],
+        [0.75, '#1a9850'],
+        [1.0,  '#00441b'],
+      ];
+      barGradient = 'linear-gradient(to right, #7f0000, #d73027, #ffffbf, #1a9850, #00441b)';
+      legendLow = '0 %'; legendHigh = '100 %';
+    }
+
+    // Update legend bar in the controls row (only on first task)
+    if (idx === 0) {
+      var lb = document.getElementById('cov-legend-bar');
+      var ll = document.getElementById('cov-legend-low');
+      var lh = document.getElementById('cov-legend-high');
+      if (lb) lb.style.background = barGradient;
+      if (ll) ll.textContent = legendLow;
+      if (lh) lh.textContent = legendHigh;
+    }
+    // -------------------------------------------------------
+
+    var divId = 'heatmap-task-' + idx;
+    var divEl = document.createElement('div');
+    divEl.id = divId;
+    divEl.style.marginBottom = '28px';
+    container.appendChild(divEl);
+
+    var heightPx = Math.max(200, teachers.length * 44 + 80);
+
+    Plotly.newPlot(divId, [{
+      type: 'heatmap',
+      z: z,
+      x: students,
+      y: teachers,
+      text: text,
+      hovertemplate: '%{text}<extra></extra>',
+      colorscale: colorscale,
+      zmin: zminVal, zmax: zmaxVal,
+      colorbar: {
+        title: { text: 'Coverage %', side: 'right' },
+        thickness: 14,
+        len: 0.8,
+        ticksuffix: '%',
+      },
+      xgap: 2, ygap: 2,
+    }], {
+      title: { text: 'Task: ' + task + ' &nbsp;|&nbsp; Judge: ' + judgeFilter,
+               font: { size: 13 } },
+      xaxis: { title: 'Student', tickangle: -30, automargin: true },
+      yaxis: { title: 'Teacher', automargin: true },
+      margin: { t: 50, l: 130, r: 80, b: 90 },
+      height: heightPx,
+      paper_bgcolor: '#fff',
+      plot_bgcolor: '#f8fafc',
+    }, { responsive: true });
+  });
+}
+
+// -----------------------------------------------------------------------
+// Panel 3 — Phase Coverage Waterfall (grouped bar chart)
+// -----------------------------------------------------------------------
+function renderWaterfall() {
+  var wf = DATA.waterfall;
+  if (!wf || wf.length === 0) return;
+  var tasks = wf.map(function(w) { return w.task; });
+  var traces = [
+    { name: 'Datapoints (P3)',
+      y: wf.map(function(w){return w.datapoints;}), x: tasks,
+      type: 'bar', marker: { color: '#3b82f6' }, width: 0.18 },
+    { name: 'Responses (P4)',
+      y: wf.map(function(w){return w.responses;}), x: tasks,
+      type: 'bar', marker: { color: '#8b5cf6' }, width: 0.18 },
+    { name: 'Evals (total)',
+      y: wf.map(function(w){return w.eval_actual;}), x: tasks,
+      type: 'bar', marker: { color: '#f59e0b' }, width: 0.18 },
+    { name: 'Evals (valid)',
+      y: wf.map(function(w){return w.eval_valid;}), x: tasks,
+      type: 'bar', marker: { color: '#22c55e' }, width: 0.18 },
+  ];
+  Plotly.newPlot('waterfall-chart', traces, {
+    barmode: 'group',
+    xaxis: { title: 'Task', automargin: true },
+    yaxis: { title: 'Artifact count', rangemode: 'tozero' },
+    legend: { orientation: 'h', y: -0.22 },
+    margin: { t: 20, b: 100 },
+    paper_bgcolor: '#fff',
+    plot_bgcolor: '#f8fafc',
+  }, { responsive: true });
+}
+
+// -----------------------------------------------------------------------
+// Panel 4 — Error Code Breakdown
+// -----------------------------------------------------------------------
+function renderErrors() {
+  var et = DATA.error_totals;
+  var keys = Object.keys(et).sort(function(a, b){ return et[b] - et[a]; });
+  if (keys.length === 0) {
+    document.getElementById('error-chart').innerHTML =
+      '<div style="display:flex;align-items:center;gap:10px;padding:20px;color:#16a34a;">'
+      + '<span style="font-size:1.5rem;">&#10003;</span>'
+      + '<span style="font-size:0.9rem;font-weight:500;">No errors found in evaluation records.</span></div>';
+    return;
+  }
+  var vals = keys.map(function(k) { return et[k]; });
+  var total = vals.reduce(function(a, b){ return a + b; }, 0);
+  var pcts  = vals.map(function(v){ return (v / total * 100).toFixed(1) + '%'; });
+
+  Plotly.newPlot('error-chart', [{
+    type: 'bar',
+    x: keys,
+    y: vals,
+    text: pcts,
+    textposition: 'outside',
+    marker: {
+      color: vals.map(function(_, i) {
+        var colors = ['#ef4444','#f97316','#f59e0b','#84cc16','#06b6d4'];
+        return colors[i % colors.length];
+      }),
+    },
+    hovertemplate: '<b>%{x}</b><br>Count: %{y}<br>Share: %{text}<extra></extra>',
+  }], {
+    xaxis: { title: 'Error code', automargin: true },
+    yaxis: { title: 'Count', rangemode: 'tozero' },
+    margin: { t: 20, b: 80 },
+    paper_bgcolor: '#fff',
+    plot_bgcolor: '#f8fafc',
+  }, { responsive: true });
+}
+
+document.addEventListener('DOMContentLoaded', renderAll);
+
+</script>
+</body>
+</html>

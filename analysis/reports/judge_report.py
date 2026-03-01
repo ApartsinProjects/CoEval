@@ -159,18 +159,68 @@ _VIEWS_HTML = """
 <div class="view-section">
   <h2>View 1 — Judge Ranking</h2>
   <div id="v1-table"></div>
+  <details class="fig-explain">
+    <summary>About this table</summary>
+    <div class="explain-body">
+      <b>What it shows:</b> Each row is a judge model. Columns report inter-judge agreement
+      scores averaged across all rubric aspects and all task–teacher–student combinations
+      in the current filter.<br>
+      <b>SPA</b> (Simple Percent Agreement) = fraction of pairwise evaluation pairs where
+      both judges assigned the same score level. Range 0–1; higher is better.<br>
+      <b>WPA</b> (Weighted Percent Agreement) = SPA weighted by the number of evaluation
+      units — larger combinations contribute proportionally more.<br>
+      <b>κ (Kappa)</b> = Cohen's κ; corrects for chance agreement. Interpretation:
+      &lt; 0 = worse than chance; 0–0.2 = slight; 0.2–0.4 = fair; 0.4–0.6 = moderate;
+      0.6–0.8 = substantial; &gt; 0.8 = near-perfect.<br>
+      <b>⚠SJ</b> flags self-judging (judge = student). <b>⚠ST</b> flags self-teaching.
+    </div>
+  </details>
 </div>
 <div class="view-section">
   <h2>View 2 — Pairwise Agreement Matrix</h2>
   <div id="v2-chart" class="chart-container"></div>
+  <details class="fig-explain">
+    <summary>About this figure</summary>
+    <div class="explain-body">
+      <b>What it shows:</b> A symmetric heatmap where each cell (i, j) shows the
+      agreement between judge <em>i</em> and judge <em>j</em> on the same evaluation units.
+      The diagonal is always 1.0 (a judge agrees with itself).<br>
+      <b>How to read it:</b> High off-diagonal values (green) indicate that two judges
+      produce consistent scores. Low values (red) suggest one judge is systematically
+      more lenient or strict than another, or that the judges apply the rubric differently.
+      Use the Agreement metric filter (SPA / WPA / Kappa) to switch the measure shown.
+    </div>
+  </details>
 </div>
 <div class="view-section">
   <h2>View 3 — Per-Aspect Agreement</h2>
   <div id="v3-chart" class="chart-container"></div>
+  <details class="fig-explain">
+    <summary>About this figure</summary>
+    <div class="explain-body">
+      <b>What it shows:</b> Mean inter-judge agreement broken down by rubric aspect.
+      Each bar represents one aspect; bar height = average agreement across all judge pairs
+      for that aspect.<br>
+      <b>How to read it:</b> Low agreement on a specific aspect means judges interpret
+      that criterion inconsistently — the rubric description for that aspect may need
+      clarification. High-variance aspects are less reliable for comparing student models.
+    </div>
+  </details>
 </div>
 <div class="view-section">
   <h2>View 4 — Score Distribution per Judge</h2>
   <div id="v4-chart" class="chart-container"></div>
+  <details class="fig-explain">
+    <summary>About this figure</summary>
+    <div class="explain-body">
+      <b>What it shows:</b> A grouped bar chart of the fraction of High / Medium / Low
+      scores awarded by each judge model across all evaluated responses.<br>
+      <b>How to read it:</b> A judge that gives mostly High scores is lenient; one that
+      gives mostly Low scores is strict. Large differences between judges indicate scoring
+      bias. When using multiple judges, CoEval metrics are computed per-judge to avoid
+      conflating genuine performance differences with judge calibration differences.
+    </div>
+  </details>
 </div>
 """
 

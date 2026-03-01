@@ -288,6 +288,24 @@ def _render_html(model: EESDataModel, data: dict) -> str:
         <canvas id="teacher-chart" height="260"></canvas>
       </div>
     </div>
+    <div style="padding: 0 20px 14px">
+      <details class="fig-explain">
+        <summary>About this section</summary>
+        <div class="explain-body">
+          <b>Table:</b> Each row is a teacher model ranked by the selected formula.
+          <b>V1</b> = mean student score on items from this teacher;
+          <b>S2</b> = score spread (discrimination index — how well items separate strong
+          from weak students);
+          <b>R3</b> = composite (V1 × S2). Teachers above the current effectiveness
+          threshold (control panel) are highlighted green.<br>
+          <b>Chart:</b> Bar chart of the selected formula value per teacher.
+          Only teachers in the current filter are shown.<br>
+          <b>Tip:</b> A high V1 teacher creates items students score well on overall.
+          A high S2 teacher creates discriminating items. Both are desirable for a
+          useful benchmark.
+        </div>
+      </details>
+    </div>
   </div>
 
   <!-- ============================================================ -->
@@ -312,6 +330,23 @@ def _render_html(model: EESDataModel, data: dict) -> str:
       <div class="chart-side">
         <canvas id="judge-chart" height="260"></canvas>
       </div>
+    </div>
+    <div style="padding: 0 20px 14px">
+      <details class="fig-explain">
+        <summary>About this section</summary>
+        <div class="explain-body">
+          <b>Table:</b> Each row is a judge model with inter-judge agreement scores.
+          <b>SPA</b> = Simple Percent Agreement (fraction of pairs with identical scores);
+          <b>WPA</b> = Weighted Percent Agreement (weighted by unit count);
+          <b>κ</b> = Cohen's Kappa (chance-corrected agreement). Judges above the
+          current agreement threshold are highlighted as &ldquo;consensus judges&rdquo;
+          and are used in the student ranking computation.<br>
+          <b>Chart:</b> Bar chart comparing agreement values per judge for the selected
+          metric (SPA / WPA / Kappa).<br>
+          <b>Kappa guide:</b> &lt;0 worse than chance; 0–0.2 slight; 0.2–0.4 fair;
+          0.4–0.6 moderate; 0.6–0.8 substantial; &gt;0.8 near-perfect.
+        </div>
+      </details>
     </div>
   </div>
 
@@ -339,6 +374,22 @@ def _render_html(model: EESDataModel, data: dict) -> str:
         <span id="student-coverage-info" class="coverage-info"></span>
       </div>
       <div id="student-section-body"></div>
+      <details class="fig-explain" style="margin-top:14px">
+        <summary>About this section</summary>
+        <div class="explain-body">
+          <b>Overall tab:</b> Mean normalised score per student across all rubric aspects,
+          filtered by effective teachers and consensus judges. Higher = better.<br>
+          <b>By Task tab:</b> Same scores broken down per task — reveals whether a student
+          model excels on some tasks but struggles on others.<br>
+          <b>By Judge tab:</b> Scores broken down per judge — useful for detecting
+          judge-dependent rankings. Stable rankings across judges indicate robust results.<br>
+          <b>Side-by-Side tab:</b> All four views above combined in a compact comparison table.<br>
+          <b>Normalised score:</b> High = 1.0, Medium = 0.5, Low = 0.0. The mean is taken
+          over all valid evaluation units that pass the active teacher and judge filters.<br>
+          <b>⚠SJ</b> = self-judging (judge = student model, may inflate scores).
+          <b>⚠ST</b> = self-teaching (teacher = student model, may inflate quality signal).
+        </div>
+      </details>
     </div>
   </div>
 
@@ -443,6 +494,25 @@ input[type="range"] { width: 120px; accent-color: var(--accent); cursor: pointer
 .card-header h2 { font-size: 1rem; font-weight: 700; color: var(--header-bg); }
 .card-desc { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; }
 .card-body { padding: 16px 20px; }
+/* ---- Collapsible figure explanations ---- */
+details.fig-explain { margin-top: 14px; border-top: 1px dashed var(--border); padding-top: 8px; }
+details.fig-explain summary {
+  font-size: 0.75rem; color: var(--text-muted); cursor: pointer; user-select: none;
+  display: inline-flex; align-items: center; gap: 5px; outline: none; list-style: none;
+}
+details.fig-explain summary::-webkit-details-marker { display: none; }
+details.fig-explain summary::before { content: "ℹ"; color: #94a3b8; }
+details.fig-explain[open] summary { color: var(--accent); }
+details.fig-explain[open] summary::before { color: var(--accent); }
+details.fig-explain .explain-body {
+  font-size: 0.78rem; color: #475569; line-height: 1.65; margin-top: 8px;
+  padding: 10px 14px; background: #f8fafc; border-radius: 6px;
+  border-left: 3px solid #94a3b8;
+}
+details.fig-explain .explain-body b { color: #1e293b; }
+details.fig-explain .explain-body code {
+  background: #e2e8f0; padding: 1px 4px; border-radius: 3px; font-size: 0.85em;
+}
 
 .two-col {
   display: grid;

@@ -120,19 +120,66 @@ _VIEWS_HTML = """
 <div class="view-section">
   <h2>View 1 — Student Ranking</h2>
   <div id="v1-table"></div>
+  <details class="fig-explain">
+    <summary>About this table</summary>
+    <div class="explain-body">
+      <b>What it shows:</b> Each row is a student model. Columns report the mean normalised
+      score (0 = all Low, 1 = all High) for each rubric aspect, plus an overall average
+      and the raw evaluation counts.<br>
+      <b>How to read it:</b> Higher scores indicate better performance on that aspect.
+      Use the Task, Teacher, and Judge filters to narrow the comparison to a specific
+      experimental configuration. <b>⚠SJ</b> = self-judging; <b>⚠ST</b> = self-teaching
+      — both flags suggest the score may be inflated.
+    </div>
+  </details>
 </div>
 <div class="view-section">
   <h2>View 2 — Aspect Heatmap (Student × Aspect)</h2>
   <div id="v2-chart" class="chart-container"></div>
+  <details class="fig-explain">
+    <summary>About this figure</summary>
+    <div class="explain-body">
+      <b>What it shows:</b> A heatmap where rows = student models, columns = rubric aspects,
+      and cell colour = mean normalised score (green = high, red = low).<br>
+      <b>How to read it:</b> A row that is uniformly green indicates a strong student model.
+      A row with a mix of green and red shows strengths and weaknesses across different
+      evaluation criteria. A column that is uniformly red suggests a rubric aspect that is
+      difficult for all students, possibly reflecting the task design rather than model quality.
+    </div>
+  </details>
 </div>
 <div class="view-section">
   <h2>View 3 — Per-Judge Score Comparison</h2>
   <div id="v3-chart" class="chart-container"></div>
+  <details class="fig-explain">
+    <summary>About this figure</summary>
+    <div class="explain-body">
+      <b>What it shows:</b> Mean score per student model, shown separately for each judge
+      model (grouped bars). This lets you detect whether student rankings are stable across
+      judges or depend on which judge evaluated them.<br>
+      <b>How to read it:</b> If bar heights are consistent across judge groups for a given
+      student, the student's ranking is robust to judge choice. Large discrepancies between
+      judge groups suggest judge calibration differences — check the Judge Report for
+      inter-judge agreement scores.
+    </div>
+  </details>
 </div>
 <div class="view-section">
   <h2>View 4 — Per-Attribute Score Breakdown</h2>
   <select id="v4-student" onchange="renderV4()" style="margin-bottom:8px;font-size:0.8rem"></select>
   <div id="v4-chart" class="chart-container"></div>
+  <details class="fig-explain">
+    <summary>About this figure</summary>
+    <div class="explain-body">
+      <b>What it shows:</b> For the selected student model, a bar chart of mean score
+      broken down by each sampled target attribute value. Only visible when tasks use
+      <code>sampled_target_attributes</code> in their config.<br>
+      <b>How to read it:</b> Differences across attribute values reveal input characteristics
+      that systematically affect model performance. For example, a student model may score
+      well on <code>difficulty=easy</code> items but poorly on <code>difficulty=hard</code>
+      items, exposing a capability boundary.
+    </div>
+  </details>
 </div>
 """
 

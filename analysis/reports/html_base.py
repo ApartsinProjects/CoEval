@@ -140,6 +140,26 @@ table.data-table tr:hover td { background: #f8f9fb; }
 .tag-partial { background: #fef3c7; color: #92400e; }
 .tag-completed { background: #d1fae5; color: #065f46; }
 footer { text-align: center; padding: 16px; font-size: 0.75rem; color: #999; }
+/* ---- Collapsible figure explanations ---- */
+details.fig-explain { margin-top: 12px; border-top: 1px dashed #e2e8f0; padding-top: 8px; }
+details.fig-explain summary {
+  font-size: 0.75rem; color: #64748b; cursor: pointer; user-select: none;
+  display: inline-flex; align-items: center; gap: 5px; outline: none;
+  list-style: none;
+}
+details.fig-explain summary::-webkit-details-marker { display: none; }
+details.fig-explain summary::before { content: "ℹ"; color: #94a3b8; }
+details.fig-explain[open] summary { color: #1e40af; }
+details.fig-explain[open] summary::before { content: "ℹ"; color: #1e40af; }
+details.fig-explain .explain-body {
+  font-size: 0.78rem; color: #475569; line-height: 1.65; margin-top: 8px;
+  padding: 10px 14px; background: #f8fafc; border-radius: 6px;
+  border-left: 3px solid #94a3b8;
+}
+details.fig-explain .explain-body b { color: #1e293b; }
+details.fig-explain .explain-body code {
+  background: #e2e8f0; padding: 1px 4px; border-radius: 3px; font-size: 0.85em;
+}
 """
 
 

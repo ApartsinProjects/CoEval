@@ -107,6 +107,17 @@ _VIEWS_HTML = """
 <div class="view-section">
   <h2>View 1 — Overall Score Distribution by Rubric Aspect</h2>
   <div id="v1-chart" class="chart-container"></div>
+  <details class="fig-explain">
+    <summary>About this figure</summary>
+    <div class="explain-body">
+      <b>What it shows:</b> A stacked bar chart of evaluation scores across each rubric aspect.
+      Each bar is split into <b>High / Medium / Low</b> segments, showing the proportion of
+      evaluations at each level for that aspect.<br>
+      <b>How to read it:</b> A tall green (High) segment means student responses frequently
+      met the rubric criterion. A tall red (Low) segment flags a systematic weakness.
+      Use the Task / Judge / Teacher / Student filters to isolate specific sub-populations.
+    </div>
+  </details>
 </div>
 <div class="view-section">
   <h2>View 2 — Score Distribution by Student Model</h2>
@@ -119,15 +130,49 @@ _VIEWS_HTML = """
     </select>
   </div>
   <div id="v2-chart" class="chart-container"></div>
+  <details class="fig-explain">
+    <summary>About this figure</summary>
+    <div class="explain-body">
+      <b>What it shows:</b> For the selected score level (High / Medium / Low), this grouped
+      bar chart shows the <em>fraction</em> of evaluations at that level, broken down by
+      rubric aspect (x-axis) and student model (colour groups).<br>
+      <b>How to read it:</b> Compare bar heights within a single aspect to see which student
+      model scores highest / lowest on that criterion. Switch the level dropdown between
+      <code>High</code> and <code>Low</code> to inspect both ends of the distribution.
+    </div>
+  </details>
 </div>
 <div class="view-section">
   <h2>View 3 — Score by Target Attribute Value (Heatmap)</h2>
   <div id="v3-chart" class="chart-container"></div>
+  <details class="fig-explain">
+    <summary>About this figure</summary>
+    <div class="explain-body">
+      <b>What it shows:</b> A heatmap of mean normalised score (0 = Low, 0.5 = Medium,
+      1 = High) for each combination of sampled target attribute value (rows) and rubric
+      aspect (columns). Only populated when tasks define <code>sampled_target_attributes</code>.<br>
+      <b>How to read it:</b> Green cells indicate that items with a particular attribute
+      value consistently score High on a given aspect. Red cells reveal specific
+      attribute–aspect combinations that are systematically harder for student models.
+    </div>
+  </details>
 </div>
 <div class="view-section">
   <h2>View 4 — Judge Score Drift Over Evaluation Order</h2>
   <p class="note">Hidden when any judge has fewer than 20 valid evaluation records.</p>
   <div id="v4-chart" class="chart-container"></div>
+  <details class="fig-explain">
+    <summary>About this figure</summary>
+    <div class="explain-body">
+      <b>What it shows:</b> A rolling-average (window = 20) of the normalised score assigned
+      by each judge model, plotted against evaluation sequence number.<br>
+      <b>How to read it:</b> A flat line indicates consistent judgment throughout the run.
+      An upward or downward trend may signal <em>judge drift</em> — the model becoming
+      more lenient or strict as the evaluation progresses (e.g., due to context accumulation
+      in batch mode). A systematic difference between judges at the same sequence position
+      indicates a scoring bias between judges.
+    </div>
+  </details>
 </div>
 """
 
@@ -163,33 +208,6 @@ function renderV1() {
   ];
   Plotly.newPlot('v1-chart', traces,
     {barmode:'stack', yaxis:{title:'%', range:[0,100]}, margin:{t:20}});
-}
-
-function renderV2() {
-  var level = document.getElementById('v2-level').value;
-  var units = filteredUnits();
-  var asp_student: dict = {};
-  units.forEach(function(u) {
-    var k = u.aspect + '||' + u.student;
-    if (!asp_student[k]) asp_student[k] = [];
-    asp_student[k].push(u.score === level ? 1 : 0);
-  });
-  var aspects = [...new Set(units.map(function(u){return u.aspect;}))].sort();
-  var students = [...new Set(units.map(function(u){return u.student;}))].sort();
-  if (aspects.length === 0) return;
-  var traces = students.map(function(s) {
-    return {
-      name: s, type: 'bar',
-      x: aspects,
-      y: aspects.map(function(a) {
-        var k = a + '||' + s;
-        var arr = asp_student[k] || [];
-        return arr.length ? arr.reduce(function(a,b){return a+b;},0)/arr.length : 0;
-      }),
-    };
-  });
-  Plotly.newPlot('v2-chart', traces,
-    {barmode:'group', yaxis:{title: 'Fraction ' + level, range:[0,1]}, margin:{t:20}});
 }
 
 function renderV3() {
