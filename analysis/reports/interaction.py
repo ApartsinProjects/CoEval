@@ -114,14 +114,46 @@ _VIEWS_HTML = """
   judge = student may reflect self-evaluation bias. These cells are highlighted.
   Interpret them with caution.</p>
   <h2>View 1 — Interaction Heatmap (Teacher × Student)</h2>
+  <details class="fig-explain">
+    <summary>What does this show?</summary>
+    <div class="explain-body">
+      <p>Mean normalised score for every teacher–student pair.
+      <b>Green cells</b> indicate a teacher's datapoints consistently elicited
+      high-quality responses from that student; <b>red cells</b> indicate low scores.
+      Patterns reveal which teachers are most challenging for each student —
+      or whether a particular combination is systematically biased.</p>
+      <p>Score normalisation: Low = 0, Medium = 0.5, High = 1.</p>
+    </div>
+  </details>
   <div id="v1-chart" class="chart-container"></div>
 </div>
 <div class="view-section">
   <h2>View 2 — Deviation Heatmap (score − student mean across teachers)</h2>
+  <details class="fig-explain">
+    <summary>What does this show?</summary>
+    <div class="explain-body">
+      <p>How much each teacher's score for a student deviates from that student's
+      overall mean score across all teachers.
+      <b>Red cells</b> = teacher scored the student <em>above</em> their average;
+      <b>blue cells</b> = <em>below</em>-average scores.</p>
+      <p>Use this view to identify teachers that systematically advantage or challenge
+      specific students beyond what their general ability would predict.</p>
+    </div>
+  </details>
   <div id="v2-chart" class="chart-container"></div>
 </div>
 <div class="view-section">
   <h2>View 3 — Per-Aspect Breakdown</h2>
+  <details class="fig-explain">
+    <summary>What does this show?</summary>
+    <div class="explain-body">
+      <p>The same teacher–student interaction heatmap filtered to a single rubric aspect.
+      Select <em>All aspects</em> to show the overall mean (same as View 1).</p>
+      <p>Use this view to check whether interaction patterns differ by rubric criterion —
+      a teacher may challenge one student on <em>clarity</em> but not on
+      <em>accuracy</em>.</p>
+    </div>
+  </details>
   <select id="v3-aspect" onchange="renderV3()" style="margin-bottom:8px;font-size:0.8rem">
     <option value="__all__">All aspects</option>
   </select>

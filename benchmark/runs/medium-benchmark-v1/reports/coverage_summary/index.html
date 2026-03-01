@@ -161,6 +161,53 @@ details.fig-explain .explain-body code {
   transition: opacity .18s ease;
 }
 [data-tip]:hover::after { opacity: 1; }
+/* ---- Sortable table headers ---- */
+table.data-table th.sortable { cursor: pointer; user-select: none; }
+table.data-table th.sortable:hover { background: linear-gradient(180deg,#e8eef8,#dde5f0); color:#1e40af; }
+table.data-table th .sort-arrow { margin-left: 4px; opacity: 0.5; font-size: 0.7em; }
+table.data-table th.sort-asc  .sort-arrow { opacity: 1; }
+table.data-table th.sort-desc .sort-arrow { opacity: 1; }
+/* ---- CSV export button (shared across reports) ---- */
+.csv-export-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 12px; background: var(--accent); color: #fff;
+  border: none; border-radius: 5px; cursor: pointer;
+  font-size: 0.8rem; font-weight: 600; margin-bottom: 6px;
+}
+.csv-export-btn:hover { opacity: 0.85; }
+/* ---- Figure controls popup (Filter By) ---- */
+.fc-popup-wrap { position: relative; display: inline-block; }
+.fc-popup-btn {
+  border: 1px solid #cbd5e1; border-radius: 5px; padding: 4px 10px;
+  font-size: .77rem; background: #fff; cursor: pointer; color: #475569;
+  display: inline-flex; align-items: center; gap: 5px; transition: border-color .15s, color .15s;
+}
+.fc-popup-btn:hover, .fc-popup-btn.open { border-color: #3b82f6; color: #1e40af; }
+.fc-popup {
+  display: none; position: absolute; top: calc(100% + 4px); left: 0;
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.14); z-index: 500;
+  min-width: 190px; max-width: 280px; padding: 10px 12px;
+}
+.fc-popup.open { display: block; }
+.fc-popup-title { font-size: .71rem; font-weight: 700; color: #475569;
+  text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px; }
+.fc-popup-checks { max-height: 180px; overflow-y: auto; border: 1px solid #f1f5f9;
+  border-radius: 5px; padding: 4px 6px; margin-bottom: 8px; }
+.fc-popup-checks label {
+  display: flex; align-items: center; gap: 6px; font-size: .77rem;
+  padding: 3px 0; cursor: pointer; color: #334155; user-select: none;
+}
+.fc-popup-checks label:hover { color: #1e40af; }
+.fc-popup-checks input[type=checkbox] { width: 13px; height: 13px; cursor: pointer; flex-shrink: 0; }
+.fc-popup-actions { display: flex; gap: 6px; justify-content: flex-end; }
+.fc-popup-actions button {
+  font-size: .72rem; padding: 3px 10px; border-radius: 5px; cursor: pointer; border: 1px solid;
+}
+.fc-popup-apply { background: #3b82f6; color: #fff; border-color: #2563eb; }
+.fc-popup-apply:hover { background: #2563eb; }
+.fc-popup-clear { background: #f8fafc; color: #475569; border-color: #cbd5e1; }
+.fc-popup-clear:hover { background: #e2e8f0; }
 
   </style>
 </head>
@@ -175,7 +222,7 @@ details.fig-explain .explain-body code {
   <span class="header-meta">Models:&nbsp;5</span>
   <span class="header-meta">Datapoints:&nbsp;397</span>
    <span class="header-badge" title="Self-judging evaluations detected">⚠ 1592 self-judging</span> <span class="header-badge" title="Self-teaching evaluations detected">⚠ 1599 self-teaching</span>
-  <span class="header-meta" style="margin-left:auto;opacity:.6">Analyzed:&nbsp;2026-03-01T10:17:29Z</span>
+  <span class="header-meta" style="margin-left:auto;opacity:.6">Analyzed:&nbsp;2026-03-01T13:52:55Z</span>
 </div>
 <div id="stats-bar">Total eval records: 7987 | Valid: 7978 | Invalid: 9</div>
 
@@ -222,6 +269,7 @@ details.fig-explain .explain-body code {
   border:1px solid #cbd5e1; border-radius:5px; padding:4px 8px;
   font-size:.77rem; background:#fff; cursor:pointer;
 }
+.fig-controls select:disabled { opacity:.4; cursor:default; }
 .fig-controls .fc-tip { font-size:.71rem; color:#94a3b8; margin-left:auto; }
 </style>
 
@@ -252,6 +300,20 @@ details.fig-explain .explain-body code {
   <div class="fig-controls">
     <label for="teacher-stack-sel">Stack by:</label>
     <select id="teacher-stack-sel" onchange="renderTeacherCoverage()"></select>
+    <label for="teacher-group-sel">Group by:</label>
+    <select id="teacher-group-sel" onchange="_onGroupChange('teacher', renderTeacherCoverage)"></select>
+    <div class="fc-popup-wrap">
+      <button class="fc-popup-btn" id="teacher-filter-btn"
+        onclick="_toggleFilterPopup('teacher'); return false;">⊟ Filter ▾</button>
+      <div class="fc-popup" id="teacher-filter-popup">
+        <div class="fc-popup-title">Show stack values</div>
+        <div class="fc-popup-checks" id="teacher-filter-checks"></div>
+        <div class="fc-popup-actions">
+          <button class="fc-popup-clear" onclick="_clearFilter('teacher', renderTeacherCoverage)">All</button>
+          <button class="fc-popup-apply" onclick="_applyFilter('teacher', renderTeacherCoverage)">Apply</button>
+        </div>
+      </div>
+    </div>
     <span class="fc-tip">Bars show datapoints generated; hover for counts.</span>
   </div>
   <div id="teacher-coverage-chart" class="chart-container"></div>
@@ -260,13 +322,12 @@ details.fig-explain .explain-body code {
     <div class="explain-body">
       <b>What it shows:</b> Total datapoints generated by each teacher model
       (Phase&nbsp;3), broken down by the selected stacking dimension.<br>
-      <b>Stacking options:</b>
-      <b>Task</b>&nbsp;— coloured by which task each datapoint belongs to;
-      <b>Target attribute</b>&nbsp;— coloured by sampled attribute value (e.g. difficulty);
-      <b>Nuance attribute</b>&nbsp;— coloured by nuance sampling value.<br>
+      <b>Stack by</b>&nbsp;— controls bar colour coding (task, attribute, etc.).<br>
+      <b>Group by</b>&nbsp;— when set to a dimension (not Model), flips axes: that
+      dimension's values appear on the x-axis and models become separate traces.<br>
+      <b>Filter</b>&nbsp;— hides/shows specific stack values.<br>
       <b>How to read it:</b> A balanced stack indicates the teacher generated a
-      representative sample across all attribute values. A lopsided stack suggests
-      the teacher model was biased toward certain tasks or attribute combinations.
+      representative sample across all attribute values.
     </div>
   </details>
 </div>
@@ -279,6 +340,20 @@ details.fig-explain .explain-body code {
   <div class="fig-controls">
     <label for="student-stack-sel">Stack by:</label>
     <select id="student-stack-sel" onchange="renderStudentCoverage()"></select>
+    <label for="student-group-sel">Group by:</label>
+    <select id="student-group-sel" onchange="_onGroupChange('student', renderStudentCoverage)"></select>
+    <div class="fc-popup-wrap">
+      <button class="fc-popup-btn" id="student-filter-btn"
+        onclick="_toggleFilterPopup('student'); return false;">⊟ Filter ▾</button>
+      <div class="fc-popup" id="student-filter-popup">
+        <div class="fc-popup-title">Show stack values</div>
+        <div class="fc-popup-checks" id="student-filter-checks"></div>
+        <div class="fc-popup-actions">
+          <button class="fc-popup-clear" onclick="_clearFilter('student', renderStudentCoverage)">All</button>
+          <button class="fc-popup-apply" onclick="_applyFilter('student', renderStudentCoverage)">Apply</button>
+        </div>
+      </div>
+    </div>
     <span class="fc-tip">Bars show responses collected; hover for counts.</span>
   </div>
   <div id="student-coverage-chart" class="chart-container"></div>
@@ -302,6 +377,20 @@ details.fig-explain .explain-body code {
   <div class="fig-controls">
     <label for="judge-stack-sel">Stack by:</label>
     <select id="judge-stack-sel" onchange="renderJudgeCoverage()"></select>
+    <label for="judge-group-sel">Group by:</label>
+    <select id="judge-group-sel" onchange="_onGroupChange('judge', renderJudgeCoverage)"></select>
+    <div class="fc-popup-wrap">
+      <button class="fc-popup-btn" id="judge-filter-btn"
+        onclick="_toggleFilterPopup('judge'); return false;">⊟ Filter ▾</button>
+      <div class="fc-popup" id="judge-filter-popup">
+        <div class="fc-popup-title">Show stack values</div>
+        <div class="fc-popup-checks" id="judge-filter-checks"></div>
+        <div class="fc-popup-actions">
+          <button class="fc-popup-clear" onclick="_clearFilter('judge', renderJudgeCoverage)">All</button>
+          <button class="fc-popup-apply" onclick="_applyFilter('judge', renderJudgeCoverage)">Apply</button>
+        </div>
+      </div>
+    </div>
     <span class="fc-tip">Bars show valid evaluations; hover for counts.</span>
   </div>
   <div id="judge-coverage-chart" class="chart-container"></div>
@@ -320,7 +409,7 @@ details.fig-explain .explain-body code {
 </div>
 
 </div>
-<footer>Generated by CoEval EEA &mdash; 2026-03-01T10:17:29Z</footer>
+<footer>Generated by CoEval EEA &mdash; 2026-03-01T13:52:55Z</footer>
 <script>
 
 function getFilter(id) {
@@ -357,8 +446,234 @@ function scoreColor(v) {
   return 'rgb(' + r + ',' + g + ',60)';
 }
 
+// ---- CSV export ----
+// _csvExportTable(containerId, filename) — download the rendered table as UTF-8 CSV.
+function _csvExportTable(idOrEl, filename) {
+  var container = typeof idOrEl === 'string' ? document.getElementById(idOrEl) : idOrEl;
+  if (!container) return;
+  var tbl = (container.tagName === 'TABLE') ? container : container.querySelector('table');
+  if (!tbl) return;
+  var rows = [];
+  tbl.querySelectorAll('tr').forEach(function(tr) {
+    var cells = [];
+    tr.querySelectorAll('th, td').forEach(function(td) {
+      var text = td.textContent.replace(/[\u2014\u2026]/g, '-').replace(/[",\n\r]/g, ' ').trim();
+      cells.push('"' + text + '"');
+    });
+    rows.push(cells.join(','));
+  });
+  var csv = '\uFEFF' + rows.join('\r\n');
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = filename || 'table.csv';
+  document.body.appendChild(a); a.click();
+  setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+}
+
+// ---- Sortable table ----
+// Call after rendering a table; pass the container element or id string.
+function _makeSortable(idOrEl) {
+  var container = typeof idOrEl === 'string' ? document.getElementById(idOrEl) : idOrEl;
+  if (!container) return;
+  var tbl = (container.tagName === 'TABLE') ? container : container.querySelector('table');
+  if (!tbl) return;
+  var ths = Array.prototype.slice.call(tbl.querySelectorAll('th'));
+  ths.forEach(function(th, col) {
+    th.classList.add('sortable');
+    var arrow = document.createElement('span');
+    arrow.className = 'sort-arrow'; arrow.textContent = '⇅';
+    th.appendChild(arrow);
+    th._sortDir = 0;
+    th.addEventListener('click', function() {
+      var dir = (th._sortDir === 1) ? -1 : 1;
+      ths.forEach(function(h) {
+        h._sortDir = 0;
+        h.classList.remove('sort-asc','sort-desc');
+        var a = h.querySelector('.sort-arrow');
+        if (a) a.textContent = '⇅';
+      });
+      th._sortDir = dir;
+      th.classList.add(dir === 1 ? 'sort-asc' : 'sort-desc');
+      var a = th.querySelector('.sort-arrow');
+      if (a) a.textContent = dir === 1 ? '▲' : '▼';
+      var rows = Array.prototype.slice.call(tbl.querySelectorAll('tr')).slice(1);
+      rows.sort(function(a, b) {
+        var ac = a.querySelectorAll('td')[col];
+        var bc = b.querySelectorAll('td')[col];
+        var at = ac ? ac.textContent.trim() : '';
+        var bt = bc ? bc.textContent.trim() : '';
+        var an = parseFloat(at), bn = parseFloat(bt);
+        if (!isNaN(an) && !isNaN(bn)) return dir * (an - bn);
+        return dir * at.localeCompare(bt);
+      });
+      rows.forEach(function(r) { tbl.appendChild(r); });
+    });
+  });
+}
+
+// ---- Floating chart element tooltip system ----
+var _ft = (function() {
+  var _el = null;
+  function _init() {
+    if (_el) return;
+    _el = document.createElement('div');
+    _el.style.cssText = (
+      'position:fixed;display:none;background:#0f172a;color:#e2e8f0;'
+      + 'font-size:.72rem;line-height:1.55;padding:7px 11px;border-radius:7px;'
+      + 'box-shadow:0 6px 20px rgba(0,0,0,.35),0 0 0 1px rgba(99,102,241,.25);'
+      + 'z-index:9999;pointer-events:none;max-width:260px;white-space:normal;'
+    );
+    document.body.appendChild(_el);
+  }
+  return {
+    show: function(html, x, y) {
+      _init();
+      _el.innerHTML = html;
+      _el.style.display = 'block';
+      _el.style.left = Math.min(x + 14, window.innerWidth - 280) + 'px';
+      _el.style.top  = Math.max(y - 40, 4) + 'px';
+    },
+    hide: function() { if (_el) _el.style.display = 'none'; }
+  };
+})();
+
+var _AXIS_TIPS = {
+  'Rubric aspect': 'Evaluation criterion in the rubric (e.g. Accuracy, Clarity). Each response is scored on each aspect.',
+  'Teacher model': 'LLM that generated the evaluation datapoints (Phase 3 — Data Generation).',
+  'Student model': 'LLM whose responses are being evaluated (Phase 4 — Response Collection).',
+  'Judge model': 'LLM that scores student responses against rubric criteria (Phase 5 — Evaluation).',
+  'Task': 'Evaluation task defined in the experiment configuration.',
+  'Model': 'Model identifier. Role (teacher / student / judge) depends on context.',
+  'Datapoints generated': 'Number of evaluation prompts produced in Phase 3.',
+  'Responses collected': 'Number of student model responses collected in Phase 4.',
+  'Valid evaluations': 'Number of successful judge-produced evaluations in Phase 5.',
+  'Mean normalised score (0–1)': 'Average score normalised: Low = 0, Medium = 0.5, High = 1.',
+  'Mean score (Low=0, Med=0.5, High=1)': 'Average normalised score across evaluations.',
+  'Fraction of evaluations': 'Fraction of all evaluations in this group.',
+  'Fraction High': 'Fraction of evaluations scored High.',
+  'Fraction Medium': 'Fraction of evaluations scored Medium.',
+  'Fraction Low': 'Fraction of evaluations scored Low.',
+  'Score': 'Normalised evaluation score in [0, 1].',
+  'Normalised score (0–1)': 'Score normalised to [0, 1]: Low = 0, Medium = 0.5, High = 1.',
+  'High': 'Highest score level (normalised = 1.0).',
+  'Medium': 'Middle score level (normalised = 0.5).',
+  'Low': 'Lowest score level (normalised = 0.0).',
+};
+
+function _buildTipMap(extra) {
+  var m = {};
+  var tips = (typeof DATA !== 'undefined') ? (DATA.tips || {}) : {};
+  var asp = tips.aspects || {}, tsk = tips.tasks || {}, att = tips.attrs || {};
+  Object.keys(asp).forEach(function(k) { m[k] = asp[k]; });
+  Object.keys(tsk).forEach(function(k) { m[k] = tsk[k]; });
+  Object.keys(att).forEach(function(k) {
+    m[k] = att[k];
+    var eq = k.indexOf('=');
+    if (eq >= 0) { var v = k.slice(eq+1); if (v && !m[v]) m[v] = att[k]; }
+  });
+  Object.keys(_AXIS_TIPS).forEach(function(k) { m[k] = _AXIS_TIPS[k]; });
+  if (extra) Object.keys(extra).forEach(function(k) { m[k] = extra[k]; });
+  return m;
+}
+
+function _bindFt(el, raw) {
+  if (!el || !raw) return;
+  el.style.cursor = 'help';
+  var html = String(raw).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  function _mv(ev) { _ft.show(html, ev.clientX, ev.clientY); }
+  el.addEventListener('mouseenter', function(e) {
+    _ft.show(html, e.clientX, e.clientY);
+    el.addEventListener('mousemove', _mv);
+  });
+  el.addEventListener('mouseleave', function() {
+    _ft.hide();
+    el.removeEventListener('mousemove', _mv);
+  });
+}
+
+function _addPlotTooltips(divId, extra) {
+  var cont = document.getElementById(divId);
+  if (!cont) return;
+  var tipMap = _buildTipMap(extra || {});
+  function _run() {
+    ['.xtick text','.ytick text','.legendtext','.g-xtitle text','.g-ytitle text'].forEach(function(sel) {
+      cont.querySelectorAll(sel).forEach(function(el) {
+        var t = (el.textContent || '').trim();
+        if (t && tipMap[t]) _bindFt(el, tipMap[t]);
+      });
+    });
+  }
+  setTimeout(_run, 350);
+}
+
+// ---- Filter popup state & helpers ----
+var _stackFilters = {};
+
+function _syncFilterPopup(prefix, dim, allVals) {
+  var state = _stackFilters[prefix];
+  if (!state || state.dim !== dim) {
+    state = { dim: dim, vals: {} };
+    allVals.forEach(function(v) { state.vals[v] = true; });
+    _stackFilters[prefix] = state;
+  } else {
+    allVals.forEach(function(v) { if (!(v in state.vals)) state.vals[v] = true; });
+    Object.keys(state.vals).forEach(function(v) { if (allVals.indexOf(v) < 0) delete state.vals[v]; });
+  }
+  var el = document.getElementById(prefix + '-filter-checks');
+  if (!el) return;
+  el.innerHTML = '';
+  allVals.forEach(function(v) {
+    var lbl = document.createElement('label');
+    var cb = document.createElement('input');
+    cb.type = 'checkbox'; cb.value = v; cb.checked = !!state.vals[v];
+    (function(val) { cb.addEventListener('change', function() { state.vals[val] = cb.checked; }); })(v);
+    lbl.appendChild(cb);
+    lbl.appendChild(document.createTextNode(' ' + (v === '(none)' ? '(unset)' : v)));
+    el.appendChild(lbl);
+  });
+}
+
+function _getFilteredVals(prefix, dim, allVals) {
+  var state = _stackFilters[prefix];
+  if (!state || state.dim !== dim) return allVals;
+  return allVals.filter(function(v) { return !!state.vals[v]; });
+}
+
+function _toggleFilterPopup(prefix) {
+  var popup = document.getElementById(prefix + '-filter-popup');
+  var btn   = document.getElementById(prefix + '-filter-btn');
+  if (!popup || !btn) return;
+  var open = popup.classList.contains('open');
+  document.querySelectorAll('.fc-popup.open').forEach(function(el) { el.classList.remove('open'); });
+  document.querySelectorAll('.fc-popup-btn.open').forEach(function(el) { el.classList.remove('open'); });
+  if (!open) { popup.classList.add('open'); btn.classList.add('open'); }
+}
+
+function _applyFilter(prefix, renderFn) {
+  var p = document.getElementById(prefix + '-filter-popup');
+  var b = document.getElementById(prefix + '-filter-btn');
+  if (p) p.classList.remove('open');
+  if (b) b.classList.remove('open');
+  if (typeof renderFn === 'function') renderFn();
+}
+
+function _clearFilter(prefix, renderFn) {
+  var state = _stackFilters[prefix];
+  if (state) Object.keys(state.vals).forEach(function(v) { state.vals[v] = true; });
+  _applyFilter(prefix, renderFn);
+}
+
+// Close popups on outside click
+document.addEventListener('click', function(e) {
+  if (!e.target || !e.target.closest || !e.target.closest('.fc-popup-wrap')) {
+    document.querySelectorAll('.fc-popup.open').forEach(function(el) { el.classList.remove('open'); });
+    document.querySelectorAll('.fc-popup-btn.open').forEach(function(el) { el.classList.remove('open'); });
+  }
+});
+
 // -----------------------------------------------------------------------
-// Shared colour palette (20 distinguishable colours, cycles if >20 stacks)
+// Shared colour palette
 // -----------------------------------------------------------------------
 var _PALETTE = [
   '#3b82f6','#22c55e','#f59e0b','#ef4444','#8b5cf6',
@@ -368,141 +683,182 @@ var _PALETTE = [
 ];
 function _colour(i) { return _PALETTE[i % _PALETTE.length]; }
 
-// -----------------------------------------------------------------------
-// Tooltip helpers (data-tip CSS is in html_base)
-// -----------------------------------------------------------------------
-function tipFor(key) {
-  var tips = (DATA.tips || {});
-  var task_tips = (tips.tasks || {});
-  var attr_tips = (tips.attrs || {});
-  return task_tips[key] || attr_tips[key] || '';
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+         .replace(/"/g,'&quot;');
+}
+
+function _dimLabel(dim) {
+  return (DATA.dim_labels || {})[dim] || dim.replace(/_/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});
 }
 
 // -----------------------------------------------------------------------
-// Build a Plotly stacked-bar chart
-// params:
-//   divId  : DOM id to render into
-//   models : array of model names (x-axis)
-//   stacks : DATA.teacher_stacks[dim] etc  → {model: {value: count}}
-//   dim    : selected dimension string
-//   yLabel : label for y-axis
+// Populate stack-by and group-by dropdowns
 // -----------------------------------------------------------------------
-function _renderStackedBar(divId, models, stacks, dim, yLabel) {
+function _populateDimSelect(selectId, dims) {
+  var sel = document.getElementById(selectId);
+  if (!sel) return;
+  sel.innerHTML = '';
+  dims.forEach(function(dim) {
+    var opt = document.createElement('option');
+    opt.value = dim;
+    opt.textContent = _dimLabel(dim);
+    sel.appendChild(opt);
+  });
+}
+
+function _populateGroupSelect(selectId, dims) {
+  var sel = document.getElementById(selectId);
+  if (!sel) return;
+  sel.innerHTML = '';
+  var modelOpt = document.createElement('option');
+  modelOpt.value = 'model'; modelOpt.textContent = 'Model (default)';
+  sel.appendChild(modelOpt);
+  dims.forEach(function(dim) {
+    var opt = document.createElement('option');
+    opt.value = dim; opt.textContent = _dimLabel(dim);
+    sel.appendChild(opt);
+  });
+}
+
+// When group-by changes, enable/disable stack-sel and filter button
+function _onGroupChange(prefix, renderFn) {
+  var groupSel = document.getElementById(prefix + '-group-sel');
+  var stackSel = document.getElementById(prefix + '-stack-sel');
+  var filterBtn = document.getElementById(prefix + '-filter-btn');
+  var groupDim = groupSel ? groupSel.value : 'model';
+  if (stackSel) stackSel.disabled = (groupDim !== 'model');
+  if (filterBtn) filterBtn.disabled = (groupDim !== 'model');
+  renderFn();
+}
+
+// -----------------------------------------------------------------------
+// Core stacked-bar renderer
+// params:
+//   divId      : DOM id
+//   models     : array of model names
+//   stacks     : DATA.teacher_stacks etc  → {dim: {model: {value: count}}}
+//   stackDim   : selected stacking dimension string
+//   yLabel     : y-axis label
+//   groupDim   : 'model' (default) or a dimension name
+//   filterPrefix: prefix for filter state ('teacher'/'student'/'judge')
+// -----------------------------------------------------------------------
+function _renderStackedBar(divId, models, stacks, stackDim, yLabel, groupDim, filterPrefix) {
+  groupDim = groupDim || 'model';
+
   if (!models || models.length === 0) {
     document.getElementById(divId).innerHTML =
       '<p style="color:#94a3b8;padding:20px">No data available.</p>';
     return;
   }
 
-  var dimData = stacks[dim] || {};
+  if (groupDim === 'model') {
+    // ---- Current mode: models on x-axis, stacked by stackDim ----
+    var dimData = stacks[stackDim] || {};
 
-  // Collect all unique values for this dimension across all models
-  var valueSet = {};
-  models.forEach(function(m) {
-    var mData = dimData[m] || {};
-    Object.keys(mData).forEach(function(v) { valueSet[v] = true; });
-  });
-  var values = Object.keys(valueSet).sort();
+    var allValSet = {};
+    models.forEach(function(m) {
+      Object.keys(dimData[m] || {}).forEach(function(v) { allValSet[v] = true; });
+    });
+    var allValues = Object.keys(allValSet).sort();
 
-  if (values.length === 0) {
-    document.getElementById(divId).innerHTML =
-      '<p style="color:#94a3b8;padding:20px">No stacking data for this dimension.</p>';
-    return;
+    if (!allValues.length) {
+      document.getElementById(divId).innerHTML =
+        '<p style="color:#94a3b8;padding:20px">No stacking data for this dimension.</p>';
+      return;
+    }
+
+    // Sync filter popup
+    if (filterPrefix) _syncFilterPopup(filterPrefix, stackDim, allValues);
+    var values = filterPrefix ? _getFilteredVals(filterPrefix, stackDim, allValues) : allValues;
+
+    var traces = values.map(function(val, i) {
+      var traceName = val === '(none)' ? '(unset)' : val;
+      var y = models.map(function(m) { return (dimData[m] || {})[val] || 0; });
+      return {
+        type: 'bar', name: traceName, x: models, y: y,
+        marker: { color: _colour(i) },
+        hovertemplate: '<b>' + escHtml(traceName) + '</b><br>Model: %{x}<br>Count: %{y}<extra></extra>',
+      };
+    });
+
+    var heightPx = Math.max(340, models.length * 36 + 140);
+    Plotly.newPlot(divId, traces, {
+      barmode: 'stack',
+      xaxis: { title: 'Model', tickangle: models.length > 5 ? -35 : 0, automargin: true },
+      yaxis: { title: yLabel, rangemode: 'tozero', gridcolor: '#f1f5f9' },
+      legend: {
+        orientation: values.length > 8 ? 'v' : 'h',
+        y: values.length > 8 ? 0.5 : -0.28,
+        x: values.length > 8 ? 1.02 : 0.5,
+        xanchor: values.length > 8 ? 'left' : 'center',
+        font: { size: 11 },
+      },
+      margin: { t: 20, b: values.length > 8 ? 80 : 120, l: 60, r: values.length > 8 ? 180 : 40 },
+      height: heightPx, paper_bgcolor: '#fff', plot_bgcolor: '#f8fafc',
+    }, { responsive: true });
+
+  } else {
+    // ---- Group-by mode: groupDim values on x-axis, models as traces ----
+    var gDimData = stacks[groupDim] || {};
+    var xSet = {};
+    models.forEach(function(m) {
+      Object.keys(gDimData[m] || {}).forEach(function(v) { xSet[v] = true; });
+    });
+    var xVals = Object.keys(xSet).sort();
+
+    if (!xVals.length) {
+      document.getElementById(divId).innerHTML =
+        '<p style="color:#94a3b8;padding:20px">No data for this dimension.</p>';
+      return;
+    }
+
+    var traces = models.map(function(m, mi) {
+      return {
+        type: 'bar', name: m,
+        x: xVals,
+        y: xVals.map(function(v) { return (gDimData[m] || {})[v] || 0; }),
+        marker: { color: _colour(mi) },
+        hovertemplate: '<b>%{x}</b><br>Model: ' + escHtml(m) + '<br>Count: %{y}<extra></extra>',
+      };
+    });
+
+    var heightPx = Math.max(340, xVals.length * 36 + 140);
+    Plotly.newPlot(divId, traces, {
+      barmode: 'group',
+      xaxis: { title: _dimLabel(groupDim), tickangle: xVals.length > 5 ? -35 : 0, automargin: true },
+      yaxis: { title: yLabel, rangemode: 'tozero', gridcolor: '#f1f5f9' },
+      legend: { orientation: 'h', y: -0.28, x: 0.5, xanchor: 'center', font: { size: 11 } },
+      margin: { t: 20, b: 120, l: 60, r: 40 },
+      height: heightPx, paper_bgcolor: '#fff', plot_bgcolor: '#f8fafc',
+    }, { responsive: true });
   }
 
-  // One trace per unique value
-  var traces = values.map(function(val, i) {
-    var y = models.map(function(m) {
-      return (dimData[m] || {})[val] || 0;
-    });
-    var tipText = tipFor(val) || tipFor(dim);
-    var traceName = val === '(none)' ? '(unset)' : val;
-    return {
-      type: 'bar',
-      name: traceName,
-      x: models,
-      y: y,
-      marker: { color: _colour(i) },
-      hovertemplate: '<b>' + escHtml(traceName) + '</b><br>Model: %{x}<br>Count: %{y}'
-        + (tipText ? '<br><i>' + escHtml(tipText.substring(0,80)) + '…</i>' : '')
-        + '<extra></extra>',
-    };
-  });
-
-  // Dynamic height: taller when there are many models
-  var heightPx = Math.max(340, models.length * 36 + 140);
-
-  Plotly.newPlot(divId, traces, {
-    barmode: 'stack',
-    xaxis: {
-      title: 'Model',
-      tickangle: models.length > 5 ? -35 : 0,
-      automargin: true,
-    },
-    yaxis: { title: yLabel, rangemode: 'tozero' },
-    legend: {
-      orientation: values.length > 8 ? 'v' : 'h',
-      y: values.length > 8 ? 0.5 : -0.28,
-      x: values.length > 8 ? 1.02 : 0.5,
-      xanchor: values.length > 8 ? 'left' : 'center',
-      font: { size: 11 },
-    },
-    margin: { t: 20, b: values.length > 8 ? 80 : 120, l: 60, r: values.length > 8 ? 180 : 40 },
-    height: heightPx,
-    paper_bgcolor: '#fff',
-    plot_bgcolor: '#f8fafc',
-  }, { responsive: true });
-}
-
-// -----------------------------------------------------------------------
-// Populate a stacking-dimension dropdown
-// -----------------------------------------------------------------------
-function _populateDimSelect(selectId, dims) {
-  var sel = document.getElementById(selectId);
-  sel.innerHTML = '';
-  dims.forEach(function(dim) {
-    var lbl = (DATA.dim_labels || {})[dim] || dim.replace(/_/g, ' ');
-    var opt = document.createElement('option');
-    opt.value = dim;
-    opt.textContent = lbl;
-    sel.appendChild(opt);
-  });
+  _addPlotTooltips(divId);
 }
 
 // -----------------------------------------------------------------------
 // Render functions
 // -----------------------------------------------------------------------
 function renderTeacherCoverage() {
-  var dim = document.getElementById('teacher-stack-sel').value || 'task';
-  _renderStackedBar(
-    'teacher-coverage-chart',
-    DATA.teachers,
-    DATA.teacher_stacks,
-    dim,
-    'Datapoints generated'
-  );
+  var stackDim = document.getElementById('teacher-stack-sel').value || 'task';
+  var groupDim = (document.getElementById('teacher-group-sel') || {}).value || 'model';
+  _renderStackedBar('teacher-coverage-chart', DATA.teachers,
+    DATA.teacher_stacks, stackDim, 'Datapoints generated', groupDim, 'teacher');
 }
 
 function renderStudentCoverage() {
-  var dim = document.getElementById('student-stack-sel').value || 'task';
-  _renderStackedBar(
-    'student-coverage-chart',
-    DATA.students,
-    DATA.student_stacks,
-    dim,
-    'Responses collected'
-  );
+  var stackDim = document.getElementById('student-stack-sel').value || 'task';
+  var groupDim = (document.getElementById('student-group-sel') || {}).value || 'model';
+  _renderStackedBar('student-coverage-chart', DATA.students,
+    DATA.student_stacks, stackDim, 'Responses collected', groupDim, 'student');
 }
 
 function renderJudgeCoverage() {
-  var dim = document.getElementById('judge-stack-sel').value || 'task';
-  _renderStackedBar(
-    'judge-coverage-chart',
-    DATA.judges,
-    DATA.judge_stacks,
-    dim,
-    'Valid evaluations'
-  );
+  var stackDim = document.getElementById('judge-stack-sel').value || 'task';
+  var groupDim = (document.getElementById('judge-group-sel') || {}).value || 'model';
+  _renderStackedBar('judge-coverage-chart', DATA.judges,
+    DATA.judge_stacks, stackDim, 'Valid evaluations', groupDim, 'judge');
 }
 
 // -----------------------------------------------------------------------
@@ -563,14 +919,6 @@ function renderMeta() {
 }
 
 // -----------------------------------------------------------------------
-// HTML-escape helper
-// -----------------------------------------------------------------------
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-         .replace(/"/g,'&quot;');
-}
-
-// -----------------------------------------------------------------------
 // Main entry
 // -----------------------------------------------------------------------
 function renderAll() {
@@ -579,6 +927,10 @@ function renderAll() {
   _populateDimSelect('teacher-stack-sel', DATA.teacher_dims || ['task']);
   _populateDimSelect('student-stack-sel', DATA.student_dims || ['task']);
   _populateDimSelect('judge-stack-sel',   DATA.judge_dims   || ['task']);
+
+  _populateGroupSelect('teacher-group-sel', DATA.teacher_dims || ['task']);
+  _populateGroupSelect('student-group-sel', DATA.student_dims || ['task']);
+  _populateGroupSelect('judge-group-sel',   DATA.judge_dims   || ['task']);
 
   renderTeacherCoverage();
   renderStudentCoverage();

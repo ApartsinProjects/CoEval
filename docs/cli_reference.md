@@ -10,7 +10,7 @@ Complete reference for all `coeval` command-line options.
 coeval <subcommand> [options]
 ```
 
-Subcommands: [`run`](#coeval-run), [`probe`](#coeval-probe), [`plan`](#coeval-plan), [`status`](#coeval-status), [`repair`](#coeval-repair), [`wizard`](#coeval-wizard), [`generate`](#coeval-generate), [`models`](#coeval-models), [`ingest`](#coeval-ingest), [`analyze`](#coeval-analyze)
+Subcommands: [`run`](#coeval-run), [`probe`](#coeval-probe), [`plan`](#coeval-plan), [`status`](#coeval-status), [`repair`](#coeval-repair), [`describe`](#coeval-describe), [`wizard`](#coeval-wizard), [`generate`](#coeval-generate), [`models`](#coeval-models), [`ingest`](#coeval-ingest), [`analyze`](#coeval-analyze)
 
 ---
 
@@ -430,6 +430,50 @@ coeval run --config benchmark/medium-benchmark-v1.yaml --continue
 
 ---
 
+## `coeval describe`
+
+Generate a self-contained HTML summary of an experiment configuration.
+
+Reads a YAML config and writes a styled HTML page showing all models, tasks,
+rubrics, phase plan, estimated call budget, batch settings, and per-model
+quotas.  No LLM API calls are made and the experiment folder does not need to
+exist.
+
+```
+coeval describe --config PATH [options]
+```
+
+### Options
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--config PATH` | *(required)* | Path to the YAML configuration file. |
+| `--out PATH` | `<stem>_description.html` | Output HTML file path. Defaults to `<config_stem>_description.html` placed next to the config file. |
+| `--no-open` | off | Do not open the HTML file in the default browser after writing. |
+| `--keys PATH` | auto-discovered | Path to a provider key file (YAML). |
+
+### HTML page contents
+
+- **Stats bar** — total models, teacher/student/judge counts, estimated LLM calls.
+- **Models table** — interface icon, model ID, colour-coded role badges, base parameters, per-role overrides.
+- **Tasks** — collapsible cards showing description, output format, target and nuanced attributes, rubric criteria, and sampling configuration.
+- **Phase plan table** — mode badge per phase (New/Extend/Keep), estimated call count, batch API indicators.
+- **Batch & quota** — active batch providers/phases and per-model call ceilings.
+
+> **Note:** Folder-existence validation (V-11 / V-14) is suppressed — `coeval describe` works on brand-new configs before the experiment folder is created.
+
+### Examples
+
+```bash
+# Write mixed_description.html next to mixed.yaml and open in browser
+coeval describe --config benchmark/mixed.yaml
+
+# Write to a specific path without opening the browser
+coeval describe --config benchmark/mixed.yaml --out docs/mixed_overview.html --no-open
+```
+
+---
+
 ## `coeval wizard`
 
 Interactive LLM-assisted experiment configuration wizard.
@@ -716,9 +760,10 @@ coeval analyze <subcommand> --run PATH --out PATH [options]
 | `interaction-matrix` | HTML | Teacher–student interaction heatmap. |
 | `judge-consistency` | HTML | Within-judge consistency analysis. |
 | `coverage-summary` | HTML | EES artifact coverage and error breakdown. |
-| `robust-summary` | HTML | Robust student ranking with filtered datapoints. |
-| `export-benchmark` | JSONL/Parquet | Export robust benchmark datapoints. |
-| `all` | mixed | Generate all HTML reports and Excel into subdirectories. |
+| `summary-report` | HTML | Interactive multi-view dashboard (teacher / judge / student). |
+| `export-benchmark` | JSONL/Parquet/HF | Export benchmark dataset suitable for publishing. |
+| `all` | mixed | Generate all HTML reports and Excel into subdirectories (excludes `robust-summary`). |
+| `robust-summary` | HTML | *(Advanced)* Robust student ranking with filtered datapoints. Not included in `all`. |
 
 ### Common options
 
@@ -731,7 +776,7 @@ coeval analyze <subcommand> --run PATH --out PATH [options]
 
 ### Robust filtering options
 
-Applied to `robust-summary`, `export-benchmark`, and `all`:
+Applied to `robust-summary` and `export-benchmark`:
 
 | Option | Default | Description |
 |--------|---------|-------------|
@@ -746,24 +791,42 @@ Applied to `export-benchmark` only:
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--benchmark-format` | `jsonl` | Output format (`jsonl` or `parquet`). |
+| `--benchmark-format` | `jsonl` | Output format: `jsonl`, `parquet`, or `huggingface`. |
+| `--dataset-name` | *(exp id)* | Dataset name embedded in the HuggingFace dataset card. |
+| `--author` | — | Author/organisation for the dataset card (e.g. `my-org`). |
+| `--include-metadata` | on | Embed rubric, attribute map, evaluation model info, and suggested prompts in the export. |
 
 ### Examples
 
 ```bash
-# Generate all HTML reports
+# Generate all HTML reports + Excel
 coeval analyze all --run benchmark/runs/my-exp --out benchmark/runs/my-exp/reports
 
-# Generate Excel workbook
+# Generate Excel workbook only
 coeval analyze complete-report --run benchmark/runs/my-exp --out my-exp-results.xlsx
 
-# Export robust benchmark datapoints as Parquet
+# Export benchmark dataset as HuggingFace-ready directory (Parquet + dataset card)
 coeval analyze export-benchmark \
     --run benchmark/runs/my-exp \
-    --out my-exp-benchmark.parquet \
-    --benchmark-format parquet \
+    --out my-exp-hf-dataset/ \
+    --benchmark-format huggingface \
+    --dataset-name "my-org/my-benchmark" \
+    --author "My Org" \
     --judge-selection top_half \
     --agreement-threshold 0.8
+
+# Export as plain JSONL (no HF card)
+coeval analyze export-benchmark \
+    --run benchmark/runs/my-exp \
+    --out my-exp-benchmark.jsonl \
+    --benchmark-format jsonl
+
+# Advanced: robust student ranking with custom thresholds (not part of 'all')
+coeval analyze robust-summary \
+    --run benchmark/runs/my-exp \
+    --out benchmark/runs/my-exp/reports/robust_summary \
+    --agreement-threshold 0.8 \
+    --teacher-score-formula s2
 ```
 
 ---

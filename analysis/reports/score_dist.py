@@ -8,8 +8,8 @@ Three interactive charts:
 Each chart has:
   • Aggregation selector: change x-axis grouping (rubric / judge / teacher /
     student / task / target attribute)
-  • Score-level selector: High | Medium | Low | Mean
-  • Tooltips on rubric aspects, tasks, attributes (data-tip CSS)
+  • View selector: Stacked (H/M/L fractions) | Average (mean normalised score)
+  • Tooltips on rubric aspects, tasks, attributes (floating chart tooltips)
   • ℹ help icon on chart title explaining the figure
   • Cross-filter with global Task / Judge / Teacher / Student dropdowns
 """
@@ -145,33 +145,28 @@ _VIEWS_HTML = """
 <div class="view-section" id="view-student">
   <h2>
     Student Score Distribution
-    <span class="help-icon" data-tip="Shows how each student model scores on evaluations.\nX-axis: selected aggregation dimension.\nY-axis: fraction of scores at the chosen level.\nUse 'Mean' for normalised avg (0=Low, 0.5=Medium, 1=High).\nFilters above narrow the data to a specific task/judge/teacher.">ℹ</span>
+    <span class="help-icon" data-tip="Shows how each student model scores on evaluations.\nX-axis: selected aggregation dimension.\nStacked view: fraction High/Medium/Low across all students.\nAverage view: mean normalised score per student (Low=0, Med=0.5, High=1).\nFilters above narrow the data to a specific task/judge/teacher.">ℹ</span>
   </h2>
   <div class="sd-controls">
     <label>Aggregate by:</label>
-    <select id="s1-agg"   onchange="renderStudent()"></select>
-    <label style="margin-left:8px">Score:</label>
-    <select id="s1-level" onchange="renderStudent()">
-      <option value="High">High</option>
-      <option value="Medium">Medium</option>
-      <option value="Low">Low</option>
-      <option value="mean">Mean score</option>
+    <select id="s1-agg"  onchange="renderStudent()"></select>
+    <label style="margin-left:8px">View:</label>
+    <select id="s1-view" onchange="renderStudent()">
+      <option value="stacked">Stacked (H / M / L)</option>
+      <option value="average">Average (mean score)</option>
     </select>
   </div>
   <div id="student-dist-chart" class="chart-container"></div>
   <details class="fig-explain">
     <summary>About this figure</summary>
     <div class="explain-body">
-      <b>What it shows:</b> For each student model, the fraction of evaluations
-      at the selected score level (High / Medium / Low) or the mean normalised
-      score, broken down by the selected aggregation dimension.<br>
-      <b>Aggregation options:</b>
-      <b>aspect</b> — break down by rubric criterion;
-      <b>judge</b> — compare student scores given by different judge models (reveals judge bias);
-      <b>teacher</b> — compare performance on different teachers' datapoints;
-      <b>task</b> — compare across tasks.<br>
-      <b>Tip:</b> Switch to "Low" level and group by "aspect" to identify the rubric criterion
-      where student models fail most.
+      <b>Stacked view:</b> For each value of the aggregation dimension (e.g. rubric aspect),
+      one stacked bar shows the fraction of evaluations scored High (green) / Medium (amber) /
+      Low (red), aggregated across all student models in the current filter.<br>
+      <b>Average view:</b> Grouped bars — one bar per student model per x-value — showing
+      mean normalised score (Low = 0, Medium = 0.5, High = 1).<br>
+      <b>Tip:</b> Switch to Stacked and aggregate by "aspect" to see overall rubric difficulty.
+      Switch to Average and aggregate by "judge" to compare student performance across judges.
     </div>
   </details>
 </div>
@@ -182,25 +177,23 @@ _VIEWS_HTML = """
 <div class="view-section" id="view-teacher">
   <h2>
     Teacher Score Distribution
-    <span class="help-icon" data-tip="Shows average student scores on each teacher's datapoints.\nHigh scores → teacher generates well-differentiated, appropriate problems.\nX-axis: aggregation dim; Y-axis: fraction/mean of student scores.">ℹ</span>
+    <span class="help-icon" data-tip="Shows average student scores on each teacher's datapoints.\nHigh scores → teacher generates well-differentiated, appropriate problems.\nStacked: fraction H/M/L across all teachers.\nAverage: mean score per teacher.">ℹ</span>
   </h2>
   <div class="sd-controls">
     <label>Aggregate by:</label>
-    <select id="s2-agg"   onchange="renderTeacher()"></select>
-    <label style="margin-left:8px">Score:</label>
-    <select id="s2-level" onchange="renderTeacher()">
-      <option value="High">High</option>
-      <option value="Medium">Medium</option>
-      <option value="Low">Low</option>
-      <option value="mean">Mean score</option>
+    <select id="s2-agg"  onchange="renderTeacher()"></select>
+    <label style="margin-left:8px">View:</label>
+    <select id="s2-view" onchange="renderTeacher()">
+      <option value="stacked">Stacked (H / M / L)</option>
+      <option value="average">Average (mean score)</option>
     </select>
   </div>
   <div id="teacher-dist-chart" class="chart-container"></div>
   <details class="fig-explain">
     <summary>About this figure</summary>
     <div class="explain-body">
-      <b>What it shows:</b> For each teacher model, the fraction of student evaluations
-      at the selected score level, broken down by the selected aggregation dimension.<br>
+      <b>What it shows:</b> For each teacher model, the distribution of student evaluation
+      scores on items that teacher generated, broken down by the selected aggregation dimension.<br>
       <b>How to read it:</b> A teacher whose datapoints consistently yield Low scores
       may be generating overly difficult or ambiguous problems. A teacher with very high
       scores may not be creating sufficient challenge for students.
@@ -214,25 +207,23 @@ _VIEWS_HTML = """
 <div class="view-section" id="view-judge">
   <h2>
     Judge Score Distribution
-    <span class="help-icon" data-tip="Shows scoring behaviour of each judge model.\nLarge differences between judges on the same aspect → calibration issues.\nX-axis: aggregation dim; Y-axis: fraction/mean of scores assigned.">ℹ</span>
+    <span class="help-icon" data-tip="Shows scoring behaviour of each judge model.\nLarge differences between judges on the same aspect → calibration issues.\nStacked: fraction H/M/L across all judges.\nAverage: mean score per judge.">ℹ</span>
   </h2>
   <div class="sd-controls">
     <label>Aggregate by:</label>
-    <select id="s3-agg"   onchange="renderJudge()"></select>
-    <label style="margin-left:8px">Score:</label>
-    <select id="s3-level" onchange="renderJudge()">
-      <option value="High">High</option>
-      <option value="Medium">Medium</option>
-      <option value="Low">Low</option>
-      <option value="mean">Mean score</option>
+    <select id="s3-agg"  onchange="renderJudge()"></select>
+    <label style="margin-left:8px">View:</label>
+    <select id="s3-view" onchange="renderJudge()">
+      <option value="average">Average (mean score)</option>
+      <option value="stacked">Stacked (H / M / L)</option>
     </select>
   </div>
   <div id="judge-dist-chart" class="chart-container"></div>
   <details class="fig-explain">
     <summary>About this figure</summary>
     <div class="explain-body">
-      <b>What it shows:</b> For each judge model, the fraction of evaluations at the
-      selected score level, broken down by the chosen aggregation dimension.<br>
+      <b>What it shows:</b> For each judge model, the distribution of scores awarded,
+      broken down by the chosen aggregation dimension.<br>
       <b>How to read it:</b> Judges that award very high or very low scores compared
       to peers on the same rubric aspect may be miscalibrated.  Use teacher or
       student aggregation to check whether judge behaviour is consistent across
@@ -255,19 +246,12 @@ function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// Return tooltip text for a key (aspect / task / attr)
 function _tipText(key) {
   var tips = DATA.tips || {};
   return (tips.aspects && tips.aspects[key])
       || (tips.tasks   && tips.tasks[key])
       || (tips.attrs   && tips.attrs[key])
       || '';
-}
-
-// Build a hover-template-aware label for an aspect
-function _hoverTip(key) {
-  var t = _tipText(key);
-  return t ? escHtml(key) + ' — ' + escHtml(t.substring(0, 100)) : escHtml(key);
 }
 
 // -----------------------------------------------------------------------
@@ -292,122 +276,17 @@ function _populateAgg(selId, excludeDim) {
   if (!sel) return;
   var dimLabels = {
     'aspect': 'Rubric aspect', 'judge': 'Judge model',
-    'teacher': 'Teacher model', 'student': 'Student model',
-    'task': 'Task'
+    'teacher': 'Teacher model', 'student': 'Student model', 'task': 'Task'
   };
   sel.innerHTML = '';
   var dims = DATA.agg_dims || ['aspect', 'judge', 'teacher', 'student', 'task'];
   dims.forEach(function(d) {
-    if (d === excludeDim) return;  // skip self-dimension
+    if (d === excludeDim) return;
     var opt = document.createElement('option');
     opt.value = d;
     opt.textContent = dimLabels[d] || d.replace(/_/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});
     sel.appendChild(opt);
   });
-}
-
-// -----------------------------------------------------------------------
-// Core chart renderer
-// -----------------------------------------------------------------------
-// modelDim:   which unit field identifies the "model" being analysed
-//             ('student', 'teacher', 'judge')
-// aggDim:     which unit field is the x-axis grouping
-// level:      'High'|'Medium'|'Low'|'mean'
-// divId:      DOM element to render into
-// yLabel:     y-axis title
-// -----------------------------------------------------------------------
-function _renderDistChart(modelDim, aggDim, level, divId, yLabel) {
-  var units = filteredUnits();
-
-  // Collect models and x-values
-  var modelSet = {}, xSet = {};
-  units.forEach(function(u) {
-    var m = u[modelDim] || '(none)';
-    var xVal = _getAggValue(u, aggDim);
-    modelSet[m] = true;
-    xSet[xVal] = true;
-  });
-  var models = Object.keys(modelSet).sort();
-  var xVals  = Object.keys(xSet).sort();
-
-  if (models.length === 0 || xVals.length === 0) {
-    document.getElementById(divId).innerHTML =
-      '<p style="padding:16px;color:#64748b">No data for the current filter selection.</p>';
-    return;
-  }
-
-  // Accumulate per (model, xVal)
-  var counts = {};  // key = model+'||'+xVal → {High:0,Medium:0,Low:0,total:0,sum:0}
-  units.forEach(function(u) {
-    var m = u[modelDim] || '(none)';
-    var xVal = _getAggValue(u, aggDim);
-    var k = m + '||' + xVal;
-    if (!counts[k]) counts[k] = {High:0, Medium:0, Low:0, total:0, sum:0};
-    counts[k][u.score]++;
-    counts[k].total++;
-    counts[k].sum += u.score_norm;
-  });
-
-  // One trace per model
-  var palette = [
-    '#3b82f6','#22c55e','#f59e0b','#ef4444','#8b5cf6',
-    '#06b6d4','#ec4899','#84cc16','#f97316','#14b8a6',
-    '#6366f1','#a3e635','#fb923c','#38bdf8','#e879f9',
-  ];
-  var traces = models.map(function(m, mi) {
-    var y = xVals.map(function(x) {
-      var k = m + '||' + x;
-      var c = counts[k];
-      if (!c || c.total === 0) return 0;
-      if (level === 'mean') return +(c.sum / c.total).toFixed(3);
-      return +(c[level] / c.total).toFixed(3);
-    });
-    var hoverLines = xVals.map(function(x) {
-      var k = m + '||' + x;
-      var c = counts[k] || {High:0,Medium:0,Low:0,total:0,sum:0};
-      var tip = _tipText(x);
-      return '<b>' + escHtml(x) + '</b>'
-        + (tip ? '<br><i style="font-size:0.85em;">' + escHtml(tip.substring(0,80)) + '</i>' : '')
-        + '<br>Model: ' + escHtml(m)
-        + '<br>High: '  + c.High + ' / Med: ' + c.Medium + ' / Low: ' + c.Low
-        + '<br>Total: ' + c.total;
-    });
-    return {
-      name: m,
-      type: 'bar',
-      x: xVals,
-      y: y,
-      text: hoverLines,
-      hovertemplate: '%{text}<extra></extra>',
-      marker: { color: palette[mi % palette.length] },
-    };
-  });
-
-  var yAxisTitle = level === 'mean'
-    ? 'Mean normalised score (0–1)'
-    : 'Fraction ' + level;
-
-  var heightPx = Math.max(300, xVals.length * (models.length * 16 + 20) + 120);
-  heightPx = Math.min(heightPx, 600);
-
-  Plotly.newPlot(divId, traces, {
-    barmode: 'group',
-    xaxis: {
-      title: _dimLabel(aggDim),
-      tickangle: xVals.length > 5 ? -35 : 0,
-      automargin: true,
-    },
-    yaxis: {
-      title: yAxisTitle,
-      range: [0, level === 'mean' ? 1.05 : 1.05],
-      rangemode: 'tozero',
-    },
-    legend: { orientation: 'h', y: -0.28, x: 0.5, xanchor: 'center', font: {size:11} },
-    margin: { t: 20, b: 130, l: 60, r: 20 },
-    height: heightPx,
-    paper_bgcolor: '#fff',
-    plot_bgcolor: '#f8fafc',
-  }, { responsive: true });
 }
 
 // -----------------------------------------------------------------------
@@ -419,7 +298,6 @@ function _getAggValue(u, aggDim) {
   if (aggDim === 'teacher') return u.teacher || '(none)';
   if (aggDim === 'student') return u.student || '(none)';
   if (aggDim === 'task')    return u.task    || '(none)';
-  // Target attribute key
   var attrVal = u.attrs && u.attrs[aggDim];
   return attrVal !== undefined && attrVal !== null ? String(attrVal) : '(none)';
 }
@@ -433,24 +311,148 @@ function _dimLabel(d) {
 }
 
 // -----------------------------------------------------------------------
+// Core chart renderer
+// modelDim: 'student' | 'teacher' | 'judge'  (which field is the "model")
+// aggDim:   x-axis grouping dimension
+// view:     'stacked' | 'average'
+// divId:    DOM element id
+// -----------------------------------------------------------------------
+function _renderDistChart(modelDim, aggDim, view, divId) {
+  var units = filteredUnits();
+
+  var xSet = {};
+  units.forEach(function(u) { xSet[_getAggValue(u, aggDim)] = true; });
+  var xVals = Object.keys(xSet).sort();
+
+  if (!xVals.length) {
+    document.getElementById(divId).innerHTML =
+      '<p style="padding:16px;color:#64748b">No data for the current filter selection.</p>';
+    return;
+  }
+
+  if (view === 'stacked') {
+    // ----- Stacked H/M/L view: aggregate across all models -----
+    var xCounts = {};
+    xVals.forEach(function(x) { xCounts[x] = {High:0, Medium:0, Low:0, total:0}; });
+    units.forEach(function(u) {
+      var x = _getAggValue(u, aggDim);
+      var c = xCounts[x];
+      if (c) { c[u.score] = (c[u.score] || 0) + 1; c.total++; }
+    });
+
+    var levelColors = {High:'#22c55e', Medium:'#fbbf24', Low:'#ef4444'};
+    var traces = ['High','Medium','Low'].map(function(level) {
+      var y = xVals.map(function(x) {
+        var c = xCounts[x];
+        return c.total > 0 ? +(c[level] / c.total).toFixed(3) : 0;
+      });
+      var hover = xVals.map(function(x) {
+        var c = xCounts[x];
+        var tip = _tipText(x);
+        return '<b>' + escHtml(x) + '</b>'
+          + (tip ? '<br><i style="font-size:.85em">' + escHtml(tip.substring(0,80)) + '</i>' : '')
+          + '<br><b>' + level + ':</b> ' + c[level]
+          + ' / ' + c.total
+          + ' (' + (c.total > 0 ? (c[level]/c.total*100).toFixed(0) : '0') + '%)';
+      });
+      return {
+        name: level, type: 'bar', x: xVals, y: y,
+        text: hover, hovertemplate: '%{text}<extra></extra>',
+        marker: { color: levelColors[level] },
+      };
+    });
+
+    var hPx = Math.max(300, xVals.length * 28 + 140);
+    hPx = Math.min(hPx, 560);
+
+    Plotly.newPlot(divId, traces, {
+      barmode: 'stack',
+      xaxis: { title: _dimLabel(aggDim), tickangle: xVals.length > 5 ? -35 : 0, automargin: true },
+      yaxis: { title: 'Fraction of evaluations', range: [0, 1.02], rangemode: 'tozero', gridcolor: '#f1f5f9' },
+      legend: { orientation: 'h', y: -0.25, x: 0.5, xanchor: 'center', font: {size:11} },
+      margin: { t: 20, b: 130, l: 60, r: 20 },
+      height: hPx,
+      paper_bgcolor: '#fff', plot_bgcolor: '#f8fafc',
+    }, { responsive: true });
+
+  } else {
+    // ----- Average view: per-model grouped bars (mean score_norm) -----
+    var modelSet = {};
+    units.forEach(function(u) { modelSet[u[modelDim] || '(none)'] = true; });
+    var models = Object.keys(modelSet).sort();
+
+    var counts = {};  // 'model||xval' → {sum, n}
+    units.forEach(function(u) {
+      var m = u[modelDim] || '(none)';
+      var x = _getAggValue(u, aggDim);
+      var k = m + '||' + x;
+      if (!counts[k]) counts[k] = {sum:0, n:0};
+      counts[k].sum += u.score_norm;
+      counts[k].n++;
+    });
+
+    var palette = [
+      '#3b82f6','#22c55e','#f59e0b','#ef4444','#8b5cf6',
+      '#06b6d4','#ec4899','#84cc16','#f97316','#14b8a6',
+      '#6366f1','#a3e635','#fb923c','#38bdf8','#e879f9',
+    ];
+    var traces = models.map(function(m, mi) {
+      var y = xVals.map(function(x) {
+        var c = counts[m + '||' + x];
+        return (c && c.n > 0) ? +(c.sum / c.n).toFixed(3) : 0;
+      });
+      var hover = xVals.map(function(x) {
+        var c = counts[m + '||' + x] || {sum:0, n:0};
+        var tip = _tipText(x);
+        return '<b>' + escHtml(x) + '</b>'
+          + (tip ? '<br><i style="font-size:.85em">' + escHtml(tip.substring(0,80)) + '</i>' : '')
+          + '<br>Model: ' + escHtml(m)
+          + '<br>Mean: ' + (c.n > 0 ? (c.sum/c.n).toFixed(3) : 'N/A')
+          + '  (n=' + c.n + ')';
+      });
+      return {
+        name: m, type: 'bar', x: xVals, y: y,
+        text: hover, hovertemplate: '%{text}<extra></extra>',
+        marker: { color: palette[mi % palette.length] },
+      };
+    });
+
+    var hPx = Math.max(300, xVals.length * (models.length * 14 + 16) + 120);
+    hPx = Math.min(hPx, 600);
+
+    Plotly.newPlot(divId, traces, {
+      barmode: 'group',
+      xaxis: { title: _dimLabel(aggDim), tickangle: xVals.length > 5 ? -35 : 0, automargin: true },
+      yaxis: { title: 'Mean score (Low=0, Med=0.5, High=1)', range: [0, 1.08], rangemode: 'tozero', gridcolor: '#f1f5f9' },
+      legend: { orientation: 'h', y: -0.28, x: 0.5, xanchor: 'center', font: {size:11} },
+      margin: { t: 20, b: 130, l: 60, r: 20 },
+      height: hPx,
+      paper_bgcolor: '#fff', plot_bgcolor: '#f8fafc',
+    }, { responsive: true });
+  }
+
+  _addPlotTooltips(divId);
+}
+
+// -----------------------------------------------------------------------
 // Per-chart render functions
 // -----------------------------------------------------------------------
 function renderStudent() {
-  var agg   = (document.getElementById('s1-agg')   || {}).value || 'aspect';
-  var level = (document.getElementById('s1-level') || {}).value || 'High';
-  _renderDistChart('student', agg, level, 'student-dist-chart', 'Student models');
+  var agg  = (document.getElementById('s1-agg')  || {}).value || 'aspect';
+  var view = (document.getElementById('s1-view') || {}).value || 'stacked';
+  _renderDistChart('student', agg, view, 'student-dist-chart');
 }
 
 function renderTeacher() {
-  var agg   = (document.getElementById('s2-agg')   || {}).value || 'aspect';
-  var level = (document.getElementById('s2-level') || {}).value || 'High';
-  _renderDistChart('teacher', agg, level, 'teacher-dist-chart', 'Teacher models');
+  var agg  = (document.getElementById('s2-agg')  || {}).value || 'aspect';
+  var view = (document.getElementById('s2-view') || {}).value || 'stacked';
+  _renderDistChart('teacher', agg, view, 'teacher-dist-chart');
 }
 
 function renderJudge() {
-  var agg   = (document.getElementById('s3-agg')   || {}).value || 'aspect';
-  var level = (document.getElementById('s3-level') || {}).value || 'mean';
-  _renderDistChart('judge', agg, level, 'judge-dist-chart', 'Judge models');
+  var agg  = (document.getElementById('s3-agg')  || {}).value || 'aspect';
+  var view = (document.getElementById('s3-view') || {}).value || 'average';
+  _renderDistChart('judge', agg, view, 'judge-dist-chart');
 }
 
 // -----------------------------------------------------------------------
@@ -460,12 +462,6 @@ function renderAll() {
   _populateAgg('s1-agg', 'student');
   _populateAgg('s2-agg', 'teacher');
   _populateAgg('s3-agg', 'judge');
-  // Set default aggregation (aspect for student/teacher, aspect for judge)
-  var s3Agg = document.getElementById('s3-agg');
-  if (s3Agg && s3Agg.options.length) s3Agg.value = 'aspect';
-  // Default judge score to mean
-  var s3Level = document.getElementById('s3-level');
-  if (s3Level) s3Level.value = 'mean';
   renderStudent();
   renderTeacher();
   renderJudge();

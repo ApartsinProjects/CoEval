@@ -131,16 +131,52 @@ def _build_data(model: EESDataModel) -> dict:
 _VIEWS_HTML = """
 <div class="view-section">
   <h2>View 1 — Within-Judge Score Variance by Target Attribute (Heatmap)</h2>
+  <details class="fig-explain">
+    <summary>What does this show?</summary>
+    <div class="explain-body">
+      <p>Sample variance of normalised scores produced by each judge, broken down by
+      target attribute value. <b>Darker cells</b> indicate higher within-judge variance —
+      the judge assigned inconsistent scores to prompts sharing the same attribute.
+      A well-calibrated judge should show low variance within each attribute group.</p>
+      <p>Variance scale: 0 (perfectly consistent) → 0.25 (maximum possible for a
+      binary High/Low distribution). Values above 0.15 warrant investigation.</p>
+    </div>
+  </details>
   <div id="v1-chart" class="chart-container"></div>
 </div>
 <div class="view-section">
   <h2>View 2 — Judge Score Distribution by Target Attribute (Box Plots)</h2>
+  <details class="fig-explain">
+    <summary>What does this show?</summary>
+    <div class="explain-body">
+      <p>Box-and-whisker plots of normalised scores for the selected judge, one box
+      per target attribute value. The box spans the interquartile range (25th–75th
+      percentile); the line marks the median; whiskers extend to the 5th and 95th
+      percentiles.</p>
+      <p>A judge that applies scores uniformly regardless of attribute produces
+      overlapping boxes near the same median. Divergence between boxes suggests
+      the judge is sensitive to the attribute, which may be desirable or a sign
+      of systematic bias.</p>
+    </div>
+  </details>
   <select id="v2-judge" onchange="renderV2()" style="margin-bottom:8px;font-size:0.8rem"></select>
   <div id="v2-chart" class="chart-container"></div>
 </div>
 <div class="view-section">
-  <h2>View 4 — Score Calibration Table</h2>
-  <div id="v4-table"></div>
+  <h2>View 3 — Score Calibration Table</h2>
+  <details class="fig-explain">
+    <summary>What does this show?</summary>
+    <div class="explain-body">
+      <p>Per-judge, per-aspect calibration statistics: mean score, standard deviation,
+      and the fraction of evaluations at each score level (High / Medium / Low).
+      <b>Yellow-highlighted rows</b> flag judges where more than 90 % of scores fall
+      at a single level — a sign of degenerate or over-conservative judging.</p>
+      <p>The <em>Most Common</em> column shows the modal score level for quick scanning.
+      Click any column header to sort.</p>
+    </div>
+  </details>
+  <button class="csv-export-btn" onclick="_csvExportTable('v3-table','judge_calibration.csv')">⬇ CSV</button>
+  <div id="v3-table"></div>
 </div>
 """
 
@@ -151,7 +187,7 @@ function renderAll() {
     var o = document.createElement('option'); o.value = j; o.textContent = j;
     sel.appendChild(o);
   });
-  renderV1(); renderV2(); renderV4();
+  renderV1(); renderV2(); renderV3();
 }
 
 function renderV1() {
@@ -184,7 +220,7 @@ function renderV2() {
     {yaxis:{title:'Score', range:[-.05,1.05]}, margin:{t:20}});
 }
 
-function renderV4() {
+function renderV3() {
   var rows = DATA.calibration;
   var html = '<table class="data-table"><tr><th>Judge</th><th>Aspect</th>';
   html += '<th>Mean</th><th>Std Dev</th><th>% High</th><th>% Medium</th><th>% Low</th>';
@@ -198,7 +234,8 @@ function renderV4() {
     html += '<td>' + r.pct_low + '%</td><td>' + r.most_common + '</td>';
     html += '<td>' + r.n + '</td></tr>';
   });
-  document.getElementById('v4-table').innerHTML = html + '</table>';
+  document.getElementById('v3-table').innerHTML = html + '</table>';
+  _makeSortable('v3-table');
 }
 
 document.addEventListener('DOMContentLoaded', renderAll);

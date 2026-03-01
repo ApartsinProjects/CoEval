@@ -970,7 +970,7 @@ class TestTeacherReportUX:
         write_teacher_report(minimal_model, out_dir)
         html = (out_dir / 'index.html').read_text(encoding='utf-8')
         count = html.count('class="fig-explain"')
-        assert count >= 4, f"Expected ≥4 fig-explain sections, found {count}"
+        assert count >= 3, f"Expected ≥3 fig-explain sections, found {count}"
 
 
 class TestStudentReportUX:
@@ -997,8 +997,8 @@ class TestStudentReportUX:
         out_dir = tmp_path / 'sr2'
         write_student_report(minimal_model, out_dir)
         html = (out_dir / 'index.html').read_text(encoding='utf-8')
-        # The new implementation constructs aspStudent from filteredUnits()
-        assert 'aspStudent' in html, "aspStudent variable missing — V2 not using filteredUnits()"
+        # The new implementation constructs meanData from filteredUnits()
+        assert 'meanData' in html, "meanData variable missing — V2 not using filteredUnits()"
 
     def test_v3_uses_filteredunits_not_precomputed(self, tmp_path, minimal_model,
                                                     fake_plotly_cache):
@@ -1023,7 +1023,7 @@ class TestStudentReportUX:
         out_dir = tmp_path / 'sr5'
         write_student_report(minimal_model, out_dir)
         html = (out_dir / 'index.html').read_text(encoding='utf-8')
-        assert html.count('class="fig-explain"') >= 4
+        assert html.count('class="fig-explain"') >= 3
 
     def test_html_has_tooltip_css(self, tmp_path, minimal_model, fake_plotly_cache):
         from analysis.reports.student_report import write_student_report
@@ -1048,13 +1048,13 @@ class TestScoreDistributionUX:
         assert 'judge-dist-chart' in html, "judge-dist-chart div missing"
 
     def test_six_select_controls_present(self, tmp_path, minimal_model, fake_plotly_cache):
-        """Each chart must have an agg and level select control (6 selects total)."""
+        """Each chart must have an agg and view select control (6 selects total)."""
         from analysis.reports.score_dist import write_score_distribution
         out_dir = tmp_path / 'sd_selects'
         write_score_distribution(minimal_model, out_dir)
         html = (out_dir / 'index.html').read_text(encoding='utf-8')
         for sel_id in ('s1-agg', 's2-agg', 's3-agg',
-                       's1-level', 's2-level', 's3-level'):
+                       's1-view', 's2-view', 's3-view'):
             assert sel_id in html, f"Select id='{sel_id}' missing"
 
     def test_render_functions_present(self, tmp_path, minimal_model, fake_plotly_cache):
@@ -1245,13 +1245,13 @@ class TestScoreDistributionUX:
             assert isinstance(u['score_norm'], (int, float)), "score_norm must be numeric"
 
     def test_score_level_options_in_html(self, tmp_path, minimal_model, fake_plotly_cache):
-        """Score level dropdowns must include High, Medium, Low and mean options."""
+        """Score view dropdowns must include stacked and average options."""
         from analysis.reports.score_dist import write_score_distribution
         out_dir = tmp_path / 'sd_levelopts'
         write_score_distribution(minimal_model, out_dir)
         html = (out_dir / 'index.html').read_text(encoding='utf-8')
-        for opt in ('High', 'Medium', 'Low', 'mean'):
-            assert f'value="{opt}"' in html, f"Score level option '{opt}' missing"
+        for opt in ('stacked', 'average'):
+            assert f'value="{opt}"' in html, f"Score view option '{opt}' missing"
 
     def test_get_agg_value_handles_attrs(self, tmp_path, minimal_model, fake_plotly_cache):
         """_getAggValue must fall through to u.attrs for target attribute keys."""

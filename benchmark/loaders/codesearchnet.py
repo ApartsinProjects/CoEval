@@ -92,7 +92,6 @@ class CodeSearchNetLoader(BenchmarkLoader):
             "code_search_net",
             self.language,
             split=self.split,
-            trust_remote_code=True,
         )
         items = []
         for row in ds:

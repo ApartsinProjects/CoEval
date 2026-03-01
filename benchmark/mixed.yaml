@@ -1,0 +1,347 @@
+# CoEval — Mixed Benchmark
+# =============================================================================
+# Purpose : Evaluate the 2 cheapest OpenAI models on 40 real-world benchmark
+#           items (10 per task) drawn from 4 public NLP datasets:
+#
+#             XSum            → text_summarization
+#             CodeSearchNet   → code_explanation
+#             AESLC           → email_composition
+#             WikiTableQs     → data_interpretation
+#
+# Teacher : `benchmark` (interface: benchmark) — Phase 3 is entirely skipped;
+#           data is pre-ingested by setup_mixed.py using the benchmark loaders.
+#
+# Students / Judges : gpt-4o-mini + gpt-3.5-turbo (OpenAI Batch API, 50% off)
+#
+# API call budget:
+#   Phase 3  (data generation)    :  0  calls  — pre-ingested benchmark data
+#   Phase 4  (response collection): 80  calls  — 4×10 items × 2 students
+#   Phase 5  (evaluation)         : 160 calls  — 80 responses × 2 judges
+#   ───────────────────────────────────────────────────────────────────────
+#   TOTAL                         : 240 batch calls  (≈ $0.02 at current pricing)
+#
+# Setup (run once, then use --continue):
+#   python -m benchmark.setup_mixed
+#   coeval run --config benchmark/mixed.yaml --continue
+# =============================================================================
+
+
+# ─── MODELS ──────────────────────────────────────────────────────────────────
+
+models:
+
+  # --------------------------------------------------------------------------
+  # benchmark: virtual teacher — 40 real-world items pre-ingested by setup.
+  # Phase 3 is automatically skipped for interface: benchmark.
+  # --------------------------------------------------------------------------
+  - name: benchmark
+    interface: benchmark
+    parameters: {}
+    roles: [teacher]
+
+  # --------------------------------------------------------------------------
+  # gpt-4o-mini: cheapest OpenAI model — student + judge
+  # --------------------------------------------------------------------------
+  - name: gpt-4o-mini
+    interface: openai
+    parameters:
+      model: gpt-4o-mini
+      temperature: 0.7
+      max_tokens: 512
+    roles: [student, judge]
+    role_parameters:
+      student:
+        temperature: 0.7
+        max_tokens: 256
+      judge:
+        temperature: 0.0
+        max_tokens: 128
+
+  # --------------------------------------------------------------------------
+  # gpt-3.5-turbo: second cheapest OpenAI model — student + judge
+  # --------------------------------------------------------------------------
+  - name: gpt-3.5-turbo
+    interface: openai
+    parameters:
+      model: gpt-3.5-turbo
+      temperature: 0.7
+      max_tokens: 512
+    roles: [student, judge]
+    role_parameters:
+      student:
+        temperature: 0.7
+        max_tokens: 256
+      judge:
+        temperature: 0.0
+        max_tokens: 128
+
+
+# ─── TASKS ───────────────────────────────────────────────────────────────────
+
+tasks:
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Task 1 — Text Summarisation   (sourced from XSum)
+  # target_attributes match xsum_attribute_map.yaml
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - name: text_summarization
+    description: >
+      Summarise a given passage of text. The summary must capture all key
+      information at the specified depth, match the required tone, and be
+      appropriate for the target audience.
+    output_description: >
+      A summary of the passage (50-150 words for moderate/detailed; 1-2 sentences
+      for brief) in plain prose. The tone must match the specification. No bullet
+      points unless format is explicitly bullet_points.
+
+    target_attributes:
+      complexity: [simple, moderate, complex, technical]
+      domain:     [science, business, politics, technology, health, other]
+
+    nuanced_attributes: {}
+
+    sampling:
+      target: [1, 2]
+      nuance: [0, 0]
+      total: 10
+
+    rubric:
+      accuracy:         "The summary correctly captures the main points without distortion or fabrication."
+      conciseness:      "The summary avoids redundancy and stays within the specified length and format."
+      readability:      "The summary is grammatically correct, well-structured, and easy to read."
+      tone_consistency: "The tone matches the specified requirement throughout the summary."
+      completeness:     "No key points from the passage are omitted given the specified depth."
+
+    evaluation_mode: single
+
+    prompt_library:
+      test: |
+        You are completing the following task: {task_description}
+        Output format: {output_description}
+
+        Here is the input you must respond to:
+        {input}
+
+        Respond with only the output. No preamble, no explanation.
+
+      sample: |
+        Generate a benchmark data point for: {task_description}
+        Response format: {output_description}
+        Required attributes: {target_attributes}. Nuance: {nuanced_attributes}.
+
+        Follow this example format exactly:
+        {{"prompt": "The global average temperature has risen by approximately 1.1°C since pre-industrial times, driven primarily by the burning of fossil fuels.",
+          "response": "Global temperatures have risen 1.1°C above pre-industrial levels due to fossil fuel emissions, causing accelerating ice loss and extreme weather."}}
+
+        Return only a JSON object with keys "prompt" and "response". No explanation.
+
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Task 2 — Code Explanation   (sourced from CodeSearchNet — Python only)
+  # target_attributes match codesearchnet_attribute_map.yaml
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - name: code_explanation
+    description: >
+      Explain a given code snippet clearly for the specified audience and at
+      the specified depth. The explanation must match the programming language,
+      complexity level, and chosen explanation style.
+    output_description: >
+      A code explanation (80-200 words) that addresses what the code does,
+      how it works, and (where depth requires) why it is structured that way.
+      Technical depth and vocabulary must match the audience level.
+
+    target_attributes:
+      complexity:   [beginner, intermediate, advanced]
+      snippet_type: [function, class_definition, algorithm, database_query]
+      language:     [python, java, javascript, go, ruby]
+
+    nuanced_attributes: {}
+
+    sampling:
+      target: [1, 2]
+      nuance: [0, 0]
+      total: 10
+
+    rubric:
+      technical_accuracy: "All statements about what the code does are factually correct."
+      clarity:            "The explanation is clearly written and avoids unnecessary jargon for the audience level."
+      appropriate_level:  "The depth and vocabulary precisely match the specified audience and depth level."
+      completeness:       "The explanation covers all significant parts of the snippet without skipping key logic."
+      practical_value:    "The explanation helps the reader understand when and how to use or avoid this pattern."
+      structure:          "The explanation is logically ordered; ideas flow naturally from one to the next."
+
+    evaluation_mode: single
+
+    prompt_library:
+      test: |
+        You are completing the following task: {task_description}
+        Output format: {output_description}
+
+        Here is the input you must respond to:
+        {input}
+
+        Respond with only the output. No preamble, no explanation.
+
+      sample: |
+        Generate a benchmark data point for: {task_description}
+        Response format: {output_description}
+        Required attributes: {target_attributes}. Nuance: {nuanced_attributes}.
+
+        Follow this example format exactly:
+        {{"prompt": "def fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)",
+          "response": "This Python function computes the nth Fibonacci number using recursion."}}
+
+        Return only a JSON object with keys "prompt" and "response". No explanation.
+
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Task 3 — Email Composition   (sourced from AESLC)
+  # target_attributes match aeslc_attribute_map.yaml
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - name: email_composition
+    description: >
+      Write a professional email matching the specified purpose, tone, urgency,
+      and length. The email must be appropriate for the described relationship
+      and organisational context.
+    output_description: >
+      A complete email including Subject line, greeting, body (2-4 paragraphs
+      for standard/detailed; 1 short paragraph for brief), and sign-off.
+      Tone and formality must precisely match the specification.
+
+    target_attributes:
+      purpose: [information_request, project_update, complaint_resolution, proposal, follow_up]
+      length:  [brief, standard, detailed]
+      tone:    [semi_formal]
+
+    nuanced_attributes: {}
+
+    sampling:
+      target: [1, 2]
+      nuance: [0, 0]
+      total: 10
+
+    rubric:
+      clarity:           "The email communicates its purpose unambiguously in the first paragraph."
+      appropriate_tone:  "The tone and formality precisely match the specified relationship and context."
+      completeness:      "All necessary information is included; nothing critical is omitted."
+      professionalism:   "The email is free of grammatical errors and follows professional email conventions."
+      actionability:     "Where a response or action is needed, the request is specific and easy to act on."
+
+    evaluation_mode: single
+
+    prompt_library:
+      test: |
+        You are completing the following task: {task_description}
+        Output format: {output_description}
+
+        Here is the input you must respond to:
+        {input}
+
+        Respond with only the output. No preamble, no explanation.
+
+      sample: |
+        Generate a benchmark data point for: {task_description}
+        Response format: {output_description}
+        Required attributes: {target_attributes}. Nuance: {nuanced_attributes}.
+
+        Follow this example format exactly:
+        {{"prompt": "Write an email to your manager requesting approval to attend an industry conference.",
+          "response": "Subject: Conference Attendance Request\n\nDear Sarah,\n\nI would like to request approval to attend TechSummit 2024.\n\nBest regards,\nAlex"}}
+
+        Return only a JSON object with keys "prompt" and "response". No explanation.
+
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Task 4 — Data Interpretation   (sourced from WikiTableQuestions)
+  # target_attributes match wikitablequestions_attribute_map.yaml
+  # ══════════════════════════════════════════════════════════════════════════
+
+  - name: data_interpretation
+    description: >
+      Interpret a described dataset or visualisation for the specified audience
+      and domain. The interpretation must identify the key trend, explain its
+      significance, and offer appropriate observations at the specified depth.
+    output_description: >
+      An interpretation (80-200 words) that identifies the primary trend,
+      explains what it means in context, notes any notable anomalies or
+      caveats, and concludes with an insight or implication for the audience.
+      Statistical claims must be appropriate to the data complexity level.
+
+    target_attributes:
+      data_type:     [pivot_table]
+      insight_depth: [surface_observation, analytical_interpretation, predictive_inference]
+      audience:      [data_analyst]
+
+    nuanced_attributes: {}
+
+    sampling:
+      target: [1, 2]
+      nuance: [0, 0]
+      total: 10
+
+    rubric:
+      accuracy:             "All numerical claims and trend descriptions accurately reflect the described data."
+      insight_quality:      "The interpretation goes beyond stating the obvious; it explains why the trend matters."
+      statistical_literacy: "Statistical language is used correctly and proportionally to the data complexity."
+      clarity:              "The interpretation is clearly structured: observation → explanation → implication."
+      appropriate_caveats:  "Limitations in the data are acknowledged where relevant; claims are not overstated."
+      actionability:        "The conclusion or implication is specific and useful for the stated audience."
+
+    evaluation_mode: single
+
+    prompt_library:
+      test: |
+        You are completing the following task: {task_description}
+        Output format: {output_description}
+
+        Here is the input you must respond to:
+        {input}
+
+        Respond with only the output. No preamble, no explanation.
+
+      sample: |
+        Generate a benchmark data point for: {task_description}
+        Response format: {output_description}
+        Required attributes: {target_attributes}. Nuance: {nuanced_attributes}.
+
+        Follow this example format exactly:
+        {{"prompt": "The line graph shows monthly website visitors from Jan to Dec 2023.",
+          "response": "Website traffic grew steadily through 2023, rising approximately 33% from January."}}
+
+        Return only a JSON object with keys "prompt" and "response". No explanation.
+
+
+# ─── EXPERIMENT ──────────────────────────────────────────────────────────────
+
+experiment:
+  id: mixed
+  storage_folder: ./benchmark/runs
+  log_level: INFO
+
+  # Phase 3 is pre-ingested from benchmark datasets (no LLM generation needed).
+  # Use Extend mode so a plain `coeval run` is safe even after setup_mixed runs.
+  phases:
+    attribute_mapping:   New
+    rubric_mapping:      New
+    data_generation:     Extend   # benchmark data pre-ingested; skips if count >= 10
+    response_collection: New
+    evaluation:          New
+
+  # Enable OpenAI Batch API for Phase 4 & 5 (50% cost reduction)
+  batch:
+    openai:
+      response_collection: true
+      evaluation: true
+
+  # Per-model call quota (safety ceiling)
+  # Phase 4: 40 datapoints × 2 students =  80 calls / student  → 80 per model
+  # Phase 5: 80 responses × 2 judges    = 160 calls / judge    → 80 per model
+  # Total per model: ~160 calls; set limit at 250 for headroom
+  quota:
+    gpt-4o-mini:
+      max_calls: 250
+    gpt-3.5-turbo:
+      max_calls: 250

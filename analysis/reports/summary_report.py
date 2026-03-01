@@ -383,6 +383,26 @@ def _render_html(model: EESDataModel, data: dict) -> str:
                placeholder="Filter students..." oninput="renderStudentSection()"/>
         <span id="student-coverage-info" class="coverage-info"></span>
       </div>
+
+      <!-- Side-by-Side toolbar — visible only when that tab is active -->
+      <div id="sbs-toolbar" class="sbs-toolbar" style="display:none">
+        <div class="sbs-row">
+          <span class="sbs-label">Teacher formulas:</span>
+          <label class="sbs-ck" data-tip="V1 Variance: score = Var(student scores) × coverage"><input type="checkbox" id="sbs-f-v1"    checked onchange="renderStudentSection()"> V1</label>
+          <label class="sbs-ck" data-tip="S2 Spread: mean absolute deviation × coverage"><input type="checkbox" id="sbs-f-s2"    checked onchange="renderStudentSection()"> S2</label>
+          <label class="sbs-ck" data-tip="R3 Range: (max − min) × coverage"><input type="checkbox" id="sbs-f-r3"    checked onchange="renderStudentSection()"> R3</label>
+          <span class="sbs-sep"></span>
+          <span class="sbs-label">Judge metrics:</span>
+          <label class="sbs-ck" data-tip="SPA: Simple Pairwise Agreement — fraction of pairs where judges agree on relative ordering"><input type="checkbox" id="sbs-m-spa"   checked onchange="renderStudentSection()"> SPA</label>
+          <label class="sbs-ck" data-tip="WPA: Weighted Pairwise Agreement — like SPA but weighted by score distance"><input type="checkbox" id="sbs-m-wpa"   checked onchange="renderStudentSection()"> WPA</label>
+          <label class="sbs-ck" data-tip="Cohen\'s κ: inter-rater agreement corrected for chance"><input type="checkbox" id="sbs-m-kappa" checked onchange="renderStudentSection()"> κ</label>
+          <span class="sbs-sep"></span>
+          <label class="sbs-ck" data-tip="Colour the highest score in each row green and the lowest red"><input type="checkbox" id="sbs-highlight" checked onchange="renderStudentSection()"> Highlight best/worst</label>
+          <label class="sbs-ck" data-tip="Prepend a rank column based on the currently active formula+metric"><input type="checkbox" id="sbs-rank"          onchange="renderStudentSection()"> Show rank</label>
+          <button class="sbs-csv-btn" onclick="sbsExportCsv()" title="Download visible table as CSV">⬇ CSV</button>
+        </div>
+      </div>
+
       <div id="student-section-body"></div>
       <details class="fig-explain" style="margin-top:14px">
         <summary>About this section</summary>
@@ -393,7 +413,11 @@ def _render_html(model: EESDataModel, data: dict) -> str:
           model excels on some tasks but struggles on others.<br>
           <b>By Judge tab:</b> Scores broken down per judge — useful for detecting
           judge-dependent rankings. Stable rankings across judges indicate robust results.<br>
-          <b>Side-by-Side tab:</b> All four views above combined in a compact comparison table.<br>
+          <b>Side-by-Side tab:</b> Every teacher formula × judge metric combination shown as a column.
+          Use the toolbar to show/hide formulas and metrics, highlight best/worst per row,
+          add a rank column, or download the table as CSV.
+          The column for the currently selected formula+metric is marked <i>(active)</i> and
+          highlighted. Click any column header to sort.<br>
           <b>Normalised score:</b> High = 1.0, Medium = 0.5, Low = 0.0. The mean is taken
           over all valid evaluation units that pass the active teacher and judge filters.<br>
           <b>⚠SJ</b> = self-judging (judge = student model, may inflate scores).
@@ -601,6 +625,41 @@ table.tbl tr:hover td { background: var(--row-hover); }
 table.tbl td.pivot-score {
   text-align: center;
 }
+td.cell-best  { background: #dcfce7 !important; font-weight: 700; color: #15803d; }
+td.cell-worst { background: #fee2e2 !important; color: #b91c1c; }
+
+/* ---- Side-by-side toolbar ---- */
+.sbs-toolbar {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+}
+.sbs-row {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+}
+.sbs-label {
+  font-size: 0.72rem; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;
+}
+.sbs-ck {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 0.82rem; cursor: pointer; white-space: nowrap;
+}
+.sbs-ck input[type=checkbox] { cursor: pointer; accent-color: var(--accent); }
+.sbs-sep {
+  width: 1px; height: 18px; background: var(--border);
+  align-self: center; flex-shrink: 0;
+}
+.sbs-csv-btn {
+  margin-left: auto;
+  padding: 4px 11px;
+  background: var(--accent); color: #fff;
+  border: none; border-radius: 4px; cursor: pointer; font-size: 0.82rem;
+  white-space: nowrap;
+}
+.sbs-csv-btn:hover { background: var(--accent-hover); }
 
 /* ---- N/A ---- */
 .na { color: #aaa; font-style: italic; font-size: 0.75rem; }
@@ -703,6 +762,9 @@ var state = {
   studentView: 'overall',
   taskFilter: '__all__',    // '__all__' or a specific task id
   sortState: {},            // key: tableId, value: {col, dir}
+  // Side-by-side toolbar state (read from checkboxes at render time)
+  sbsHighlight: true,
+  sbsShowRank: false,
 };
 
 var teacherChartInst = null;
@@ -796,6 +858,8 @@ function setStudentView(v) {
   tabs.forEach(function(btn, i) {
     btn.classList.toggle('active', views[i] === v);
   });
+  var toolbarEl = document.getElementById('sbs-toolbar');
+  if (toolbarEl) toolbarEl.style.display = (v === 'side-by-side') ? 'block' : 'none';
   renderStudentSection();
 }
 
@@ -1271,80 +1335,169 @@ function renderStudentByJudge() {
 
 // -----------------------------------------------------------------------
 // Student — Side-by-Side view (compare formulas/metrics)
+// Toolbar controls: formula/metric column filters, highlight best/worst,
+// show rank column, sortable columns, CSV export.
 // -----------------------------------------------------------------------
 function renderStudentSideBySide() {
   var nameFilter = document.getElementById('filter-students').value.toLowerCase();
-  var formulas = ['v1', 's2', 'r3'];
-  var metrics  = ['spa', 'wpa', 'kappa'];
 
-  // Compute scores for every formula/metric combination
-  var rankData = {};  // key: "f_m", value: {student -> score}
-  formulas.forEach(function(f) {
-    metrics.forEach(function(m) {
-      // temporarily override state
-      var savedF = state.teacherFormula;
-      var savedM = state.judgeMetric;
-      var savedThr = state.teacherThreshold;
-      var savedJThr = state.judgeThreshold;
-      state.teacherFormula = f;
-      state.judgeMetric = m;
+  // Read toolbar checkbox states
+  var activeFormulas = ['v1','s2','r3'].filter(function(f) {
+    var el = document.getElementById('sbs-f-' + f);
+    return el ? el.checked : true;
+  });
+  var activeMetrics = ['spa','wpa','kappa'].filter(function(m) {
+    var el = document.getElementById('sbs-m-' + m);
+    return el ? el.checked : true;
+  });
+  var doHighlight = (function() {
+    var el = document.getElementById('sbs-highlight');
+    return el ? el.checked : true;
+  })();
+  var doRank = (function() {
+    var el = document.getElementById('sbs-rank');
+    return el ? el.checked : false;
+  })();
+
+  // Ensure at least one of each
+  if (!activeFormulas.length) activeFormulas = ['v1','s2','r3'];
+  if (!activeMetrics.length)  activeMetrics  = ['spa','wpa','kappa'];
+
+  // Build visible column key list
+  var colKeys = [];
+  activeFormulas.forEach(function(f) {
+    activeMetrics.forEach(function(m) { colKeys.push(f + '_' + m); });
+  });
+
+  // Compute scores for each visible formula×metric combination
+  var rankData = {};
+  activeFormulas.forEach(function(f) {
+    activeMetrics.forEach(function(m) {
+      var savedF   = state.teacherFormula,  savedM   = state.judgeMetric;
+      var savedTTh = state.teacherThreshold, savedJTh = state.judgeThreshold;
+      state.teacherFormula   = f;
+      state.judgeMetric      = m;
       state.teacherThreshold = DATA.defaults.teacher_thresholds[f] || 0;
       state.judgeThreshold   = DATA.defaults.judge_thresholds[m]   || 0.5;
       rankData[f + '_' + m] = getFilteredStudentScores(false, false);
-      state.teacherFormula = savedF;
-      state.judgeMetric = savedM;
-      state.teacherThreshold = savedThr;
-      state.judgeThreshold = savedJThr;
+      state.teacherFormula   = savedF;  state.judgeMetric      = savedM;
+      state.teacherThreshold = savedTTh; state.judgeThreshold   = savedJTh;
     });
   });
 
+  var currentKey = state.teacherFormula + '_' + state.judgeMetric;
   var students = DATA.students.map(function(r){ return r.student; });
   if (nameFilter) students = students.filter(function(s){ return s.toLowerCase().includes(nameFilter); });
 
-  // Build header: current combination first, then others
-  var currentKey = state.teacherFormula + '_' + state.judgeMetric;
-
-  var html = '<div style="overflow-x:auto"><table class="tbl" id="student-sbs-tbl">';
-  html += '<thead><tr><th>Student</th>';
-  formulas.forEach(function(f) {
-    metrics.forEach(function(m) {
-      var key = f + '_' + m;
-      var label = f.toUpperCase() + '+' + m.toUpperCase();
-      var style = (key === currentKey) ? ' style="color:var(--accent);font-weight:700"' : '';
-      var tip = (FORMULA_TIPS[f] || '') + ' | ' + (METRIC_TIPS[m] || '');
-      var tipAttr = ' data-tip="' + tip.replace(/"/g, '&quot;') + '"';
-      html += '<th' + style + tipAttr + '>' + label + '</th>';
-    });
-  });
-  html += '</tr></thead><tbody>';
-
-  // Sort by current key descending
+  // Build sortable row array
+  var ss = _getSortState('student-sbs-tbl');
   var rows = students.map(function(s) {
-    var row = { student: s, _current: rankData[currentKey][s] || null };
-    formulas.forEach(function(f) {
-      metrics.forEach(function(m) {
-        row[f + '_' + m] = rankData[f + '_' + m][s] !== undefined ? rankData[f + '_' + m][s] : null;
-      });
+    var row = { student: s };
+    colKeys.forEach(function(k) {
+      row[k] = (rankData[k] && rankData[k][s] !== undefined) ? rankData[k][s] : null;
     });
+    var vals = colKeys.map(function(k){ return row[k]; }).filter(function(v){ return v !== null; });
+    row._avg = vals.length ? vals.reduce(function(a,b){ return a+b; },0) / vals.length : null;
     return row;
   });
-  rows.sort(function(a, b) { return (b._current || 0) - (a._current || 0); });
+
+  // If no sort state, default to current active key descending
+  if (!ss.col) {
+    rows.sort(function(a, b) {
+      var av = a[currentKey], bv = b[currentKey];
+      if (av === null) return 1; if (bv === null) return -1;
+      return bv - av;
+    });
+  } else {
+    rows = _sortRows(rows, ss);
+  }
+
+  // Rank map (by current active key)
+  var rankMap = {};
+  if (doRank) {
+    var forRank = rows.slice().sort(function(a,b){
+      var av = a[currentKey], bv = b[currentKey];
+      if (av === null) return 1; if (bv === null) return -1;
+      return bv - av;
+    });
+    forRank.forEach(function(r, i) { rankMap[r.student] = i + 1; });
+  }
+
+  // Per-row best/worst for highlight
+  var rowMax = {}, rowMin = {};
+  if (doHighlight) {
+    rows.forEach(function(r) {
+      var vals = colKeys.map(function(k){ return r[k]; }).filter(function(v){ return v !== null; });
+      if (vals.length) {
+        rowMax[r.student] = Math.max.apply(null, vals);
+        rowMin[r.student] = Math.min.apply(null, vals);
+      }
+    });
+  }
+
+  var html = '<div style="overflow-x:auto"><table class="tbl" id="student-sbs-tbl">';
+  html += '<thead><tr>';
+  if (doRank) html += '<th data-tip="Rank by the currently active formula+metric">#</th>';
+  html += _th('student-sbs-tbl', 'student', 'Student');
+  colKeys.forEach(function(key) {
+    var parts = key.split('_');
+    var f = parts[0], m = parts[1];
+    var label = f.toUpperCase() + '+' + m.toUpperCase();
+    var isActive = (key === currentKey && colKeys.indexOf(key) >= 0);
+    var tip = (FORMULA_TIPS[f] || '') + ' | ' + (METRIC_TIPS[m] || '');
+    var displayLabel = isActive ? label + ' <span style="font-size:0.68em;color:var(--accent)">(active)</span>' : label;
+    html += '<th class="' + (isActive ? 'sort-active' : '') + '" data-tbl="student-sbs-tbl" data-col="' + key + '"'
+          + ' data-tip="' + tip.replace(/"/g, '&quot;') + '">' + displayLabel + '</th>';
+  });
+  html += _th('student-sbs-tbl', '_avg', 'Avg', 'Mean normalised score across all visible formula\xd7metric combinations');
+  html += '</tr></thead><tbody>';
 
   rows.forEach(function(r) {
-    html += '<tr><td>' + _esc(r.student) + '</td>';
-    formulas.forEach(function(f) {
-      metrics.forEach(function(m) {
-        var key = f + '_' + m;
-        var v = r[key];
-        var style = (key === currentKey) ? ' style="font-weight:600"' : '';
-        html += '<td class="pivot-score"' + style + '>' + _fmtScore(v) + '</td>';
-      });
+    html += '<tr>';
+    if (doRank) html += '<td style="color:var(--text-muted);font-size:0.8em;text-align:center">' + (rankMap[r.student] || '\u2014') + '</td>';
+    html += '<td>' + _esc(r.student) + '</td>';
+    colKeys.forEach(function(key) {
+      var v = r[key];
+      var isActive = (key === currentKey);
+      var cls = 'pivot-score';
+      if (doHighlight && v !== null && rowMax[r.student] !== undefined) {
+        if (v === rowMax[r.student] && rowMax[r.student] !== rowMin[r.student]) cls += ' cell-best';
+        else if (v === rowMin[r.student] && rowMax[r.student] !== rowMin[r.student]) cls += ' cell-worst';
+      }
+      var style = isActive ? ' style="font-weight:600"' : '';
+      html += '<td class="' + cls + '"' + style + '>' + _fmtScore(v) + '</td>';
     });
+    html += '<td class="pivot-score"><b>' + _fmtScore(r._avg) + '</b></td>';
     html += '</tr>';
   });
 
   html += '</tbody></table></div>';
   document.getElementById('student-section-body').innerHTML = html;
+  _attachSortHandlers('student-sbs-tbl', renderStudentSection);
+}
+
+// -----------------------------------------------------------------------
+// Side-by-side CSV export
+// -----------------------------------------------------------------------
+function sbsExportCsv() {
+  var tbl = document.getElementById('student-sbs-tbl');
+  if (!tbl) return;
+  var rows = [];
+  tbl.querySelectorAll('tr').forEach(function(tr) {
+    var cells = [];
+    tr.querySelectorAll('th, td').forEach(function(td) {
+      var text = td.textContent.replace(/[\u2014\u2026]/g, '-').replace(/[",\n\r]/g, ' ').trim();
+      cells.push('"' + text + '"');
+    });
+    rows.push(cells.join(','));
+  });
+  var csv = '\uFEFF' + rows.join('\r\n');  // BOM for Excel
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'student_rankings_sbs.csv';
+  document.body.appendChild(a); a.click();
+  setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
 }
 
 // -----------------------------------------------------------------------

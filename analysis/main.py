@@ -176,7 +176,6 @@ def _run_all(model, out_p: Path, robust_kwargs: dict) -> None:
         ('student_report',       write_student_report,      {}),
         ('interaction_matrix',   write_interaction_matrix,  {}),
         ('judge_consistency',    write_judge_consistency,   {}),
-        ('robust_summary',       write_robust_summary,      robust_kwargs),
         ('summary',              write_summary_report,      {}),
     ]
 

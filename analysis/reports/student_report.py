@@ -47,6 +47,13 @@ def _build_data(model: EESDataModel) -> dict:
     units = model.units
     students = model.students
 
+    # Discover target attribute keys
+    attr_keys: list[str] = []
+    for _tid, attrs in model.target_attrs_by_task.items():
+        for k in attrs:
+            if k not in attr_keys:
+                attr_keys.append(k)
+
     scores_map = compute_student_scores(units, students, model.datapoints)
 
     ranking_rows = []
@@ -65,7 +72,7 @@ def _build_data(model: EESDataModel) -> dict:
 
     all_aspects = sorted(set(u.rubric_aspect for u in units))
 
-    # Aspect heatmap: student x aspect
+    # ---- Aspect heatmap: student × aspect ----
     asp_student_avg: dict = {}
     for s in students:
         for asp in all_aspects:
@@ -73,7 +80,44 @@ def _build_data(model: EESDataModel) -> dict:
                     if u.student_model_id == s and u.rubric_aspect == asp]
             asp_student_avg[f'{s}||{asp}'] = round(sum(vals)/len(vals), 4) if vals else None
 
-    # Per-judge score comparison: (student, judge) -> avg
+    # ---- Task heatmap: student × task ----
+    task_student_avg: dict = {}
+    for s in students:
+        for task in model.tasks:
+            vals = [u.score_norm for u in units
+                    if u.student_model_id == s and u.task_id == task]
+            task_student_avg[f'{s}||{task}'] = round(sum(vals)/len(vals), 4) if vals else None
+
+    # ---- Attr heatmap: student × attr_key=val ----
+    attr_student_avg: dict = {}  # attrKey → {student||val: score}
+    for k in attr_keys:
+        vals_for_key: set[str] = set()
+        for u in units:
+            dp = model.datapoints.get(u.datapoint_id, {})
+            attrs = dp.get('sampled_target_attributes', {}) or {}
+            if k in attrs:
+                vals_for_key.add(str(attrs[k]))
+        for s in students:
+            for v in sorted(vals_for_key):
+                scores = []
+                for u in units:
+                    if u.student_model_id != s:
+                        continue
+                    dp = model.datapoints.get(u.datapoint_id, {})
+                    av = dp.get('sampled_target_attributes', {}) or {}
+                    if str(av.get(k, '')) == v:
+                        scores.append(u.score_norm)
+                attr_student_avg.setdefault(k, {})[f'{s}||{v}'] = (
+                    round(sum(scores)/len(scores), 4) if scores else None
+                )
+
+    # Available heatmap X-axis dimensions
+    dim_options = [{'value': 'aspect', 'label': 'Rubric Aspect'}]
+    dim_options.append({'value': 'task', 'label': 'Task'})
+    for k in attr_keys:
+        dim_options.append({'value': 'attr:' + k, 'label': k.replace('_', ' ').title() + ' (attr)'})
+
+    # Per-judge score comparison: (student, judge) → avg
     student_judge_avg: dict = {}
     for s in students:
         for j in model.judges:
@@ -81,17 +125,6 @@ def _build_data(model: EESDataModel) -> dict:
                     if u.student_model_id == s and u.judge_model_id == j]
             if vals:
                 student_judge_avg[f'{s}||{j}'] = round(sum(vals)/len(vals), 4)
-
-    # Per-attribute box plot data
-    attr_scores: dict[str, dict] = {}
-    for s in students:
-        s_units = [u for u in units if u.student_model_id == s]
-        by_attr: dict[str, list] = defaultdict(list)
-        for u in s_units:
-            dp = model.datapoints.get(u.datapoint_id, {})
-            for k, v in dp.get('sampled_target_attributes', {}).items():
-                by_attr[f'{k}={v}'].append(u.score_norm)
-        attr_scores[s] = {k: v for k, v in by_attr.items()}
 
     all_units_compact = [
         {
@@ -108,44 +141,78 @@ def _build_data(model: EESDataModel) -> dict:
         'judges': model.judges,
         'aspects': all_aspects,
         'tasks': model.tasks,
+        'attr_keys': attr_keys,
+        'dim_options': dim_options,
         'ranking': ranking_rows,
         'asp_student': asp_student_avg,
+        'task_student': task_student_avg,
+        'attr_student': attr_student_avg,
         'student_judge': student_judge_avg,
-        'attr_scores': attr_scores,
         'all_units': all_units_compact,
         'tips': collect_tooltip_data(model),
     }
 
 
 _VIEWS_HTML = """
+<style>
+.dim-controls {
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  padding:8px 12px; background:#f8fafc; border:1px solid #e2e8f0;
+  border-radius:8px; margin-bottom:10px;
+}
+.dim-controls label { font-size:.77rem; font-weight:600; color:#475569; }
+.dim-controls select {
+  border:1px solid #cbd5e1; border-radius:5px; padding:4px 8px;
+  font-size:.77rem; background:#fff; cursor:pointer;
+}
+</style>
 <div class="view-section">
   <h2>View 1 — Student Ranking</h2>
+  <button class="csv-export-btn" onclick="_csvExportTable('v1-table','student_ranking.csv')">⬇ CSV</button>
   <div id="v1-table"></div>
   <details class="fig-explain">
     <summary>About this table</summary>
     <div class="explain-body">
       <b>What it shows:</b> Each row is a student model. Columns report the mean normalised
-      score (0 = all Low, 1 = all High) for each rubric aspect, plus an overall average
+      score (0 = all Low, 1 = all High) for each task, plus an overall average
       and the raw evaluation counts.<br>
-      <b>How to read it:</b> Higher scores indicate better performance on that aspect.
-      Use the Task, Teacher, and Judge filters to narrow the comparison to a specific
-      experimental configuration. <b>⚠SJ</b> = self-judging; <b>⚠ST</b> = self-teaching
-      — both flags suggest the score may be inflated.
+      <b>How to read it:</b> Higher scores indicate better performance. Use the Task,
+      Teacher, and Judge filters to narrow the comparison to a specific experimental
+      configuration. <b>⚠SJ</b> = self-judging; <b>⚠ST</b> = self-teaching — both
+      flags suggest the score may be inflated.<br>
+      <b>Click any column header</b> to sort.
     </div>
   </details>
 </div>
 <div class="view-section">
-  <h2>View 2 — Aspect Heatmap (Student × Aspect)</h2>
+  <h2>View 2 — Heatmap (Student × Dimension)</h2>
+  <div class="dim-controls">
+    <label for="v2-dim-sel">X axis:</label>
+    <select id="v2-dim-sel" onchange="renderV2()"></select>
+    <div class="fc-popup-wrap" style="margin-left:4px;">
+      <button class="fc-popup-btn" id="v2-filter-btn"
+        onclick="_toggleFilterPopup('v2hm'); return false;">⊟ Filter ▾</button>
+      <div class="fc-popup" id="v2hm-filter-popup">
+        <div class="fc-popup-title">Show columns</div>
+        <div class="fc-popup-checks" id="v2hm-filter-checks"></div>
+        <div class="fc-popup-actions">
+          <button class="fc-popup-clear" onclick="_clearFilter('v2hm', renderV2)">All</button>
+          <button class="fc-popup-apply" onclick="_applyFilter('v2hm', renderV2)">Apply</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <div id="v2-chart" class="chart-container"></div>
   <details class="fig-explain">
     <summary>About this figure</summary>
     <div class="explain-body">
-      <b>What it shows:</b> A heatmap where rows = student models, columns = rubric aspects,
-      and cell colour = mean normalised score (green = high, red = low).<br>
+      <b>What it shows:</b> A heatmap where rows = student models and columns = values of
+      the selected dimension (rubric aspect, task, or target attribute).<br>
+      Cell colour = mean normalised score (green = high, red = low).<br>
+      <b>Colour scale</b> adapts dynamically to the actual data range for maximum contrast.<br>
       <b>How to read it:</b> A row that is uniformly green indicates a strong student model.
-      A row with a mix of green and red shows strengths and weaknesses across different
-      evaluation criteria. A column that is uniformly red suggests a rubric aspect that is
-      difficult for all students, possibly reflecting the task design rather than model quality.
+      A column that is uniformly red suggests a criterion that is difficult for all students.<br>
+      Use the <b>Filter</b> button to show only a subset of columns.
     </div>
   </details>
 </div>
@@ -162,23 +229,6 @@ _VIEWS_HTML = """
       student, the student's ranking is robust to judge choice. Large discrepancies between
       judge groups suggest judge calibration differences — check the Judge Report for
       inter-judge agreement scores.
-    </div>
-  </details>
-</div>
-<div class="view-section">
-  <h2>View 4 — Per-Attribute Score Breakdown</h2>
-  <select id="v4-student" onchange="renderV4()" style="margin-bottom:8px;font-size:0.8rem"></select>
-  <div id="v4-chart" class="chart-container"></div>
-  <details class="fig-explain">
-    <summary>About this figure</summary>
-    <div class="explain-body">
-      <b>What it shows:</b> For the selected student model, a bar chart of mean score
-      broken down by each sampled target attribute value. Only visible when tasks use
-      <code>sampled_target_attributes</code> in their config.<br>
-      <b>How to read it:</b> Differences across attribute values reveal input characteristics
-      that systematically affect model performance. For example, a student model may score
-      well on <code>difficulty=easy</code> items but poorly on <code>difficulty=hard</code>
-      items, exposing a capability boundary.
     </div>
   </details>
 </div>
@@ -205,18 +255,20 @@ function filteredUnits() {
 }
 
 function renderAll() {
-  // Populate student dropdown for V4
-  var sel = document.getElementById('v4-student');
-  DATA.students.forEach(function(s) {
-    var o = document.createElement('option'); o.value = s; o.textContent = s;
-    sel.appendChild(o);
-  });
-  renderV1(); renderV2(); renderV3(); renderV4();
+  // Populate V2 dim select
+  var dimSel = document.getElementById('v2-dim-sel');
+  if (dimSel && dimSel.children.length === 0) {
+    (DATA.dim_options || [{value:'aspect',label:'Rubric Aspect'}]).forEach(function(opt) {
+      var o = document.createElement('option');
+      o.value = opt.value; o.textContent = opt.label;
+      dimSel.appendChild(o);
+    });
+  }
+  renderV1(); renderV2(); renderV3();
 }
 
 function renderV1() {
   var units = filteredUnits();
-  // Re-compute averages from filtered units
   var studentAvg = {};
   units.forEach(function(u) {
     if (!studentAvg[u.student]) studentAvg[u.student] = [];
@@ -241,41 +293,78 @@ function renderV1() {
     html += '<td>' + arr.length + '</td></tr>';
   });
   document.getElementById('v1-table').innerHTML = html + '</table>';
+  _makeSortable('v1-table');
 }
 
 function renderV2() {
-  var units = filteredUnits();
+  var dimSel = document.getElementById('v2-dim-sel');
+  var selectedDim = dimSel ? dimSel.value : 'aspect';
   var students = DATA.students;
-  var aspects = DATA.aspects;
-  if (!students.length || !aspects.length) return;
-  // Recompute from filtered units so the heatmap reflects current filter state
-  var aspStudent = {};
-  units.forEach(function(u) {
-    var k = u.student + '||' + u.aspect;
-    if (!aspStudent[k]) aspStudent[k] = [];
-    aspStudent[k].push(u.score_norm);
-  });
+
+  var xLabels, meanData, xTitle;
+  if (selectedDim === 'aspect') {
+    xTitle = 'Rubric Aspect';
+    xLabels = DATA.aspects || [];
+    meanData = DATA.asp_student || {};
+  } else if (selectedDim === 'task') {
+    xTitle = 'Task';
+    xLabels = DATA.tasks || [];
+    meanData = DATA.task_student || {};
+  } else if (selectedDim.indexOf('attr:') === 0) {
+    var attrKey = selectedDim.slice(5);
+    xTitle = attrKey.replace(/_/g,' ');
+    var attrData = (DATA.attr_student || {})[attrKey] || {};
+    var valSet = {};
+    Object.keys(attrData).forEach(function(k) {
+      var v = k.split('||')[1];
+      if (v) valSet[v] = true;
+    });
+    xLabels = Object.keys(valSet).sort();
+    meanData = {};
+    students.forEach(function(s) {
+      xLabels.forEach(function(v) {
+        meanData[s + '||' + v] = attrData[s + '||' + v];
+      });
+    });
+  } else {
+    return;
+  }
+
+  if (!students.length || !xLabels.length) return;
+
+  // Sync filter popup
+  _syncFilterPopup('v2hm', selectedDim, xLabels);
+  var filteredX = _getFilteredVals('v2hm', selectedDim, xLabels);
+  if (!filteredX.length) filteredX = xLabels;
+
   var z = students.map(function(s) {
-    return aspects.map(function(a) {
-      var arr = aspStudent[s + '||' + a];
-      return arr ? arr.reduce(function(x, y){return x + y;}, 0) / arr.length : null;
+    return filteredX.map(function(a) {
+      var v = meanData[s + '||' + a];
+      return (v !== undefined && v !== null) ? v : null;
     });
   });
+
+  // Dynamic scale for contrast
+  var flat = [].concat.apply([], z).filter(function(v){return v !== null;});
+  var zmin = flat.length ? Math.max(0, Math.min.apply(null,flat) - 0.02) : 0;
+  var zmax = flat.length ? Math.min(1, Math.max.apply(null,flat) + 0.02) : 1;
+
   Plotly.newPlot('v2-chart', [{
-    type: 'heatmap', z: z, x: aspects, y: students,
+    type: 'heatmap', z: z, x: filteredX, y: students,
     colorscale: [
-      [0,    '#dc2626'], [0.25, '#f97316'], [0.5,  '#fbbf24'],
-      [0.75, '#86efac'], [1,   '#16a34a']
+      [0, '#dc2626'], [0.25, '#f97316'], [0.5, '#fbbf24'],
+      [0.75, '#86efac'], [1, '#16a34a']
     ],
-    zmin: 0, zmax: 1, hoverongaps: false,
+    zmin: zmin, zmax: zmax, hoverongaps: false,
     colorbar: { title: 'Score', thickness: 14, len: 0.8 },
-    hovertemplate: 'Student: %{y}<br>Aspect: %{x}<br>Mean score: %{z:.3f}<extra></extra>',
+    hovertemplate: 'Student: %{y}<br>' + xTitle + ': %{x}<br>Mean score: %{z:.3f}<extra></extra>',
   }], {
-    xaxis: { tickangle: aspects.length > 5 ? -35 : 0, automargin: true },
+    xaxis: { title: xTitle, tickangle: filteredX.length > 5 ? -35 : 0, automargin: true },
     yaxis: { autorange: 'reversed' },
-    margin: { t: 24, b: 100, l: 100, r: 60 },
+    margin: { t: 24, b: 100, l: 100, r: 80 },
     paper_bgcolor: '#fff', plot_bgcolor: '#fafbfc',
   }, { responsive: true });
+  _addPlotTooltips('v2-chart');
 }
 
 function renderV3() {
@@ -283,7 +372,6 @@ function renderV3() {
   var students = DATA.students;
   var judges = DATA.judges;
   if (!students.length || !judges.length) return;
-  // Recompute from filtered units for filter-responsiveness
   var sjMap = {};
   units.forEach(function(u) {
     var k = u.student + '||' + u.judge;
@@ -309,45 +397,13 @@ function renderV3() {
   });
   Plotly.newPlot('v3-chart', traces, {
     barmode: 'group',
-    yaxis: { title: 'Mean normalised score (0–1)', range: [0, 1.08], gridcolor: '#f1f5f9' },
+    yaxis: { title: 'Mean normalised score (0\u20131)', range: [0, 1.08], gridcolor: '#f1f5f9' },
     xaxis: { title: 'Student model', tickangle: students.length > 5 ? -35 : 0 },
     legend: { orientation: 'h', y: -0.3, x: 0.5, xanchor: 'center', font: { size: 11 } },
     margin: { t: 24, b: 110, l: 60, r: 20 },
     paper_bgcolor: '#fff', plot_bgcolor: '#fafbfc',
   }, { responsive: true });
-}
-
-function renderV4() {
-  var sel = document.getElementById('v4-student');
-  var s = sel.value;
-  if (!s) return;
-  var attrData = DATA.attr_scores[s] || {};
-  var keys = Object.keys(attrData).sort();
-  if (!keys.length) {
-    document.getElementById('v4-chart').innerHTML =
-      '<p class="na" style="padding:16px">No attribute data for this student.</p>';
-    return;
-  }
-  var palette = [
-    '#3b82f6','#22c55e','#f59e0b','#ef4444','#8b5cf6',
-    '#06b6d4','#ec4899','#84cc16','#f97316','#14b8a6',
-  ];
-  var traces = keys.map(function(k, ki) {
-    var col = palette[ki % palette.length];
-    return {
-      type: 'box', name: k, y: attrData[k],
-      boxpoints: 'outliers', jitter: 0.3,
-      marker: { color: col, size: 4 },
-      line: { color: col, width: 2 },
-      hovertemplate: '<b>%{x}</b><br>Score: %{y:.3f}<extra></extra>',
-    };
-  });
-  Plotly.newPlot('v4-chart', traces, {
-    yaxis: { title: 'Normalised score (0–1)', range: [-0.08, 1.08], gridcolor: '#f1f5f9' },
-    xaxis: { tickangle: keys.length > 5 ? -35 : 0, automargin: true },
-    margin: { t: 24, b: 100, l: 60, r: 20 },
-    paper_bgcolor: '#fff', plot_bgcolor: '#fafbfc',
-  }, { responsive: true });
+  _addPlotTooltips('v3-chart');
 }
 
 document.addEventListener('DOMContentLoaded', renderAll);

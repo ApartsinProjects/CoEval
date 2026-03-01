@@ -87,12 +87,12 @@ def _clean_email(text: str) -> str:
 class AESLCLoader(BenchmarkLoader):
     benchmark_id = "aeslc"
     task_id = "email_composition"
-    default_split = "validation"
+    default_split = "train"  # train has 14k items; validation only 1.9k (too few for 620 samples)
 
     def _load_dataset(self) -> list[dict[str, Any]]:
         from datasets import load_dataset  # type: ignore
 
-        ds = load_dataset("aeslc", split=self.split, trust_remote_code=True)
+        ds = load_dataset("aeslc", split=self.split)
         items = []
         for row in ds:
             body = _clean_email((row.get("email_body") or "").strip())

@@ -38,6 +38,7 @@ enough to fix bugs, add new phases, or add a new model backend.
 8. [Adding a New Phase](#8-adding-a-new-phase)
 9. [Testing](#9-testing)
 10. [Frequently Asked Questions](#10-frequently-asked-questions)
+11. [Benchmark Loaders](#11-benchmark-loaders)
 
 ---
 
@@ -1052,7 +1053,7 @@ Run from the project root (`E:\Projects\CoEval\main\`).
 | `test_probe_and_estimator.py` | `run_probe` all modes, `probe_results.json`, `on_fail` dispatch, `get_prices`, `estimate_experiment_cost` (full + remaining-work mode) |
 | `test_commands.py` | `_skip_folder_validation` (5 tests), `cmd_probe` (7), `cmd_plan` (6), status helpers (11), `cmd_status` (9), CLI dispatch (3) |
 
-**Current test count:** 454 tests across 8 test modules (experiments) + 3 analysis test modules.
+**Current test count:** 698 tests across 8 test modules (experiments) + analysis test modules.
 All tests run without network, GPU, or real LLM calls.
 
 **Mocking pattern for interface tests:**
@@ -1220,3 +1221,65 @@ pool._cache['my-model'] = FakeInterface(['{"prompt": "p", "response": "r"}'])
 > compute time.  The `examples/local_smoke_test.yaml` config serves as the integration
 > test — it is run manually or in a CI job that has GPU access.  The unit tests cover
 > all logic paths without network or GPU dependencies.
+
+---
+
+## 11. Benchmark Loaders
+
+The `benchmark/` package contains loaders that convert public NLP datasets into CoEval
+Phase 3 JSONL datapoints.  Each loader extends `BenchmarkLoader` (in `benchmark/loaders/base.py`)
+and implements two methods:
+
+| Method | Purpose |
+|--------|---------|
+| `_load_dataset()` | Download / parse the dataset; return a list of internal dicts. |
+| `_to_record(item, seq)` | Convert one internal dict to a Phase 3 JSONL record. |
+
+### Supported datasets
+
+| Dataset | Task | Loader class | Default split | Notes |
+|---------|------|-------------|---------------|-------|
+| `xsum` | `text_summarization` | `XSumLoader` | `validation` | BBC article → summary pairs; BERTScore reference metric. |
+| `codesearchnet` | `code_explanation` | `CodeSearchNetLoader` | `test` | Python function → docstring; `language="python"` kwarg. |
+| `aeslc` | `email_composition` | `AESLCLoader` | `train` | Email body → subject line; uses **train** split (14 k items) because validation only has ~2 k items — too few for stratified 620-item sampling. |
+| `wikitablequestions` | `data_interpretation` | `WikiTableQuestionsLoader` | `validation` | Wikipedia table + question → answer. |
+
+### WikiTableQuestions — loading strategy
+
+The original `wikitablequestions` HuggingFace dataset relies on a deprecated custom
+loading script (removed from `datasets ≥ 3.x`), and no Parquet conversion exists on
+the Hub.  `_hf_load_wtq()` tries four strategies in order:
+
+1. **`load_dataset("wikitablequestions")`** — works on `datasets < 3.x`.
+2. **Direct Parquet URL** from the HF Hub `refs/convert/parquet` revision.
+3. **HF datasets-server REST API** (`/parquet?dataset=wikitablequestions`) — returns live
+   Parquet file URLs if available.
+4. **GitHub archive download** — downloads
+   `ppasupat/WikiTableQuestions/archive/refs/heads/master.zip` (~4 MB compressed),
+   reads the split's `.tsv` file and all referenced table `.csv` files entirely in memory,
+   and returns a plain `list[dict]`.  This is the strategy actually invoked with current
+   library versions.
+
+### Emitting datapoints
+
+```bash
+# Emit all four datasets (sample 620 items each) into a run folder
+python -m benchmark.emit_datapoints --run-id paper-eval-v1 --sample-size 620
+
+# Emit a single dataset to a custom output directory
+python -m benchmark.emit_datapoints \
+    --dataset wikitablequestions \
+    --out-dir ./my-run/phase3_datapoints \
+    --sample-size 300
+```
+
+Output files follow the Phase 3 naming convention and can be placed directly into
+an experiment's `phase3_datapoints/` folder (or ingested via `coeval ingest`).
+
+### Stratified sampling
+
+`BenchmarkLoader.sample()` performs stratified sampling on the `insight_depth`
+attribute (or whichever attribute is listed in `_stratify_on`) to ensure each
+depth level (`surface_observation`, `analytical_interpretation`, `predictive_inference`)
+is proportionally represented in the output.  The random seed is controllable via
+`--seed` (default 42).

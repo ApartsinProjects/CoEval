@@ -8,6 +8,8 @@ plan      Standalone cost/time estimation (no experiment phases started).
 status    Experiment progress dashboard; optionally fetch completed batch results.
 repair    Scan experiment JSONL files for invalid records and mark them for
           re-generation; follow with `coeval run --continue` to regenerate.
+describe  Generate a self-contained HTML summary of an experiment configuration:
+          models, tasks, rubrics, phase plan, and estimated call budget.
 wizard    Interactive LLM-assisted wizard: describe your goal in plain English
           and get a ready-to-run YAML configuration.
 generate  Run phases 1-2 (attribute + rubric mapping) and write a materialized
@@ -342,6 +344,34 @@ def _build_parser() -> argparse.ArgumentParser:
         help='Path to a provider key file (YAML); overrides default ~/.coeval/keys.yaml',
     )
 
+    # ---- coeval describe ----
+    describe_p = sub.add_parser(
+        'describe',
+        help=(
+            'Generate a self-contained HTML summary of an experiment configuration: '
+            'models, tasks, rubrics, phase plan, and estimated call budget.'
+        ),
+    )
+    describe_p.add_argument(
+        '--config', required=True, metavar='PATH',
+        help='Path to the YAML configuration file',
+    )
+    describe_p.add_argument(
+        '--out', metavar='PATH', default=None,
+        help=(
+            'Output HTML file path '
+            '(default: <config_stem>_description.html next to the config file)'
+        ),
+    )
+    describe_p.add_argument(
+        '--no-open', action='store_true',
+        help='Do not open the HTML file in the default browser after writing',
+    )
+    describe_p.add_argument(
+        '--keys', metavar='PATH', default=None,
+        help='Path to a provider key file (YAML); overrides default ~/.coeval/keys.yaml',
+    )
+
     # ---- coeval wizard ----
     wizard_p = sub.add_parser(
         'wizard',
@@ -506,6 +536,9 @@ def main(argv: list[str] | None = None) -> None:
     elif args.command == 'repair':
         from .commands.repair_cmd import cmd_repair
         cmd_repair(args)
+    elif args.command == 'describe':
+        from .commands.describe_cmd import cmd_describe
+        cmd_describe(args)
     elif args.command == 'wizard':
         from .commands.wizard_cmd import cmd_wizard
         cmd_wizard(args)

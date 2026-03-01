@@ -76,7 +76,7 @@ class XSumLoader(BenchmarkLoader):
     def _load_dataset(self) -> list[dict[str, Any]]:
         from datasets import load_dataset  # type: ignore
 
-        ds = load_dataset("EdinburghNLP/xsum", split=self.split, trust_remote_code=True)
+        ds = load_dataset("EdinburghNLP/xsum", split=self.split)
         items = []
         for row in ds:
             article = (row.get("document") or "").strip()

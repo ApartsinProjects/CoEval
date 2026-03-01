@@ -53,12 +53,6 @@ REPORTS = [
         '#d35400',
     ),
     (
-        'robust_summary',
-        'Robust Summary',
-        'Student rankings after filtering to high-quality datapoints: only top teachers (T*) and consensus judges (J*). Thresholds fully interactive.',
-        '#1abc9c',
-    ),
-    (
         'summary',
         'Interactive Dashboard',
         'Comprehensive teacher/judge/student effectiveness dashboard with live threshold controls, sortable tables, and multiple views.',
@@ -75,7 +69,6 @@ _ICONS = [
     '\U0001f393',  # student_report         — graduation cap
     '\U0001f525',  # interaction_matrix     — fire / heatmap
     '\U0001f50d',  # judge_consistency      — magnifying glass
-    '\U0001f6e1\ufe0f',  # robust_summary   — shield
     '\U0001f4ca',  # summary               — bar chart
 ]
 

@@ -247,6 +247,53 @@ details.fig-explain .explain-body code {
   transition: opacity .18s ease;
 }
 [data-tip]:hover::after { opacity: 1; }
+/* ---- Sortable table headers ---- */
+table.data-table th.sortable { cursor: pointer; user-select: none; }
+table.data-table th.sortable:hover { background: linear-gradient(180deg,#e8eef8,#dde5f0); color:#1e40af; }
+table.data-table th .sort-arrow { margin-left: 4px; opacity: 0.5; font-size: 0.7em; }
+table.data-table th.sort-asc  .sort-arrow { opacity: 1; }
+table.data-table th.sort-desc .sort-arrow { opacity: 1; }
+/* ---- CSV export button (shared across reports) ---- */
+.csv-export-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 12px; background: var(--accent); color: #fff;
+  border: none; border-radius: 5px; cursor: pointer;
+  font-size: 0.8rem; font-weight: 600; margin-bottom: 6px;
+}
+.csv-export-btn:hover { opacity: 0.85; }
+/* ---- Figure controls popup (Filter By) ---- */
+.fc-popup-wrap { position: relative; display: inline-block; }
+.fc-popup-btn {
+  border: 1px solid #cbd5e1; border-radius: 5px; padding: 4px 10px;
+  font-size: .77rem; background: #fff; cursor: pointer; color: #475569;
+  display: inline-flex; align-items: center; gap: 5px; transition: border-color .15s, color .15s;
+}
+.fc-popup-btn:hover, .fc-popup-btn.open { border-color: #3b82f6; color: #1e40af; }
+.fc-popup {
+  display: none; position: absolute; top: calc(100% + 4px); left: 0;
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.14); z-index: 500;
+  min-width: 190px; max-width: 280px; padding: 10px 12px;
+}
+.fc-popup.open { display: block; }
+.fc-popup-title { font-size: .71rem; font-weight: 700; color: #475569;
+  text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px; }
+.fc-popup-checks { max-height: 180px; overflow-y: auto; border: 1px solid #f1f5f9;
+  border-radius: 5px; padding: 4px 6px; margin-bottom: 8px; }
+.fc-popup-checks label {
+  display: flex; align-items: center; gap: 6px; font-size: .77rem;
+  padding: 3px 0; cursor: pointer; color: #334155; user-select: none;
+}
+.fc-popup-checks label:hover { color: #1e40af; }
+.fc-popup-checks input[type=checkbox] { width: 13px; height: 13px; cursor: pointer; flex-shrink: 0; }
+.fc-popup-actions { display: flex; gap: 6px; justify-content: flex-end; }
+.fc-popup-actions button {
+  font-size: .72rem; padding: 3px 10px; border-radius: 5px; cursor: pointer; border: 1px solid;
+}
+.fc-popup-apply { background: #3b82f6; color: #fff; border-color: #2563eb; }
+.fc-popup-apply:hover { background: #2563eb; }
+.fc-popup-clear { background: #f8fafc; color: #475569; border-color: #cbd5e1; }
+.fc-popup-clear:hover { background: #e2e8f0; }
 """
 
 
@@ -450,6 +497,232 @@ function scoreColor(v) {
   var g = Math.round(200 * v);
   return 'rgb(' + r + ',' + g + ',60)';
 }
+
+// ---- CSV export ----
+// _csvExportTable(containerId, filename) — download the rendered table as UTF-8 CSV.
+function _csvExportTable(idOrEl, filename) {
+  var container = typeof idOrEl === 'string' ? document.getElementById(idOrEl) : idOrEl;
+  if (!container) return;
+  var tbl = (container.tagName === 'TABLE') ? container : container.querySelector('table');
+  if (!tbl) return;
+  var rows = [];
+  tbl.querySelectorAll('tr').forEach(function(tr) {
+    var cells = [];
+    tr.querySelectorAll('th, td').forEach(function(td) {
+      var text = td.textContent.replace(/[\\u2014\\u2026]/g, '-').replace(/[",\\n\\r]/g, ' ').trim();
+      cells.push('"' + text + '"');
+    });
+    rows.push(cells.join(','));
+  });
+  var csv = '\\uFEFF' + rows.join('\\r\\n');
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = filename || 'table.csv';
+  document.body.appendChild(a); a.click();
+  setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+}
+
+// ---- Sortable table ----
+// Call after rendering a table; pass the container element or id string.
+function _makeSortable(idOrEl) {
+  var container = typeof idOrEl === 'string' ? document.getElementById(idOrEl) : idOrEl;
+  if (!container) return;
+  var tbl = (container.tagName === 'TABLE') ? container : container.querySelector('table');
+  if (!tbl) return;
+  var ths = Array.prototype.slice.call(tbl.querySelectorAll('th'));
+  ths.forEach(function(th, col) {
+    th.classList.add('sortable');
+    var arrow = document.createElement('span');
+    arrow.className = 'sort-arrow'; arrow.textContent = '⇅';
+    th.appendChild(arrow);
+    th._sortDir = 0;
+    th.addEventListener('click', function() {
+      var dir = (th._sortDir === 1) ? -1 : 1;
+      ths.forEach(function(h) {
+        h._sortDir = 0;
+        h.classList.remove('sort-asc','sort-desc');
+        var a = h.querySelector('.sort-arrow');
+        if (a) a.textContent = '⇅';
+      });
+      th._sortDir = dir;
+      th.classList.add(dir === 1 ? 'sort-asc' : 'sort-desc');
+      var a = th.querySelector('.sort-arrow');
+      if (a) a.textContent = dir === 1 ? '▲' : '▼';
+      var rows = Array.prototype.slice.call(tbl.querySelectorAll('tr')).slice(1);
+      rows.sort(function(a, b) {
+        var ac = a.querySelectorAll('td')[col];
+        var bc = b.querySelectorAll('td')[col];
+        var at = ac ? ac.textContent.trim() : '';
+        var bt = bc ? bc.textContent.trim() : '';
+        var an = parseFloat(at), bn = parseFloat(bt);
+        if (!isNaN(an) && !isNaN(bn)) return dir * (an - bn);
+        return dir * at.localeCompare(bt);
+      });
+      rows.forEach(function(r) { tbl.appendChild(r); });
+    });
+  });
+}
+
+// ---- Floating chart element tooltip system ----
+var _ft = (function() {
+  var _el = null;
+  function _init() {
+    if (_el) return;
+    _el = document.createElement('div');
+    _el.style.cssText = (
+      'position:fixed;display:none;background:#0f172a;color:#e2e8f0;'
+      + 'font-size:.72rem;line-height:1.55;padding:7px 11px;border-radius:7px;'
+      + 'box-shadow:0 6px 20px rgba(0,0,0,.35),0 0 0 1px rgba(99,102,241,.25);'
+      + 'z-index:9999;pointer-events:none;max-width:260px;white-space:normal;'
+    );
+    document.body.appendChild(_el);
+  }
+  return {
+    show: function(html, x, y) {
+      _init();
+      _el.innerHTML = html;
+      _el.style.display = 'block';
+      _el.style.left = Math.min(x + 14, window.innerWidth - 280) + 'px';
+      _el.style.top  = Math.max(y - 40, 4) + 'px';
+    },
+    hide: function() { if (_el) _el.style.display = 'none'; }
+  };
+})();
+
+var _AXIS_TIPS = {
+  'Rubric aspect': 'Evaluation criterion in the rubric (e.g. Accuracy, Clarity). Each response is scored on each aspect.',
+  'Teacher model': 'LLM that generated the evaluation datapoints (Phase 3 — Data Generation).',
+  'Student model': 'LLM whose responses are being evaluated (Phase 4 — Response Collection).',
+  'Judge model': 'LLM that scores student responses against rubric criteria (Phase 5 — Evaluation).',
+  'Task': 'Evaluation task defined in the experiment configuration.',
+  'Model': 'Model identifier. Role (teacher / student / judge) depends on context.',
+  'Datapoints generated': 'Number of evaluation prompts produced in Phase 3.',
+  'Responses collected': 'Number of student model responses collected in Phase 4.',
+  'Valid evaluations': 'Number of successful judge-produced evaluations in Phase 5.',
+  'Mean normalised score (0\u20131)': 'Average score normalised: Low = 0, Medium = 0.5, High = 1.',
+  'Mean score (Low=0, Med=0.5, High=1)': 'Average normalised score across evaluations.',
+  'Fraction of evaluations': 'Fraction of all evaluations in this group.',
+  'Fraction High': 'Fraction of evaluations scored High.',
+  'Fraction Medium': 'Fraction of evaluations scored Medium.',
+  'Fraction Low': 'Fraction of evaluations scored Low.',
+  'Score': 'Normalised evaluation score in [0, 1].',
+  'Normalised score (0\u20131)': 'Score normalised to [0, 1]: Low = 0, Medium = 0.5, High = 1.',
+  'High': 'Highest score level (normalised = 1.0).',
+  'Medium': 'Middle score level (normalised = 0.5).',
+  'Low': 'Lowest score level (normalised = 0.0).',
+};
+
+function _buildTipMap(extra) {
+  var m = {};
+  var tips = (typeof DATA !== 'undefined') ? (DATA.tips || {}) : {};
+  var asp = tips.aspects || {}, tsk = tips.tasks || {}, att = tips.attrs || {};
+  Object.keys(asp).forEach(function(k) { m[k] = asp[k]; });
+  Object.keys(tsk).forEach(function(k) { m[k] = tsk[k]; });
+  Object.keys(att).forEach(function(k) {
+    m[k] = att[k];
+    var eq = k.indexOf('=');
+    if (eq >= 0) { var v = k.slice(eq+1); if (v && !m[v]) m[v] = att[k]; }
+  });
+  Object.keys(_AXIS_TIPS).forEach(function(k) { m[k] = _AXIS_TIPS[k]; });
+  if (extra) Object.keys(extra).forEach(function(k) { m[k] = extra[k]; });
+  return m;
+}
+
+function _bindFt(el, raw) {
+  if (!el || !raw) return;
+  el.style.cursor = 'help';
+  var html = String(raw).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  function _mv(ev) { _ft.show(html, ev.clientX, ev.clientY); }
+  el.addEventListener('mouseenter', function(e) {
+    _ft.show(html, e.clientX, e.clientY);
+    el.addEventListener('mousemove', _mv);
+  });
+  el.addEventListener('mouseleave', function() {
+    _ft.hide();
+    el.removeEventListener('mousemove', _mv);
+  });
+}
+
+function _addPlotTooltips(divId, extra) {
+  var cont = document.getElementById(divId);
+  if (!cont) return;
+  var tipMap = _buildTipMap(extra || {});
+  function _run() {
+    ['.xtick text','.ytick text','.legendtext','.g-xtitle text','.g-ytitle text'].forEach(function(sel) {
+      cont.querySelectorAll(sel).forEach(function(el) {
+        var t = (el.textContent || '').trim();
+        if (t && tipMap[t]) _bindFt(el, tipMap[t]);
+      });
+    });
+  }
+  setTimeout(_run, 350);
+}
+
+// ---- Filter popup state & helpers ----
+var _stackFilters = {};
+
+function _syncFilterPopup(prefix, dim, allVals) {
+  var state = _stackFilters[prefix];
+  if (!state || state.dim !== dim) {
+    state = { dim: dim, vals: {} };
+    allVals.forEach(function(v) { state.vals[v] = true; });
+    _stackFilters[prefix] = state;
+  } else {
+    allVals.forEach(function(v) { if (!(v in state.vals)) state.vals[v] = true; });
+    Object.keys(state.vals).forEach(function(v) { if (allVals.indexOf(v) < 0) delete state.vals[v]; });
+  }
+  var el = document.getElementById(prefix + '-filter-checks');
+  if (!el) return;
+  el.innerHTML = '';
+  allVals.forEach(function(v) {
+    var lbl = document.createElement('label');
+    var cb = document.createElement('input');
+    cb.type = 'checkbox'; cb.value = v; cb.checked = !!state.vals[v];
+    (function(val) { cb.addEventListener('change', function() { state.vals[val] = cb.checked; }); })(v);
+    lbl.appendChild(cb);
+    lbl.appendChild(document.createTextNode(' ' + (v === '(none)' ? '(unset)' : v)));
+    el.appendChild(lbl);
+  });
+}
+
+function _getFilteredVals(prefix, dim, allVals) {
+  var state = _stackFilters[prefix];
+  if (!state || state.dim !== dim) return allVals;
+  return allVals.filter(function(v) { return !!state.vals[v]; });
+}
+
+function _toggleFilterPopup(prefix) {
+  var popup = document.getElementById(prefix + '-filter-popup');
+  var btn   = document.getElementById(prefix + '-filter-btn');
+  if (!popup || !btn) return;
+  var open = popup.classList.contains('open');
+  document.querySelectorAll('.fc-popup.open').forEach(function(el) { el.classList.remove('open'); });
+  document.querySelectorAll('.fc-popup-btn.open').forEach(function(el) { el.classList.remove('open'); });
+  if (!open) { popup.classList.add('open'); btn.classList.add('open'); }
+}
+
+function _applyFilter(prefix, renderFn) {
+  var p = document.getElementById(prefix + '-filter-popup');
+  var b = document.getElementById(prefix + '-filter-btn');
+  if (p) p.classList.remove('open');
+  if (b) b.classList.remove('open');
+  if (typeof renderFn === 'function') renderFn();
+}
+
+function _clearFilter(prefix, renderFn) {
+  var state = _stackFilters[prefix];
+  if (state) Object.keys(state.vals).forEach(function(v) { state.vals[v] = true; });
+  _applyFilter(prefix, renderFn);
+}
+
+// Close popups on outside click
+document.addEventListener('click', function(e) {
+  if (!e.target || !e.target.closest || !e.target.closest('.fc-popup-wrap')) {
+    document.querySelectorAll('.fc-popup.open').forEach(function(el) { el.classList.remove('open'); });
+    document.querySelectorAll('.fc-popup-btn.open').forEach(function(el) { el.classList.remove('open'); });
+  }
+});
 """
 
 

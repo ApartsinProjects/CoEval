@@ -69,7 +69,7 @@ def emit_dataset(
 
     out_file = out_dir / _out_filename(task_id, dataset)
 
-    print(f"  [{dataset}] → {out_file}")
+    print(f"  [{dataset}] -> {out_file}")
     n = load_benchmark(
         dataset=dataset,
         out_path=out_file,
@@ -79,7 +79,7 @@ def emit_dataset(
         seed=seed,
         **loader_kwargs,
     )
-    print(f"  [{dataset}] wrote {n} records  ✓")
+    print(f"  [{dataset}] wrote {n} records  OK")
     return n
 
 
