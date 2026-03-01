@@ -160,7 +160,60 @@ details.fig-explain .explain-body b { color: #1e293b; }
 details.fig-explain .explain-body code {
   background: #e2e8f0; padding: 1px 4px; border-radius: 3px; font-size: 0.85em;
 }
+/* ---- Inline definition tooltips ---- */
+[data-tip] {
+  border-bottom: 1px dotted #94a3b8; cursor: help; position: relative;
+}
+[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%);
+  white-space: normal; max-width: 300px; min-width: 140px;
+  background: #1e293b; color: #f1f5f9;
+  font-size: 0.72rem; font-weight: 400; line-height: 1.5;
+  padding: 6px 10px; border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.3);
+  z-index: 9999; opacity: 0; pointer-events: none;
+  transition: opacity .15s ease;
+}
+[data-tip]:hover::after { opacity: 1; }
 """
+
+
+def collect_tooltip_data(model: Any) -> dict:
+    """Extract task descriptions, rubric definitions and attribute definitions
+    for use as hover tooltips in all report views.
+
+    Returns a dict with:
+      - 'tasks':   {task_id: description_str}
+      - 'aspects': {aspect_name: description_str}  (merged across tasks)
+      - 'attrs':   {'{key}={val}': 'key: one of [...]'}
+    """
+    tips: dict = {'tasks': {}, 'aspects': {}, 'attrs': {}}
+
+    # Task descriptions from config
+    for t_cfg in model.config.get('tasks', []):
+        name = t_cfg.get('name', '')
+        if name:
+            desc = t_cfg.get('description', '')
+            if desc:
+                tips['tasks'][name] = desc
+
+    # Rubric aspect descriptions (merged across all tasks)
+    for _task_id, rubric in (model.rubrics or {}).items():
+        for aspect, desc in rubric.items():
+            if desc and aspect not in tips['aspects']:
+                tips['aspects'][aspect] = desc
+
+    # Target attribute value descriptions
+    for _task_id, attrs in (model.target_attrs_by_task or {}).items():
+        for k, vals in attrs.items():
+            vals_str = ', '.join(str(v) for v in vals)
+            for v in vals:
+                key = f'{k}={v}'
+                if key not in tips['attrs']:
+                    tips['attrs'][key] = f'{k}: one of [{vals_str}]'
+
+    return tips
 
 
 def build_report(

@@ -20,6 +20,7 @@ from ..metrics import (
     compute_student_scores,
     compute_teacher_scores,
 )
+from .html_base import collect_tooltip_data
 
 # ---------------------------------------------------------------------------
 # Public entry point
@@ -141,6 +142,7 @@ def _build_data(model: EESDataModel) -> dict[str, Any]:
         'students': student_rows,
         'tasks': tasks,
         'units': grouped_units,
+        'tips': collect_tooltip_data(model),
         'defaults': {
             'teacher_thresholds': {
                 'v1': _median(t_v1_vals),
@@ -261,6 +263,13 @@ def _render_html(model: EESDataModel, data: dict) -> str:
     <input type="range" id="judge-threshold" min="0" max="1" step="0.001"
            oninput="onJudgeThreshold(this.value)"/>
   </div>
+  <div class="cp-group">
+    <label data-tip="Filter all student rankings to include only evaluation units from a specific task. &apos;All tasks&apos; computes rankings across the full task set.">Task:</label>
+    <select id="task-filter" onchange="onTaskFilter(this.value)"
+            style="font-size:0.78rem;border:1px solid var(--border);border-radius:4px;padding:3px 6px;cursor:pointer">
+      <option value="__all__">All tasks</option>
+    </select>
+  </div>
 </div>
 
 <div id="main">
@@ -293,16 +302,17 @@ def _render_html(model: EESDataModel, data: dict) -> str:
         <summary>About this section</summary>
         <div class="explain-body">
           <b>Table:</b> Each row is a teacher model ranked by the selected formula.
-          <b>V1</b> = mean student score on items from this teacher;
-          <b>S2</b> = score spread (discrimination index — how well items separate strong
-          from weak students);
-          <b>R3</b> = composite (V1 × S2). Teachers above the current effectiveness
-          threshold (control panel) are highlighted green.<br>
+          Teachers above the effectiveness threshold are highlighted green and used
+          in student ranking.<br>
+          <b>V1 (Variance)</b> = Var(per-student avg scores) &times; coverage.
+          High V1 means the teacher&rsquo;s items produce very different scores across students
+          &mdash; a strong discriminative signal.<br>
+          <b>S2 (Spread)</b> = mean(|score &minus; mean|) &times; coverage.
+          Mean absolute deviation: robust alternative to variance, less affected by outliers.<br>
+          <b>R3 (Range)</b> = (max &minus; min) &times; coverage.
+          Simplest spread measure: at least one student scored high <em>and</em> one scored low.<br>
           <b>Chart:</b> Bar chart of the selected formula value per teacher.
-          Only teachers in the current filter are shown.<br>
-          <b>Tip:</b> A high V1 teacher creates items students score well on overall.
-          A high S2 teacher creates discriminating items. Both are desirable for a
-          useful benchmark.
+          Green bars = effective (above threshold); blue = inactive.
         </div>
       </details>
     </div>
@@ -691,6 +701,7 @@ var state = {
   judgeMetric: 'spa',
   judgeThreshold: null,
   studentView: 'overall',
+  taskFilter: '__all__',    // '__all__' or a specific task id
   sortState: {},            // key: tableId, value: {col, dir}
 };
 
@@ -724,6 +735,14 @@ document.addEventListener('DOMContentLoaded', function() {
   // Sync sliders
   _syncTeacherSlider();
   _syncJudgeSlider();
+
+  // Populate task filter dropdown
+  var taskSel = document.getElementById('task-filter');
+  DATA.tasks.forEach(function(t) {
+    var opt = document.createElement('option');
+    opt.value = t; opt.textContent = t;
+    taskSel.appendChild(opt);
+  });
 
   // Activate initial button states
   _activateBtn('teacher-formula-btns', state.teacherFormula);
@@ -762,6 +781,11 @@ function onTeacherThreshold(v) {
 function onJudgeThreshold(v) {
   state.judgeThreshold = parseFloat(v);
   document.getElementById('j-thr-label').textContent = parseFloat(v).toFixed(3);
+  renderAll();
+}
+
+function onTaskFilter(v) {
+  state.taskFilter = v;
   renderAll();
 }
 
@@ -823,9 +847,10 @@ function getFilteredStudentScores(groupByTask, groupByJudge) {
   var effTeachers = new Set(getEffectiveTeachers());
   var consJudges  = new Set(getConsensusJudges());
 
-  // Filter units by effective teacher + consensus judge
+  // Filter units by effective teacher + consensus judge + optional task
   var filtered = DATA.units.filter(function(u) {
-    return effTeachers.has(u.teacher) && consJudges.has(u.judge);
+    return effTeachers.has(u.teacher) && consJudges.has(u.judge)
+        && (state.taskFilter === '__all__' || u.task === state.taskFilter);
   });
 
   if (groupByTask) {

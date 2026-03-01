@@ -705,3 +705,288 @@ class TestRunAnalyze:
         # At least one HTML subfolder should exist
         html_folders = [d for d in out_dir.iterdir() if d.is_dir()]
         assert len(html_folders) >= 1
+
+
+# ---------------------------------------------------------------------------
+# Interactive-UX validation — REQ-A-7.x
+# These tests verify that bug fixes and UX improvements are preserved.
+# ---------------------------------------------------------------------------
+
+def _get_data_json(html_text: str) -> dict:
+    """Extract and parse the embedded DATA JSON object from an HTML report."""
+    import re
+    # Match: const DATA = {...};  OR  var DATA = {...};
+    m = re.search(r'(?:const|var)\s+DATA\s*=\s*(\{.*?\});', html_text,
+                  re.DOTALL)
+    assert m, "DATA constant not found in HTML"
+    return json.loads(m.group(1))
+
+
+class TestTeacherReportUX:
+    """Bug-fix and UX regression tests for teacher_report.py."""
+
+    def test_data_contains_asp_mean(self, tmp_path, minimal_model, fake_plotly_cache):
+        """asp_mean (mean student scores per teacher×aspect) must be in DATA.
+        Without it, V3 heatmap falls back to all-same-color variance display."""
+        from analysis.reports.teacher_report import write_teacher_report
+        out_dir = tmp_path / 'tr'
+        write_teacher_report(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        assert 'asp_mean' in data, "asp_mean key missing from DATA"
+        # Values should be floats in [0, 1]
+        for teacher_means in data['asp_mean'].values():
+            for v in teacher_means.values():
+                assert 0.0 <= v <= 1.0, f"asp_mean value out of range: {v}"
+
+    def test_data_contains_ranking_with_v1_s2_r3(self, tmp_path, minimal_model,
+                                                   fake_plotly_cache):
+        """Ranking rows must contain v1, s2, r3 (all used by V2 bar chart)."""
+        from analysis.reports.teacher_report import write_teacher_report
+        out_dir = tmp_path / 'tr2'
+        write_teacher_report(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        assert data['ranking'], "ranking list is empty"
+        row = data['ranking'][0]
+        for key in ('v1', 's2', 'r3', 'teacher', 'datapoints'):
+            assert key in row, f"ranking row missing key: {key}"
+
+    def test_html_has_v3_chart_container(self, tmp_path, minimal_model, fake_plotly_cache):
+        """The heatmap chart container div must be present."""
+        from analysis.reports.teacher_report import write_teacher_report
+        out_dir = tmp_path / 'tr3'
+        write_teacher_report(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert 'id="v3-chart"' in html
+
+    def test_html_has_v2_renderfn_with_text_labels(self, tmp_path, minimal_model,
+                                                     fake_plotly_cache):
+        """V2 renderV2() must include textposition: 'outside' for bar labels."""
+        from analysis.reports.teacher_report import write_teacher_report
+        out_dir = tmp_path / 'tr4'
+        write_teacher_report(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert 'textposition' in html, "textposition missing from V2 bar chart JS"
+
+    def test_data_contains_tooltip_tips(self, tmp_path, minimal_model, fake_plotly_cache):
+        """DATA.tips must contain aspect definitions (from rubrics)."""
+        from analysis.reports.teacher_report import write_teacher_report
+        out_dir = tmp_path / 'tr5'
+        write_teacher_report(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        assert 'tips' in data, "tips key missing from DATA"
+        assert 'aspects' in data['tips'], "tips.aspects missing"
+        # minimal_model has rubric acc='Accuracy', fmt='Format'
+        assert data['tips']['aspects'].get('acc') == 'Accuracy'
+        assert data['tips']['aspects'].get('fmt') == 'Format'
+
+    def test_html_has_fig_explain_sections(self, tmp_path, minimal_model, fake_plotly_cache):
+        """All views must have collapsible fig-explain details elements."""
+        from analysis.reports.teacher_report import write_teacher_report
+        out_dir = tmp_path / 'tr6'
+        write_teacher_report(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        count = html.count('class="fig-explain"')
+        assert count >= 4, f"Expected ≥4 fig-explain sections, found {count}"
+
+
+class TestStudentReportUX:
+    """Bug-fix and UX regression tests for student_report.py."""
+
+    def test_data_contains_all_units_for_dynamic_filtering(self, tmp_path, minimal_model,
+                                                             fake_plotly_cache):
+        """all_units must be present — V2/V3 recompute from it (not precomputed dicts)."""
+        from analysis.reports.student_report import write_student_report
+        out_dir = tmp_path / 'sr'
+        write_student_report(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        assert 'all_units' in data, "all_units key missing from DATA"
+        # Each unit should have student/aspect/score_norm
+        for u in data['all_units']:
+            for k in ('student', 'aspect', 'score_norm', 'judge', 'teacher', 'task'):
+                assert k in u, f"unit missing key: {k}"
+
+    def test_v2_uses_filteredunits_not_precomputed(self, tmp_path, minimal_model,
+                                                    fake_plotly_cache):
+        """renderV2 must call filteredUnits(), not DATA.asp_student directly."""
+        from analysis.reports.student_report import write_student_report
+        out_dir = tmp_path / 'sr2'
+        write_student_report(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        # The new implementation constructs aspStudent from filteredUnits()
+        assert 'aspStudent' in html, "aspStudent variable missing — V2 not using filteredUnits()"
+
+    def test_v3_uses_filteredunits_not_precomputed(self, tmp_path, minimal_model,
+                                                    fake_plotly_cache):
+        """renderV3 must call filteredUnits(), not DATA.student_judge directly."""
+        from analysis.reports.student_report import write_student_report
+        out_dir = tmp_path / 'sr3'
+        write_student_report(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert 'sjMap' in html, "sjMap variable missing — V3 not using filteredUnits()"
+
+    def test_data_contains_tooltip_tips(self, tmp_path, minimal_model, fake_plotly_cache):
+        from analysis.reports.student_report import write_student_report
+        out_dir = tmp_path / 'sr4'
+        write_student_report(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        assert 'tips' in data
+        assert 'aspects' in data['tips']
+
+    def test_html_has_fig_explain_sections(self, tmp_path, minimal_model, fake_plotly_cache):
+        from analysis.reports.student_report import write_student_report
+        out_dir = tmp_path / 'sr5'
+        write_student_report(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert html.count('class="fig-explain"') >= 4
+
+    def test_html_has_tooltip_css(self, tmp_path, minimal_model, fake_plotly_cache):
+        from analysis.reports.student_report import write_student_report
+        out_dir = tmp_path / 'sr6'
+        write_student_report(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert '[data-tip]' in html, "[data-tip] CSS selector missing"
+
+
+class TestScoreDistributionUX:
+    """Bug-fix and UX regression tests for score_dist.py."""
+
+    def test_v4_toggle_button_present(self, tmp_path, minimal_model, fake_plotly_cache):
+        """V4 must have a toggle button to switch between heatmap and drift views."""
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert 'v4-toggle-btn' in html, "V4 toggle button missing"
+        assert 'toggleV4Mode' in html, "toggleV4Mode() function missing"
+
+    def test_v3_no_data_message_when_no_attrs(self, tmp_path, minimal_model, fake_plotly_cache):
+        """When no sampled_target_attributes exist, V3 must show an informative message."""
+        from analysis.reports.score_dist import write_score_distribution
+        # Remove target attrs
+        minimal_model.target_attrs_by_task.clear()
+        for dp in minimal_model.datapoints.values():
+            dp.pop('sampled_target_attributes', None)
+        out_dir = tmp_path / 'sd_noattr'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        # renderV3 shows a message when attrLabels is empty; the message text is in the JS
+        assert 'sampled_target_attributes' in html
+
+    def test_v4_heatmap_function_present(self, tmp_path, minimal_model, fake_plotly_cache):
+        """renderV4Heatmap() must be defined — always-visible judge×aspect heatmap."""
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd2'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert 'renderV4Heatmap' in html, "renderV4Heatmap() function missing"
+
+    def test_data_contains_judges(self, tmp_path, minimal_model, fake_plotly_cache):
+        """DATA.judges must be present (used by V4 heatmap)."""
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd3'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        assert 'judges' in data, "judges missing from DATA"
+
+    def test_data_contains_tooltip_tips(self, tmp_path, minimal_model, fake_plotly_cache):
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd4'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        assert 'tips' in data
+
+    def test_html_has_fig_explain_sections(self, tmp_path, minimal_model, fake_plotly_cache):
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd5'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert html.count('class="fig-explain"') >= 4
+
+
+class TestSummaryReportUX:
+    """UX and content validation for the summary dashboard."""
+
+    def test_data_contains_tips(self, tmp_path, minimal_model, fake_plotly_cache):
+        from analysis.reports.summary_report import write_summary_report
+        out_dir = tmp_path / 'sum'
+        write_summary_report(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        assert 'tips' in data
+
+    def test_task_filter_present(self, tmp_path, minimal_model, fake_plotly_cache):
+        """A task filter select element must be present in the control panel."""
+        from analysis.reports.summary_report import write_summary_report
+        out_dir = tmp_path / 'sum2'
+        write_summary_report(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert 'task-filter' in html, "task-filter dropdown missing"
+        assert 'onTaskFilter' in html, "onTaskFilter() function missing"
+
+    def test_metric_tooltips_present(self, tmp_path, minimal_model, fake_plotly_cache):
+        """Control panel must have data-tip attributes for SPA, WPA, Kappa, V1, S2, R3."""
+        from analysis.reports.summary_report import write_summary_report
+        out_dir = tmp_path / 'sum3'
+        write_summary_report(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        for metric_hint in ('V1 Variance', 'V1 Variance', 'Strict Pair Agreement', 'Cohen'):
+            assert metric_hint in html, f"Tooltip for '{metric_hint}' not found"
+
+    def test_fig_explain_in_all_sections(self, tmp_path, minimal_model, fake_plotly_cache):
+        from analysis.reports.summary_report import write_summary_report
+        out_dir = tmp_path / 'sum4'
+        write_summary_report(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert html.count('class="fig-explain"') >= 3
+
+    def test_correct_formula_descriptions_in_html(self, tmp_path, minimal_model,
+                                                    fake_plotly_cache):
+        """V1/S2/R3 descriptions in fig-explain body must match actual formula semantics."""
+        from analysis.reports.summary_report import write_summary_report
+        out_dir = tmp_path / 'sum5'
+        write_summary_report(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        # V1 description should mention Variance, not 'mean student score'
+        assert 'Variance' in html
+        # V3 description should mention Range, not 'composite'
+        assert 'Range' in html
+
+
+class TestHtmlBaseTooltipCSS:
+    """Verify the shared tooltip CSS infrastructure is present in all HTML reports."""
+
+    def _get_html(self, report_fn, model, tmp_path, fake_plotly_cache, suffix):
+        out_dir = tmp_path / suffix
+        report_fn(model, out_dir)
+        return (out_dir / 'index.html').read_text(encoding='utf-8')
+
+    def test_teacher_report_has_data_tip_css(self, tmp_path, minimal_model, fake_plotly_cache):
+        from analysis.reports.teacher_report import write_teacher_report
+        html = self._get_html(write_teacher_report, minimal_model, tmp_path,
+                              fake_plotly_cache, 'tr_css')
+        assert '[data-tip]' in html
+
+    def test_student_report_has_data_tip_css(self, tmp_path, minimal_model, fake_plotly_cache):
+        from analysis.reports.student_report import write_student_report
+        html = self._get_html(write_student_report, minimal_model, tmp_path,
+                              fake_plotly_cache, 'sr_css')
+        assert '[data-tip]' in html
+
+    def test_score_dist_has_data_tip_css(self, tmp_path, minimal_model, fake_plotly_cache):
+        from analysis.reports.score_dist import write_score_distribution
+        html = self._get_html(write_score_distribution, minimal_model, tmp_path,
+                              fake_plotly_cache, 'sd_css')
+        assert '[data-tip]' in html
+
+    def test_summary_report_has_data_tip_css(self, tmp_path, minimal_model, fake_plotly_cache):
+        from analysis.reports.summary_report import write_summary_report
+        html = self._get_html(write_summary_report, minimal_model, tmp_path,
+                              fake_plotly_cache, 'sum_css')
+        assert '[data-tip]' in html

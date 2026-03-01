@@ -6,7 +6,7 @@ from pathlib import Path
 
 from ..loader import EESDataModel
 from ..metrics import compute_teacher_scores
-from .html_base import build_report, get_plotly_js, make_experiment_meta
+from .html_base import build_report, collect_tooltip_data, get_plotly_js, make_experiment_meta
 
 _SINGLE_STUDENT_NOTICE = (
     "⚠ Only 1 student model in this experiment. "
@@ -78,6 +78,18 @@ def _build_data(model: EESDataModel) -> dict:
             else:
                 asp_teacher_score[teacher][asp] = 0.0
 
+    # Mean student score per (teacher, aspect) for heatmap (0–1 scale)
+    asp_teacher_mean: dict[str, dict[str, float]] = {}
+    for teacher in teachers:
+        t_units = [u for u in units if u.teacher_model_id == teacher]
+        by_asp: dict[str, list] = defaultdict(list)
+        for u in t_units:
+            by_asp[u.rubric_aspect].append(u.score_norm)
+        asp_teacher_mean[teacher] = {
+            asp: round(sum(vals) / len(vals), 4)
+            for asp, vals in by_asp.items()
+        }
+
     # Box plot data: per (teacher, student) score distribution
     teacher_student_boxes: dict[str, dict] = {}
     for teacher in teachers:
@@ -112,7 +124,9 @@ def _build_data(model: EESDataModel) -> dict:
         'single_student_notice': _SINGLE_STUDENT_NOTICE if single_student else '',
         'ranking': ranking_rows,
         'asp_scores': asp_teacher_score,
+        'asp_mean': asp_teacher_mean,
         'teacher_student_boxes': teacher_student_boxes,
+        'tips': collect_tooltip_data(model),
     }
 
 
@@ -190,6 +204,16 @@ _VIEWS_HTML = """
 """
 
 _APP_JS = """
+// Tooltip helpers — wrap text with a data-tip attribute when a definition exists
+function tipFor(text, type) {
+  var def = (DATA.tips && DATA.tips[type] && DATA.tips[type][text]) ? DATA.tips[type][text] : null;
+  if (!def) return escHtml(text);
+  return '<span data-tip="' + escHtml(def) + '">' + escHtml(text) + '</span>';
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 function getFormula() { return getFilter('formula') || 'v1'; }
 
 function renderAll() {
@@ -204,11 +228,19 @@ function renderAll() {
 function renderV1() {
   var f = getFormula();
   var rows = DATA.ranking.slice().sort(function(a,b){return (b[f]||0)-(a[f]||0);});
-  var html = '<table class="data-table"><tr><th>Teacher</th><th>Datapoints</th>';
-  html += '<th>V1 (Variance)</th><th>S2 (Spread)</th><th>R3 (Range)</th></tr>';
+  var v1tip = 'V1 (Variance): variance of per-student average scores. High = teacher items spread students apart well.';
+  var s2tip = 'S2 (Spread): mean absolute deviation of per-student averages. Robust alternative to variance.';
+  var r3tip = 'R3 (Range): max minus min per-student average. Simple spread measure.';
+  var html = '<table class="data-table"><tr>'
+    + '<th>' + tipFor('Teacher', 'tasks') + '</th>'
+    + '<th>Datapoints</th>'
+    + '<th><span data-tip="' + v1tip + '">V1 (Variance)</span></th>'
+    + '<th><span data-tip="' + s2tip + '">S2 (Spread)</span></th>'
+    + '<th><span data-tip="' + r3tip + '">R3 (Range)</span></th>'
+    + '</tr>';
   rows.forEach(function(r) {
     var flag = r.is_also_student ? '<span class="warn-flag" title="Self-teaching responses included.">⚠ST</span>' : '';
-    html += '<tr><td>' + r.teacher + flag + '</td><td>' + r.datapoints + '</td>';
+    html += '<tr><td>' + tipFor(r.teacher, 'tasks') + flag + '</td><td>' + r.datapoints + '</td>';
     html += '<td>' + fmt(r.v1) + '</td><td>' + fmt(r.s2) + '</td><td>' + fmt(r.r3) + '</td></tr>';
   });
   document.getElementById('v1-table').innerHTML = html + '</table>';
@@ -219,27 +251,34 @@ function renderV2() {
   var rows = DATA.ranking.slice().sort(function(a,b){return (b[f]||0)-(a[f]||0);});
   var names = rows.map(function(r){return r.teacher;});
   var vals = rows.map(function(r){return r[f];});
+  var labels = vals.map(function(v){return (typeof v === 'number') ? v.toFixed(4) : '';});
   Plotly.newPlot('v2-chart',
-    [{type:'bar', x: names, y: vals, marker:{color:'#2980b9'}}],
-    {yaxis:{title:'Teacher differentiation score (' + f + ')'},
-     xaxis:{title:'Teacher'}, margin:{t:20}});
+    [{type:'bar', x: names, y: vals, marker:{color:'#2980b9'},
+      text: labels, textposition: 'outside', cliponaxis: false}],
+    {yaxis:{title:'Teacher differentiation score (' + f + ')', autorange: true},
+     xaxis:{title:'Teacher'}, margin:{t:40}});
 }
 
 function renderV3() {
-  var f = getFormula();
   var teachers = DATA.teachers;
   var aspects = DATA.aspects;
   if (!teachers.length || !aspects.length) return;
   var z = teachers.map(function(t) {
     return aspects.map(function(a) {
-      var s = DATA.asp_scores[t];
+      var s = DATA.asp_mean[t];
       return s ? (s[a] !== undefined ? s[a] : null) : null;
     });
   });
+  // Dynamic range: pad by 5% each side, clamp to [0,1]
+  var flat = [].concat.apply([], z).filter(function(v){return v !== null;});
+  var zmin = flat.length ? Math.max(0, Math.min.apply(null, flat) - 0.05) : 0;
+  var zmax = flat.length ? Math.min(1, Math.max.apply(null, flat) + 0.05) : 1;
   Plotly.newPlot('v3-chart', [{
     type:'heatmap', z: z, x: aspects, y: teachers,
-    colorscale:[[0,'#f0f8ff'],[1,'#1a6fbf']],
-    zmin:0, zmax:0.25,
+    colorscale:[[0,'#ef4444'],[0.5,'#fef9c3'],[1,'#22c55e']],
+    zmin: zmin, zmax: zmax,
+    colorbar:{title:'Mean Score'},
+    hoverongaps: false,
   }], {margin:{t:20}});
 }
 

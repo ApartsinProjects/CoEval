@@ -6,7 +6,7 @@ from pathlib import Path
 
 from ..loader import EESDataModel
 from ..metrics import compute_student_scores
-from .html_base import build_report, get_plotly_js, make_experiment_meta
+from .html_base import build_report, collect_tooltip_data, get_plotly_js, make_experiment_meta
 
 
 def write_student_report(
@@ -113,6 +113,7 @@ def _build_data(model: EESDataModel) -> dict:
         'student_judge': student_judge_avg,
         'attr_scores': attr_scores,
         'all_units': all_units_compact,
+        'tips': collect_tooltip_data(model),
     }
 
 
@@ -184,6 +185,16 @@ _VIEWS_HTML = """
 """
 
 _APP_JS = """
+// Tooltip helpers
+function tipFor(text, type) {
+  var def = (DATA.tips && DATA.tips[type] && DATA.tips[type][text]) ? DATA.tips[type][text] : null;
+  if (!def) return escHtml(text);
+  return '<span data-tip="' + escHtml(def) + '">' + escHtml(text) + '</span>';
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 function filteredUnits() {
   var tf = getFilter('task'), tef = getFilter('teacher'), jf = getFilter('judge');
   return DATA.all_units.filter(function(u) {
@@ -213,14 +224,14 @@ function renderV1() {
   });
   var rows = DATA.ranking.slice().sort(function(a,b){return (b.overall||0)-(a.overall||0);});
   var html = '<table class="data-table"><tr><th>Student</th><th>Overall Avg Score</th>';
-  DATA.tasks.forEach(function(t){html += '<th>' + t + '</th>';});
+  DATA.tasks.forEach(function(t){html += '<th>' + tipFor(t, 'tasks') + '</th>';});
   html += '<th>Valid Evals</th></tr>';
   rows.forEach(function(r) {
     var arr = studentAvg[r.student] || [];
     var avg = arr.length ? arr.reduce(function(a,b){return a+b;},0)/arr.length : null;
-    var sj_flag = r.is_also_judge ? '<span class="warn-flag" title="This student also acts as judge.">⚠</span>' : '';
-    var st_flag = r.is_also_teacher ? '<span class="warn-flag" title="Self-teaching included.">⚠</span>' : '';
-    html += '<tr><td>' + r.student + sj_flag + st_flag + '</td>';
+    var sj_flag = r.is_also_judge ? '<span class="warn-flag" title="This student also acts as judge — scores may be biased.">⚠SJ</span>' : '';
+    var st_flag = r.is_also_teacher ? '<span class="warn-flag" title="Self-teaching included — this model generated the prompts it answered.">⚠ST</span>' : '';
+    html += '<tr><td>' + escHtml(r.student) + sj_flag + st_flag + '</td>';
     html += '<td>' + fmt(avg) + '</td>';
     DATA.tasks.forEach(function(t) {
       var t_units = units.filter(function(u){return u.student===r.student && u.task===t;});
@@ -233,32 +244,49 @@ function renderV1() {
 }
 
 function renderV2() {
+  var units = filteredUnits();
   var students = DATA.students;
   var aspects = DATA.aspects;
   if (!students.length || !aspects.length) return;
+  // Recompute from filtered units so the heatmap reflects current filter state
+  var aspStudent = {};
+  units.forEach(function(u) {
+    var k = u.student + '||' + u.aspect;
+    if (!aspStudent[k]) aspStudent[k] = [];
+    aspStudent[k].push(u.score_norm);
+  });
   var z = students.map(function(s) {
     return aspects.map(function(a) {
-      var v = DATA.asp_student[s + '||' + a];
-      return v !== undefined ? v : null;
+      var arr = aspStudent[s + '||' + a];
+      return arr ? arr.reduce(function(x, y){return x + y;}, 0) / arr.length : null;
     });
   });
   Plotly.newPlot('v2-chart', [{
     type:'heatmap', z:z, x:aspects, y:students,
     colorscale:[[0,'#ffe0e0'],[0.5,'#fff7e0'],[1,'#e0ffe0']],
-    zmin:0, zmax:1,
+    zmin:0, zmax:1, hoverongaps:false,
   }], {margin:{t:20}});
 }
 
 function renderV3() {
+  var units = filteredUnits();
   var students = DATA.students;
   var judges = DATA.judges;
   if (!students.length || !judges.length) return;
+  // Recompute from filtered units for filter-responsiveness
+  var sjMap = {};
+  units.forEach(function(u) {
+    var k = u.student + '||' + u.judge;
+    if (!sjMap[k]) sjMap[k] = [];
+    sjMap[k].push(u.score_norm);
+  });
   var traces = judges.map(function(j) {
     return {
       name: j, type:'bar',
       x: students,
       y: students.map(function(s) {
-        return DATA.student_judge[s+'||'+j] !== undefined ? DATA.student_judge[s+'||'+j] : 0;
+        var arr = sjMap[s + '||' + j];
+        return arr ? arr.reduce(function(a, b){return a + b;}, 0) / arr.length : 0;
       }),
     };
   });

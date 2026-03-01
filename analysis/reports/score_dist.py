@@ -5,7 +5,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from ..loader import EESDataModel
-from .html_base import build_report, get_plotly_js, make_experiment_meta
+from .html_base import build_report, collect_tooltip_data, get_plotly_js, make_experiment_meta
 
 
 def write_score_distribution(
@@ -78,6 +78,7 @@ def _build_data(model: EESDataModel) -> dict:
         'aspects': all_aspects,
         'students': all_students,
         'judges': model.judges,
+        'tips': collect_tooltip_data(model),
         'aspect_hist': {k: dict(v) for k, v in aspect_hist.items()},
         'asp_student_avg': {
             f'{a}||{s}': (sum(v)/len(v)) for (a, s), v in asp_student_high.items()
@@ -158,25 +159,38 @@ _VIEWS_HTML = """
   </details>
 </div>
 <div class="view-section">
-  <h2>View 4 — Judge Score Drift Over Evaluation Order</h2>
-  <p class="note">Hidden when any judge has fewer than 20 valid evaluation records.</p>
+  <h2>View 4 — Judge Score Analysis</h2>
+  <div style="margin-bottom:8px">
+    <button id="v4-toggle-btn" onclick="toggleV4Mode()" style="font-size:0.8rem;padding:4px 10px;cursor:pointer;border:1px solid #cbd5e1;border-radius:4px;background:#f8fafc">Show Score Drift Over Time</button>
+    <span id="v4-drift-note" style="font-size:0.75rem;color:#94a3b8;margin-left:8px"></span>
+  </div>
   <div id="v4-chart" class="chart-container"></div>
   <details class="fig-explain">
     <summary>About this figure</summary>
     <div class="explain-body">
-      <b>What it shows:</b> A rolling-average (window = 20) of the normalised score assigned
-      by each judge model, plotted against evaluation sequence number.<br>
-      <b>How to read it:</b> A flat line indicates consistent judgment throughout the run.
-      An upward or downward trend may signal <em>judge drift</em> — the model becoming
-      more lenient or strict as the evaluation progresses (e.g., due to context accumulation
-      in batch mode). A systematic difference between judges at the same sequence position
-      indicates a scoring bias between judges.
+      <b>Heatmap view (default):</b> Mean normalised score given by each judge (rows) for each
+      rubric aspect (columns). Reveals per-judge scoring biases across criteria — a judge that
+      consistently scores a specific aspect lower may have a calibration difference.<br>
+      <b>Drift view:</b> Rolling-average (window = 20) of the normalised score assigned by each
+      judge model over evaluation sequence number. A flat line = consistent judgment; an upward
+      or downward trend = judge drift (model becoming more lenient or strict as evaluation
+      progresses). Requires ≥20 records per judge.
     </div>
   </details>
 </div>
 """
 
 _APP_JS = """
+// Tooltip helpers
+function tipFor(text, type) {
+  var def = (DATA.tips && DATA.tips[type] && DATA.tips[type][text]) ? DATA.tips[type][text] : null;
+  if (!def) return escHtml(text);
+  return '<span data-tip="' + escHtml(def) + '">' + escHtml(text) + '</span>';
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 function filteredUnits() {
   var tf = getFilter('task'), jf = getFilter('judge');
   var tef = getFilter('teacher'), sf = getFilter('student');
@@ -212,16 +226,19 @@ function renderV1() {
 
 function renderV3() {
   var units = filteredUnits();
-  var attrAsp = {};
-  units.forEach(function(u) {
-    // Get attr-value from DATA by datapoint — we embed all_units with score only,
-    // so use precomputed attr_asp_avg filtered by current filters
-    // For simplicity, use DATA.attr_asp_avg as-is (no dynamic filtering by attr)
-  });
   var attrLabels = DATA.attr_labels;
   var aspects = [...new Set(units.map(function(u){return u.aspect;}))].sort();
-  if (!attrLabels.length || !aspects.length) return;
-
+  if (!attrLabels.length) {
+    document.getElementById('v3-chart').innerHTML =
+      '<p class="na" style="padding:16px;color:#64748b">No <code>sampled_target_attributes</code> defined for this experiment. ' +
+      'Add <code>target_attributes</code> to tasks in your config to see this breakdown.</p>';
+    return;
+  }
+  if (!aspects.length) {
+    document.getElementById('v3-chart').innerHTML =
+      '<p class="na" style="padding:16px;color:#64748b">No data for the current filter selection.</p>';
+    return;
+  }
   var z = attrLabels.map(function(av) {
     return aspects.map(function(a) {
       var key = av + '||' + a;
@@ -231,26 +248,77 @@ function renderV3() {
   Plotly.newPlot('v3-chart', [{
     type: 'heatmap', z: z, x: aspects, y: attrLabels,
     colorscale: [[0,'#e74c3c'],[0.5,'#f7f7f7'],[1,'#27ae60']],
-    zmin: 0, zmax: 1,
+    zmin: 0, zmax: 1, hoverongaps: false,
   }], {margin:{t:20}});
 }
 
+var _v4Mode = 'heatmap';
+
+function toggleV4Mode() {
+  var seqs = DATA.judge_sequences;
+  var judges = DATA.judges;
+  var WIN = 20;
+  var driftOk = judges.length && !judges.some(function(j){return (seqs[j]||[]).length < WIN;});
+  var noteEl = document.getElementById('v4-drift-note');
+  if (!driftOk && _v4Mode === 'heatmap') {
+    if (noteEl) noteEl.textContent = '(drift view requires \u226520 evaluations per judge)';
+    return;
+  }
+  if (noteEl) noteEl.textContent = '';
+  _v4Mode = _v4Mode === 'heatmap' ? 'drift' : 'heatmap';
+  var btn = document.getElementById('v4-toggle-btn');
+  if (btn) btn.textContent = _v4Mode === 'heatmap' ? 'Show Score Drift Over Time' : 'Show Judge \u00d7 Aspect Heatmap';
+  renderV4();
+}
+
 function renderV4() {
+  if (_v4Mode === 'drift') { renderV4Drift(); } else { renderV4Heatmap(); }
+}
+
+function renderV4Heatmap() {
+  var units = filteredUnits();
+  var judges = DATA.judges;
+  var aspects = [...new Set(units.map(function(u){return u.aspect;}))].sort();
+  if (!judges.length || !aspects.length) {
+    document.getElementById('v4-chart').innerHTML = '<p class="na" style="padding:16px">No data.</p>';
+    return;
+  }
+  var jAspMap = {};
+  units.forEach(function(u) {
+    var k = u.judge + '||' + u.aspect;
+    if (!jAspMap[k]) jAspMap[k] = [];
+    jAspMap[k].push(u.score_norm);
+  });
+  var z = judges.map(function(j) {
+    return aspects.map(function(a) {
+      var arr = jAspMap[j + '||' + a];
+      return arr ? arr.reduce(function(x, y){return x + y;}, 0) / arr.length : null;
+    });
+  });
+  Plotly.newPlot('v4-chart', [{
+    type:'heatmap', z:z, x:aspects, y:judges,
+    colorscale:[[0,'#ffe0e0'],[0.5,'#fff7e0'],[1,'#e0ffe0']],
+    zmin:0, zmax:1, hoverongaps:false,
+    colorbar:{title:'Avg Score'},
+  }], {margin:{t:20}});
+}
+
+function renderV4Drift() {
   var seqs = DATA.judge_sequences;
   var judges = Object.keys(seqs);
   var WIN = 20;
-  var anyShort = judges.some(function(j){return seqs[j].length < WIN;});
+  var anyShort = judges.some(function(j){return (seqs[j]||[]).length < WIN;});
   if (anyShort) {
     document.getElementById('v4-chart').innerHTML =
-      '<p class="na" style="padding:16px">Hidden: at least one judge has fewer than 20 evaluation records.</p>';
+      '<p class="na" style="padding:16px">Drift view requires \u226520 evaluation records per judge.</p>';
     return;
   }
   var traces = judges.map(function(j) {
     var seq = seqs[j];
     var rolled = seq.map(function(_, i) {
       if (i < WIN-1) return null;
-      var window = seq.slice(i-WIN+1, i+1);
-      return window.reduce(function(a,b){return a+b;},0) / WIN;
+      var w = seq.slice(i-WIN+1, i+1);
+      return w.reduce(function(a,b){return a+b;},0) / WIN;
     }).filter(function(v){return v !== null;});
     return {name: j, type: 'scatter', mode: 'lines', y: rolled};
   });
