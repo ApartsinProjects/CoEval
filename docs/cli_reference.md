@@ -10,7 +10,7 @@ Complete reference for all `coeval` command-line options.
 coeval <subcommand> [options]
 ```
 
-Subcommands: [`run`](#coeval-run), [`probe`](#coeval-probe), [`plan`](#coeval-plan), [`status`](#coeval-status), [`generate`](#coeval-generate), [`models`](#coeval-models), [`analyze`](#coeval-analyze)
+Subcommands: [`run`](#coeval-run), [`probe`](#coeval-probe), [`plan`](#coeval-plan), [`status`](#coeval-status), [`repair`](#coeval-repair), [`generate`](#coeval-generate), [`models`](#coeval-models), [`analyze`](#coeval-analyze)
 
 ---
 
@@ -270,6 +270,77 @@ coeval status --run benchmark/runs/medium-benchmark-v1
 
 # Check for and apply any completed batch results
 coeval status --run benchmark/runs/medium-benchmark-v1 --fetch-batches
+```
+
+---
+
+## `coeval repair`
+
+Scan Phase 3, 4, and 5 JSONL files for **invalid records** and mark them with
+`status='failed'` so that a subsequent `coeval run --continue` regenerates
+the minimum necessary set — no valid data is discarded.
+
+**What counts as invalid?**
+
+| Phase | File suffix | Invalid when … |
+|-------|-------------|----------------|
+| 3 — datapoints | `.datapoints.jsonl` | `reference_response` is empty/null, or `status='failed'` |
+| 4 — responses | `.responses.jsonl` | `response` is empty/null, or `status='failed'` |
+| 5 — evaluations | `.evaluations.jsonl` | `scores` is empty/all-null, or `status='failed'` |
+
+Any JSONL line that cannot be parsed as JSON is also reported.
+
+**Repair workflow**
+
+```bash
+# Step 1 — scan only (read-only audit, nothing modified)
+coeval repair --run benchmark/runs/my-exp --dry-run
+
+# Step 2 — scan and mark invalid records as failed (in-place file rewrite)
+coeval repair --run benchmark/runs/my-exp
+
+# Step 3 — re-generate the marked records (only the failed ones)
+coeval run --config my-experiment.yaml --continue
+```
+
+After step 2 the affected JSONL files are rewritten with
+`"status": "failed"` added to each invalid record.  The existing
+**Extend-mode skip logic** in phases 3–5 already excludes `status='failed'`
+records, so `--continue` regenerates exactly those records and nothing else.
+
+> **Note:** `coeval repair` only modifies JSONL data files.  It never deletes
+> records, phases, or experiment metadata.  All valid data is fully preserved.
+
+### Required
+
+| Flag | Description |
+|------|-------------|
+| `--run PATH` | Path to the experiment folder (e.g. `benchmark/runs/my-exp`) |
+
+### Optional
+
+| Flag | Description |
+|------|-------------|
+| `--dry-run` | Scan and print a report without modifying any files |
+
+### Exit codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Scan complete (0 or more issues found; files patched if not `--dry-run`) |
+| 1 | Fatal error (experiment folder not found, no `meta.json`, etc.) |
+
+### Examples
+
+```bash
+# Audit a completed experiment without touching files
+coeval repair --run benchmark/runs/medium-benchmark-v1 --dry-run
+
+# Mark any invalid records and prepare for --continue
+coeval repair --run benchmark/runs/medium-benchmark-v1
+
+# Regenerate only the repaired records
+coeval run --config benchmark/medium-benchmark-v1.yaml --continue
 ```
 
 ---

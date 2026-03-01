@@ -6,6 +6,8 @@ run       Execute an evaluation experiment (EER).
 probe     Standalone model availability probe (no experiment phases started).
 plan      Standalone cost/time estimation (no experiment phases started).
 status    Experiment progress dashboard; optionally fetch completed batch results.
+repair    Scan experiment JSONL files for invalid records and mark them for
+          re-generation; follow with `coeval run --continue` to regenerate.
 generate  Run phases 1-2 (attribute + rubric mapping) and write a materialized
           YAML config with static attributes and rubric ready for `coeval run`.
 models    List available text-generation models from each configured provider.
@@ -232,6 +234,26 @@ def _build_parser() -> argparse.ArgumentParser:
         ),
     )
 
+    # ---- coeval repair ----
+    repair_p = sub.add_parser(
+        'repair',
+        help=(
+            'Scan experiment JSONL files for invalid records '
+            'and mark them for re-generation'
+        ),
+    )
+    repair_p.add_argument(
+        '--run', required=True, metavar='PATH',
+        help='Path to the experiment folder (EES run folder)',
+    )
+    repair_p.add_argument(
+        '--dry-run', action='store_true',
+        help=(
+            'Scan and report invalid records without modifying any files. '
+            'Useful for auditing an experiment before committing to repair.'
+        ),
+    )
+
     # ---- coeval generate ----
     gen_p = sub.add_parser(
         'generate',
@@ -370,6 +392,9 @@ def main(argv: list[str] | None = None) -> None:
     elif args.command == 'status':
         from .commands.status_cmd import cmd_status
         cmd_status(args)
+    elif args.command == 'repair':
+        from .commands.repair_cmd import cmd_repair
+        cmd_repair(args)
     elif args.command == 'generate':
         from .commands.generate_cmd import cmd_generate
         cmd_generate(args)

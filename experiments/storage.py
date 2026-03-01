@@ -156,10 +156,26 @@ class ExperimentStorage:
         return self._read_jsonl(self.datapoints_path(task_id, teacher_id))
 
     def count_datapoints(self, task_id: str, teacher_id: str) -> int:
+        """Count valid (non-failed) datapoints for a (task, teacher) pair.
+
+        Records with ``status='failed'`` are excluded so that Extend mode
+        regenerates them on the next ``--continue`` / ``coeval repair`` run.
+        """
         p = self.datapoints_path(task_id, teacher_id)
         if not p.exists():
             return 0
-        return sum(1 for ln in p.read_text(encoding='utf-8').splitlines() if ln.strip())
+        count = 0
+        for ln in p.read_text(encoding='utf-8').splitlines():
+            ln = ln.strip()
+            if not ln:
+                continue
+            try:
+                rec = json.loads(ln)
+                if rec.get('status') != 'failed':
+                    count += 1
+            except Exception:
+                pass  # malformed lines don't count as valid datapoints
+        return count
 
     def index_datapoints(self, task_id: str, teacher_id: str) -> dict[str, dict]:
         """Return dict keyed by datapoint id for fast lookup."""
@@ -335,6 +351,47 @@ class ExperimentStorage:
     def _read_json(self, path: Path) -> Any:
         with open(path, encoding='utf-8') as f:
             return json.load(f)
+
+    def rewrite_jsonl(self, path: Path, records: list[dict]) -> None:
+        """Atomically overwrite a JSONL file with *records*.
+
+        Each record is serialised to a single JSON line.  Existing content is
+        fully replaced.  An empty *records* list produces an empty file.
+        """
+        lines = [json.dumps(r, ensure_ascii=False) for r in records]
+        path.write_text('\n'.join(lines) + ('\n' if lines else ''), encoding='utf-8')
+
+    def mark_failed_records(
+        self, path: Path, record_ids: set[str], id_field: str = 'id'
+    ) -> int:
+        """Rewrite *path* adding ``status='failed'`` to the specified records.
+
+        Records whose *id_field* value is in *record_ids* AND that do not
+        already carry ``status='failed'`` are updated.  Records that cannot be
+        parsed (malformed JSON) are preserved verbatim.
+
+        Returns:
+            The number of records that were newly marked (not already failed).
+        """
+        if not path.exists() or not record_ids:
+            return 0
+        n_marked = 0
+        out_lines: list[str] = []
+        for raw in path.read_text(encoding='utf-8').splitlines():
+            stripped = raw.strip()
+            if not stripped:
+                continue
+            try:
+                rec = json.loads(stripped)
+            except Exception:
+                out_lines.append(stripped)   # keep malformed lines unchanged
+                continue
+            if rec.get(id_field) in record_ids and rec.get('status') != 'failed':
+                rec['status'] = 'failed'
+                n_marked += 1
+            out_lines.append(json.dumps(rec, ensure_ascii=False))
+        path.write_text('\n'.join(out_lines) + ('\n' if out_lines else ''), encoding='utf-8')
+        return n_marked
 
     def _append_jsonl(self, path: Path, record: dict) -> None:
         line = json.dumps(record, ensure_ascii=False)
