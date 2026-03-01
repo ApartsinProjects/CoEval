@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Robust Summary — simple-test-v1</title>
+  <script src="../plotly.min.js"></script>
+  <script>
+const DATA = {"students": ["smollm2-135m", "smollm2-360m"], "aspects": ["accuracy", "conciseness"], "ranking": [{"student": "smollm2-135m", "robust_avg": 0.625, "full_avg": 0.625, "delta": 0.0, "large_delta": false, "valid_robust_evals": 4}, {"student": "smollm2-360m", "robust_avg": 0.375, "full_avg": 0.375, "delta": 0.0, "large_delta": false, "valid_robust_evals": 4}], "asp_student": {"smollm2-135m||accuracy": 0.5, "smollm2-135m||conciseness": 0.75, "smollm2-360m||accuracy": 0.5, "smollm2-360m||conciseness": 0.25}, "coverage_rows": [{"teacher": "gpt-4o-mini", "all_dp": 2, "robust_dp": 2, "pct": 100.0}], "summary": {"agreement_metric": "spa", "judge_selection": "top_half", "J_star": ["gpt-4o-mini"], "n_total_judges": 1, "teacher_formula": "v1", "T_star": ["gpt-4o-mini"], "n_total_teachers": 1, "theta": 1.0, "q": 1, "all_count": 2, "T_star_count": 2, "robust_count": 2, "pct_all": 100.0, "pct_T_star": 100.0}};
+  </script>
+  <style>
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+       background: #f5f5f5; color: #333; }
+#header { background: #1a1a2e; color: #fff; padding: 14px 20px;
+          display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+#header h1 { font-size: 1.1rem; font-weight: 600; }
+.header-meta { font-size: 0.78rem; opacity: 0.8; }
+.header-badge { background: rgba(255,255,255,.15); border-radius: 4px;
+                padding: 2px 8px; font-size: 0.75rem; }
+.partial-notice { background: #f59e0b; color: #000; padding: 8px 20px;
+                  font-size: 0.85rem; font-weight: 500; }
+#filter-panel { background: #fff; border-bottom: 1px solid #e0e0e0;
+                padding: 10px 20px; display: flex; flex-wrap: wrap; gap: 12px;
+                align-items: center; }
+.filter-group { display: flex; align-items: center; gap: 6px; }
+.filter-group label { font-size: 0.8rem; font-weight: 500; color: #555; }
+.filter-group select { font-size: 0.8rem; border: 1px solid #ccc;
+                        border-radius: 4px; padding: 3px 6px; }
+#stats-bar { background: #e8f4f8; padding: 6px 20px; font-size: 0.78rem;
+             color: #555; border-bottom: 1px solid #c9e3ee; }
+#main { padding: 16px 20px; }
+.view-section { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.1);
+                padding: 16px; margin-bottom: 16px; }
+.view-section h2 { font-size: 1rem; font-weight: 600; margin-bottom: 12px; color: #1a1a2e; }
+.view-section p.note { font-size: 0.8rem; color: #666; background: #fffbeb;
+                       border-left: 3px solid #f59e0b; padding: 6px 10px;
+                       margin-bottom: 10px; border-radius: 0 4px 4px 0; }
+.chart-container { min-height: 360px; }
+table.data-table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
+table.data-table th { background: #f0f4f8; text-align: left;
+                       padding: 6px 10px; border-bottom: 2px solid #d0d8e0;
+                       font-weight: 600; color: #444; white-space: nowrap; }
+table.data-table td { padding: 5px 10px; border-bottom: 1px solid #eee; }
+table.data-table tr:hover td { background: #f8f9fb; }
+.warn-flag { color: #d97706; font-size: 0.85em; cursor: help; }
+.degenerate-notice { background: #fef3c7; border: 1px solid #fbbf24;
+                     border-radius: 6px; padding: 10px 14px; margin-bottom: 12px;
+                     font-size: 0.82rem; }
+.na { color: #aaa; font-style: italic; }
+.tag { display: inline-block; font-size: 0.7rem; border-radius: 3px;
+       padding: 1px 5px; margin: 0 2px; }
+.tag-partial { background: #fef3c7; color: #92400e; }
+.tag-completed { background: #d1fae5; color: #065f46; }
+footer { text-align: center; padding: 16px; font-size: 0.75rem; color: #999; }
+
+  </style>
+</head>
+<body>
+
+
+<div id="header">
+  <h1>CoEval EEA &mdash; Robust Student Summary</h1>
+  <span class="header-meta">Experiment: <b>simple-test-v1</b></span>
+  <span class="header-badge tag-completed">completed</span>
+  <span class="header-meta">Tasks: 1</span>
+  <span class="header-meta">Models: 3</span>
+  <span class="header-meta">Datapoints: 2</span>
+  <span class="header-meta">Self-judging: 0</span>
+  <span class="header-meta">Self-teaching: 0</span>
+  <span class="header-meta">Analyzed: 2026-02-24T12:12:16Z</span>
+</div>
+<div id="stats-bar">Total eval records: 4 | Valid: 4 | Invalid: 0</div>
+
+<div id="main">
+
+<div class="view-section" id="v-summary">
+  <h2>View 1 — Robust Filtering Settings</h2>
+  <div id="summary-panel" style="font-family:monospace;font-size:0.85rem;padding:12px;background:#f0f4f8;border-radius:6px"></div>
+</div>
+<div class="view-section">
+  <h2>View 2 — Robust Student Ranking</h2>
+  <div id="v2-table"></div>
+  <p class="note">Students where |Robust − Full| > 0.1 are flagged.</p>
+</div>
+<div class="view-section">
+  <h2>View 3 — Robust vs. Full-Run Score Comparison</h2>
+  <div id="v3-chart" class="chart-container"></div>
+</div>
+<div class="view-section">
+  <h2>View 4 — Robust Aspect Heatmap (Student × Aspect)</h2>
+  <div id="v4-chart" class="chart-container"></div>
+</div>
+<div class="view-section">
+  <h2>View 5 — Coverage Breakdown by Teacher</h2>
+  <div id="v5-table"></div>
+</div>
+<div class="view-section">
+  <p class="note"><b>How to read this report:</b> Robust scores are computed from datapoints
+  where all selected high-quality judges agreed on the student outcomes. A student that
+  ranks the same in both the full-run and robust reports is likely to be genuinely
+  better or worse.</p>
+</div>
+
+</div>
+<footer>Generated by CoEval EEA &mdash; 2026-02-24T12:12:16Z</footer>
+<script>
+
+function getFilter(id) {
+  var el = document.getElementById('flt_' + id);
+  return el ? el.value : '__all__';
+}
+
+function applyFilters() {
+  if (typeof renderAll === 'function') renderAll();
+}
+
+function fmt(v, decimals) {
+  if (v === null || v === undefined) return '<span class="na">N/A</span>';
+  return parseFloat(v).toFixed(decimals !== undefined ? decimals : 3);
+}
+
+function fmtPct(v) {
+  if (v === null || v === undefined) return '<span class="na">N/A</span>';
+  return (parseFloat(v) * 100).toFixed(1) + '%';
+}
+
+function selfFlag(is_self_judging, is_self_teaching) {
+  var flags = [];
+  if (is_self_judging) flags.push('<span class="warn-flag" title="Self-evaluation: judge model = student model.">⚠SJ</span>');
+  if (is_self_teaching) flags.push('<span class="warn-flag" title="Self-teaching: teacher model = student model.">⚠ST</span>');
+  return flags.join(' ');
+}
+
+// Colour helpers
+function scoreColor(v) {
+  if (v === null || v === undefined) return '#eee';
+  var r = Math.round(255 * (1 - v));
+  var g = Math.round(200 * v);
+  return 'rgb(' + r + ',' + g + ',60)';
+}
+
+function renderAll() {
+  renderSummary(); renderV2(); renderV3(); renderV4(); renderV5();
+}
+
+function renderSummary() {
+  var s = DATA.summary;
+  var lines = [
+    'Robust Filtering Settings',
+    '─'.repeat(50),
+    'Agreement metric:      ' + s.agreement_metric + '  (--agreement-metric)',
+    'Judge selection:       ' + s.judge_selection + '  (--judge-selection)',
+    'Selected judges (J*):  [' + s.J_star.join(', ') + ']  (N=' + s.J_star.length + ' of ' + s.n_total_judges + ')',
+    'Teacher formula:       ' + s.teacher_formula + '  (--teacher-score-formula)',
+    'Teacher selection (T*):[' + s.T_star.join(', ') + ']  (N=' + s.T_star.length + ' of ' + s.n_total_teachers + ')',
+    'Agreement threshold θ: ' + s.theta + '  (--agreement-threshold)',
+    'Consistency minimum q: ' + s.q + '  (ceil(|J*|/2))',
+    '',
+    'Coverage impact:',
+    '  All datapoints:      ' + s.all_count,
+    '  From T* only:        ' + s.T_star_count + '  (' + s.pct_all + '% via T* of all)',
+    '  Robust datapoints:   ' + s.robust_count + '  (' + s.pct_T_star + '% of T*, ' + s.pct_all + '% of all)',
+  ];
+  document.getElementById('summary-panel').textContent = lines.join('\n');
+}
+
+function renderV2() {
+  var rows = DATA.ranking;
+  var html = '<table class="data-table"><tr><th>Student</th><th>Robust Avg</th>';
+  html += '<th>Full-Run Avg</th><th>Delta</th><th>Robust Evals</th></tr>';
+  rows.forEach(function(r) {
+    var style = r.large_delta ? 'background:#fff3cd' : '';
+    var flag = r.large_delta
+      ? '<span class="warn-flag" title="Large difference between robust and full-run score.">⚠</span>' : '';
+    html += '<tr style="' + style + '"><td>' + r.student + '</td>';
+    html += '<td>' + fmt(r.robust_avg) + '</td><td>' + fmt(r.full_avg) + '</td>';
+    html += '<td>' + fmt(r.delta) + flag + '</td><td>' + r.valid_robust_evals + '</td></tr>';
+  });
+  document.getElementById('v2-table').innerHTML = html + '</table>';
+}
+
+function renderV3() {
+  var rows = DATA.ranking.filter(function(r){return r.full_avg !== null && r.robust_avg !== null;});
+  if (!rows.length) return;
+  var maxVal = 1.0;
+  Plotly.newPlot('v3-chart', [
+    {type:'scatter', mode:'markers+text',
+     x: rows.map(function(r){return r.full_avg;}),
+     y: rows.map(function(r){return r.robust_avg;}),
+     text: rows.map(function(r){return r.student;}),
+     textposition:'top center',
+     marker:{size:10, color:'#2980b9'},
+     hovertemplate:'%{text}<br>Full: %{x:.3f}<br>Robust: %{y:.3f}<extra></extra>'},
+    {type:'scatter', mode:'lines', x:[0,1], y:[0,1],
+     line:{color:'#aaa', dash:'dash'}, showlegend:false},
+  ], {xaxis:{title:'Full-run avg', range:[0,1.05]},
+      yaxis:{title:'Robust avg', range:[0,1.05]},
+      margin:{t:20}});
+}
+
+function renderV4() {
+  var students = DATA.students;
+  var aspects = DATA.aspects;
+  if (!students.length || !aspects.length) return;
+  var z = students.map(function(s) {
+    return aspects.map(function(a) {
+      var v = DATA.asp_student[s+'||'+a];
+      return v !== undefined ? v : null;
+    });
+  });
+  Plotly.newPlot('v4-chart', [{
+    type:'heatmap', z:z, x:aspects, y:students,
+    colorscale:[[0,'#ffe0e0'],[0.5,'#fff7e0'],[1,'#e0ffe0']],
+    zmin:0, zmax:1,
+  }], {title:'Robust scores (J* judges, D_robust datapoints)', margin:{t:40}});
+}
+
+function renderV5() {
+  var rows = DATA.coverage_rows;
+  var html = '<table class="data-table"><tr><th>Teacher</th><th>All Datapoints</th>';
+  html += '<th>Robust Datapoints</th><th>Coverage%</th></tr>';
+  rows.forEach(function(r) {
+    html += '<tr><td>' + r.teacher + '</td><td>' + r.all_dp + '</td>';
+    html += '<td>' + r.robust_dp + '</td><td>' + r.pct + '%</td></tr>';
+  });
+  document.getElementById('v5-table').innerHTML = html + '</table>';
+}
+
+document.addEventListener('DOMContentLoaded', renderAll);
+
+</script>
+</body>
+</html>

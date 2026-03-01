@@ -262,10 +262,20 @@ function renderV2() {
     });
   });
   Plotly.newPlot('v2-chart', [{
-    type:'heatmap', z:z, x:aspects, y:students,
-    colorscale:[[0,'#ffe0e0'],[0.5,'#fff7e0'],[1,'#e0ffe0']],
-    zmin:0, zmax:1, hoverongaps:false,
-  }], {margin:{t:20}});
+    type: 'heatmap', z: z, x: aspects, y: students,
+    colorscale: [
+      [0,    '#dc2626'], [0.25, '#f97316'], [0.5,  '#fbbf24'],
+      [0.75, '#86efac'], [1,   '#16a34a']
+    ],
+    zmin: 0, zmax: 1, hoverongaps: false,
+    colorbar: { title: 'Score', thickness: 14, len: 0.8 },
+    hovertemplate: 'Student: %{y}<br>Aspect: %{x}<br>Mean score: %{z:.3f}<extra></extra>',
+  }], {
+    xaxis: { tickangle: aspects.length > 5 ? -35 : 0, automargin: true },
+    yaxis: { autorange: 'reversed' },
+    margin: { t: 24, b: 100, l: 100, r: 60 },
+    paper_bgcolor: '#fff', plot_bgcolor: '#fafbfc',
+  }, { responsive: true });
 }
 
 function renderV3() {
@@ -280,18 +290,31 @@ function renderV3() {
     if (!sjMap[k]) sjMap[k] = [];
     sjMap[k].push(u.score_norm);
   });
-  var traces = judges.map(function(j) {
+  var palette = [
+    '#3b82f6','#22c55e','#f59e0b','#ef4444','#8b5cf6',
+    '#06b6d4','#ec4899','#84cc16','#f97316','#14b8a6',
+  ];
+  var traces = judges.map(function(j, ji) {
+    var col = palette[ji % palette.length];
     return {
-      name: j, type:'bar',
+      name: j, type: 'bar',
       x: students,
       y: students.map(function(s) {
         var arr = sjMap[s + '||' + j];
         return arr ? arr.reduce(function(a, b){return a + b;}, 0) / arr.length : 0;
       }),
+      marker: { color: col, line: { color: 'rgba(0,0,0,.08)', width: 1 } },
+      hovertemplate: 'Student: %{x}<br>Judge: ' + j + '<br>Avg score: %{y:.3f}<extra></extra>',
     };
   });
-  Plotly.newPlot('v3-chart', traces,
-    {barmode:'group', yaxis:{title:'Avg Score', range:[0,1]}, margin:{t:20}});
+  Plotly.newPlot('v3-chart', traces, {
+    barmode: 'group',
+    yaxis: { title: 'Mean normalised score (0–1)', range: [0, 1.08], gridcolor: '#f1f5f9' },
+    xaxis: { title: 'Student model', tickangle: students.length > 5 ? -35 : 0 },
+    legend: { orientation: 'h', y: -0.3, x: 0.5, xanchor: 'center', font: { size: 11 } },
+    margin: { t: 24, b: 110, l: 60, r: 20 },
+    paper_bgcolor: '#fff', plot_bgcolor: '#fafbfc',
+  }, { responsive: true });
 }
 
 function renderV4() {
@@ -301,14 +324,30 @@ function renderV4() {
   var attrData = DATA.attr_scores[s] || {};
   var keys = Object.keys(attrData).sort();
   if (!keys.length) {
-    document.getElementById('v4-chart').innerHTML = '<p class="na" style="padding:16px">No attribute data.</p>';
+    document.getElementById('v4-chart').innerHTML =
+      '<p class="na" style="padding:16px">No attribute data for this student.</p>';
     return;
   }
-  var traces = keys.map(function(k) {
-    return {type:'box', name:k, y:attrData[k], boxpoints:'outliers'};
+  var palette = [
+    '#3b82f6','#22c55e','#f59e0b','#ef4444','#8b5cf6',
+    '#06b6d4','#ec4899','#84cc16','#f97316','#14b8a6',
+  ];
+  var traces = keys.map(function(k, ki) {
+    var col = palette[ki % palette.length];
+    return {
+      type: 'box', name: k, y: attrData[k],
+      boxpoints: 'outliers', jitter: 0.3,
+      marker: { color: col, size: 4 },
+      line: { color: col, width: 2 },
+      hovertemplate: '<b>%{x}</b><br>Score: %{y:.3f}<extra></extra>',
+    };
   });
-  Plotly.newPlot('v4-chart', traces,
-    {yaxis:{title:'Score', range:[-.05,1.05]}, margin:{t:20}});
+  Plotly.newPlot('v4-chart', traces, {
+    yaxis: { title: 'Normalised score (0–1)', range: [-0.08, 1.08], gridcolor: '#f1f5f9' },
+    xaxis: { tickangle: keys.length > 5 ? -35 : 0, automargin: true },
+    margin: { t: 24, b: 100, l: 60, r: 20 },
+    paper_bgcolor: '#fff', plot_bgcolor: '#fafbfc',
+  }, { responsive: true });
 }
 
 document.addEventListener('DOMContentLoaded', renderAll);

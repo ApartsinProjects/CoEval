@@ -225,6 +225,9 @@ _VIEWS_HTML = """
 """
 
 _APP_JS = """
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 function getMetric() { return getFilter('metric') || 'spa'; }
 
 function renderAll() {
@@ -274,14 +277,23 @@ function renderV2() {
       return entry ? entry[m] : null;
     });
   });
+  var metricLabel = m.toUpperCase();
+  var zmin = m === 'kappa' ? -1 : 0;
+  var colorscale = m === 'kappa'
+    ? [[0,'#dc2626'],[0.25,'#f97316'],[0.5,'#f3f4f6'],[0.75,'#4ade80'],[1,'#16a34a']]
+    : [[0,'#dc2626'],[0.33,'#fb923c'],[0.5,'#fbbf24'],[0.67,'#84cc16'],[1,'#16a34a']];
   Plotly.newPlot('v2-chart', [{
     type: 'heatmap', z: z, x: judges, y: judges,
-    colorscale: m === 'kappa'
-      ? [[0,'#e74c3c'],[0.5,'#f7f7f7'],[1,'#27ae60']]
-      : [[0,'#e74c3c'],[0.5,'#f7f7f7'],[1,'#27ae60']],
-    zmin: m === 'kappa' ? -1 : 0, zmax: 1,
-    hovertemplate: 'Ja: %{y}<br>Jb: %{x}<br>Value: %{z}<extra></extra>',
-  }], {margin:{t:20}});
+    colorscale: colorscale,
+    zmin: zmin, zmax: 1,
+    colorbar: { title: metricLabel, thickness: 14, len: 0.8 },
+    hovertemplate: 'Judge A: %{y}<br>Judge B: %{x}<br>' + metricLabel + ': %{z:.3f}<extra></extra>',
+  }], {
+    xaxis: { tickangle: judges.length > 4 ? -35 : 0, side: 'bottom' },
+    yaxis: { autorange: 'reversed' },
+    margin: { t: 40, b: 100, l: 100, r: 60 },
+    paper_bgcolor: '#fff', plot_bgcolor: '#fafbfc',
+  }, { responsive: true });
 }
 
 function renderV3() {
@@ -289,23 +301,60 @@ function renderV3() {
   var rows = DATA.aspect_rows;
   if (!rows.length) return;
   var aspects = rows.map(function(r){return r.aspect;});
-  var vals = rows.map(function(r){return r[m];});
+  var vals    = rows.map(function(r){return r[m];});
+  var palette = [
+    '#6366f1','#22c55e','#f59e0b','#ef4444','#06b6d4',
+    '#ec4899','#84cc16','#f97316','#8b5cf6','#14b8a6',
+  ];
+  var colors = aspects.map(function(a, i) { return palette[i % palette.length]; });
+  var metricLabel = m.toUpperCase();
+  var tipMap = DATA.tips && DATA.tips.aspects ? DATA.tips.aspects : {};
+  var hoverLines = aspects.map(function(a, i) {
+    var t = tipMap[a];
+    return '<b>' + escHtml(a) + '</b>'
+      + (t ? '<br><i style="font-size:.85em">' + escHtml(t.substring(0,90)) + '</i>' : '')
+      + '<br>' + metricLabel + ': ' + (vals[i] != null ? vals[i].toFixed(4) : 'N/A');
+  });
   Plotly.newPlot('v3-chart', [{
-    type:'bar', x: aspects, y: vals, marker:{color:'#8e44ad'},
-  }], {yaxis:{title:'Mean ' + m.toUpperCase() + ' across judge pairs', range:[0,1]},
-       margin:{t:20}});
+    type: 'bar', x: aspects, y: vals,
+    marker: { color: colors, line: { color: 'rgba(0,0,0,.1)', width: 1 } },
+    text: hoverLines, hovertemplate: '%{text}<extra></extra>',
+  }], {
+    yaxis: {
+      title: 'Mean ' + metricLabel + ' (0–1)', range: [0, 1.05], gridcolor: '#f1f5f9',
+    },
+    xaxis: { tickangle: aspects.length > 5 ? -35 : 0, automargin: true },
+    margin: { t: 24, b: 100, l: 60, r: 20 },
+    paper_bgcolor: '#fff', plot_bgcolor: '#fafbfc',
+  }, { responsive: true });
 }
 
 function renderV4() {
   var hist = DATA.judge_score_hist;
   var judges = Object.keys(hist);
-  var traces = judges.map(function(j) {
-    return {type:'histogram', name:j, x:hist[j], xbins:{start:0,end:1.01,size:0.1},
-            opacity:0.7};
+  if (!judges.length) return;
+  var palette = [
+    '#3b82f6','#22c55e','#f59e0b','#ef4444','#8b5cf6',
+    '#06b6d4','#ec4899','#84cc16','#f97316','#14b8a6',
+  ];
+  var traces = judges.map(function(j, ji) {
+    var col = palette[ji % palette.length];
+    return {
+      type: 'histogram', name: j, x: hist[j],
+      xbins: { start: 0, end: 1.01, size: 0.1 },
+      opacity: 0.72,
+      marker: { color: col, line: { color: col, width: 1 } },
+      hovertemplate: 'Judge: ' + escHtml(j) + '<br>Score bin: %{x}<br>Count: %{y}<extra></extra>',
+    };
   });
-  Plotly.newPlot('v4-chart', traces,
-    {barmode:'overlay', xaxis:{title:'Score value'},
-     yaxis:{title:'Count'}, margin:{t:20}});
+  Plotly.newPlot('v4-chart', traces, {
+    barmode: 'overlay',
+    xaxis: { title: 'Normalised score value (0=Low, 0.5=Medium, 1=High)', dtick: 0.1 },
+    yaxis: { title: 'Count', gridcolor: '#f1f5f9' },
+    legend: { orientation: 'h', y: -0.25, x: 0.5, xanchor: 'center', font: { size: 11 } },
+    margin: { t: 24, b: 110, l: 60, r: 20 },
+    paper_bgcolor: '#fff', plot_bgcolor: '#fafbfc',
+  }, { responsive: true });
 }
 
 document.addEventListener('DOMContentLoaded', renderAll);

@@ -11,83 +11,154 @@ const DATA = {"judges": ["gpt-3.5-turbo", "gpt-4o-mini", "qwen2p5-0b5", "qwen2p5
   <style>
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-       background: #f5f5f5; color: #333; }
-#header { background: #1a1a2e; color: #fff; padding: 14px 20px;
-          display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
-#header h1 { font-size: 1.1rem; font-weight: 600; }
-.header-meta { font-size: 0.78rem; opacity: 0.8; }
-.header-badge { background: rgba(255,255,255,.15); border-radius: 4px;
-                padding: 2px 8px; font-size: 0.75rem; }
-.partial-notice { background: #f59e0b; color: #000; padding: 8px 20px;
-                  font-size: 0.85rem; font-weight: 500; }
-#filter-panel { background: #fff; border-bottom: 1px solid #e0e0e0;
-                padding: 10px 20px; display: flex; flex-wrap: wrap; gap: 12px;
-                align-items: center; }
-.filter-group { display: flex; align-items: center; gap: 6px; }
-.filter-group label { font-size: 0.8rem; font-weight: 500; color: #555; }
-.filter-group select { font-size: 0.8rem; border: 1px solid #ccc;
-                        border-radius: 4px; padding: 3px 6px; }
-#stats-bar { background: #e8f4f8; padding: 6px 20px; font-size: 0.78rem;
-             color: #555; border-bottom: 1px solid #c9e3ee; }
-#main { padding: 16px 20px; }
-.view-section { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.1);
-                padding: 16px; margin-bottom: 16px; }
-.view-section h2 { font-size: 1rem; font-weight: 600; margin-bottom: 12px; color: #1a1a2e; }
-.view-section p.note { font-size: 0.8rem; color: #666; background: #fffbeb;
-                       border-left: 3px solid #f59e0b; padding: 6px 10px;
-                       margin-bottom: 10px; border-radius: 0 4px 4px 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  background: #f0f4f8; color: #1e293b; font-size: 14px; line-height: 1.5;
+}
+/* ---- Header ---- */
+#header {
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #1e40af 100%);
+  color: #fff; padding: 14px 24px;
+  display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,.35);
+}
+#header h1 { font-size: 1.05rem; font-weight: 700; letter-spacing: 0.01em; }
+#header h1 .report-type { opacity: 0.75; font-weight: 400; }
+.header-meta { font-size: 0.76rem; opacity: 0.78; }
+.header-badge {
+  background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.25);
+  border-radius: 12px; padding: 2px 10px; font-size: 0.72rem; font-weight: 600;
+}
+.header-badge.tag-completed { background: rgba(34,197,94,.25); border-color: rgba(34,197,94,.4); }
+.header-badge.tag-partial   { background: rgba(245,158,11,.25); border-color: rgba(245,158,11,.4); }
+.partial-notice {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  color: #1c1917; padding: 7px 24px; font-size: 0.82rem; font-weight: 600;
+  border-bottom: 2px solid #d97706;
+}
+/* ---- Filter Panel ---- */
+#filter-panel {
+  background: #fff; border-bottom: 1px solid #dde3ed;
+  padding: 9px 24px; display: flex; flex-wrap: wrap; gap: 14px;
+  align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  position: sticky; top: 0; z-index: 100;
+}
+.filter-group { display: flex; align-items: center; gap: 7px; }
+.filter-group label {
+  font-size: 0.76rem; font-weight: 600; color: #475569;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.filter-group select {
+  font-size: 0.8rem; border: 1px solid #cbd5e1; border-radius: 6px;
+  padding: 4px 8px; background: #f8fafc; cursor: pointer; color: #1e293b;
+  transition: border-color .15s;
+}
+.filter-group select:focus { outline: none; border-color: #3b82f6; }
+/* ---- Stats Bar ---- */
+#stats-bar {
+  background: linear-gradient(90deg, #dbeafe 0%, #e0f2fe 100%);
+  padding: 6px 24px; font-size: 0.77rem; color: #1e40af;
+  border-bottom: 1px solid #bfdbfe; letter-spacing: 0.01em;
+}
+/* ---- Main Content ---- */
+#main { padding: 18px 24px; max-width: 1400px; margin: 0 auto; }
+.view-section {
+  background: #fff; border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(15,23,42,.08), 0 0 0 1px rgba(15,23,42,.04);
+  padding: 20px 22px; margin-bottom: 20px;
+  border-top: 3px solid transparent;
+}
+.view-section:hover { border-top-color: #3b82f6; }
+.view-section h2 {
+  font-size: 1rem; font-weight: 700; margin-bottom: 14px; color: #0f172a;
+  display: flex; align-items: center; gap: 8px;
+}
+.view-section h2::before {
+  content: ''; display: inline-block; width: 4px; height: 18px;
+  background: linear-gradient(180deg, #3b82f6, #6366f1);
+  border-radius: 2px; flex-shrink: 0;
+}
+.view-section p.note {
+  font-size: 0.8rem; color: #78350f; background: #fffbeb;
+  border-left: 4px solid #f59e0b; padding: 8px 12px;
+  margin-bottom: 12px; border-radius: 0 6px 6px 0;
+}
 .chart-container { min-height: 360px; }
-table.data-table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
-table.data-table th { background: #f0f4f8; text-align: left;
-                       padding: 6px 10px; border-bottom: 2px solid #d0d8e0;
-                       font-weight: 600; color: #444; white-space: nowrap; }
-table.data-table td { padding: 5px 10px; border-bottom: 1px solid #eee; }
-table.data-table tr:hover td { background: #f8f9fb; }
-.warn-flag { color: #d97706; font-size: 0.85em; cursor: help; }
-.degenerate-notice { background: #fef3c7; border: 1px solid #fbbf24;
-                     border-radius: 6px; padding: 10px 14px; margin-bottom: 12px;
-                     font-size: 0.82rem; }
-.na { color: #aaa; font-style: italic; }
-.tag { display: inline-block; font-size: 0.7rem; border-radius: 3px;
-       padding: 1px 5px; margin: 0 2px; }
-.tag-partial { background: #fef3c7; color: #92400e; }
-.tag-completed { background: #d1fae5; color: #065f46; }
-footer { text-align: center; padding: 16px; font-size: 0.75rem; color: #999; }
+/* ---- Data Tables ---- */
+table.data-table { border-collapse: collapse; width: 100%; font-size: 0.81rem; }
+table.data-table th {
+  background: linear-gradient(180deg, #f1f5f9 0%, #e9eef4 100%);
+  text-align: left; padding: 8px 12px;
+  border-bottom: 2px solid #cbd5e1; border-top: 1px solid #e2e8f0;
+  font-weight: 700; color: #334155; white-space: nowrap;
+  font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em;
+}
+table.data-table td { padding: 6px 12px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+table.data-table tbody tr:nth-child(odd) td  { background: #fafbfc; }
+table.data-table tbody tr:nth-child(even) td { background: #fff; }
+table.data-table tr:hover td { background: #eff6ff !important; }
+/* ---- Utility classes ---- */
+.warn-flag { color: #d97706; font-size: 0.85em; cursor: help; margin-left: 3px; }
+.degenerate-notice {
+  background: linear-gradient(90deg, #fef9c3, #fef3c7);
+  border: 1px solid #fcd34d; border-radius: 8px;
+  padding: 11px 16px; margin-bottom: 14px; font-size: 0.82rem; color: #78350f;
+}
+.na { color: #94a3b8; font-style: italic; }
+.tag { display: inline-block; font-size: 0.7rem; border-radius: 12px;
+       padding: 2px 8px; margin: 0 2px; font-weight: 600; }
+.tag-partial   { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.tag-completed { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+footer {
+  text-align: center; padding: 20px; font-size: 0.74rem; color: #94a3b8;
+  border-top: 1px solid #e2e8f0; margin-top: 8px;
+  background: linear-gradient(180deg, #f8fafc, #f0f4f8);
+}
 /* ---- Collapsible figure explanations ---- */
-details.fig-explain { margin-top: 12px; border-top: 1px dashed #e2e8f0; padding-top: 8px; }
+details.fig-explain {
+  margin-top: 14px; border-top: 1px dashed #e2e8f0; padding-top: 10px;
+}
 details.fig-explain summary {
   font-size: 0.75rem; color: #64748b; cursor: pointer; user-select: none;
-  display: inline-flex; align-items: center; gap: 5px; outline: none;
-  list-style: none;
+  display: inline-flex; align-items: center; gap: 6px; outline: none;
+  list-style: none; padding: 4px 8px; border-radius: 6px;
+  transition: background .12s, color .12s;
 }
 details.fig-explain summary::-webkit-details-marker { display: none; }
-details.fig-explain summary::before { content: "ℹ"; color: #94a3b8; }
-details.fig-explain[open] summary { color: #1e40af; }
-details.fig-explain[open] summary::before { content: "ℹ"; color: #1e40af; }
+details.fig-explain summary::before {
+  content: "ℹ"; color: #94a3b8; font-size: 0.85rem;
+}
+details.fig-explain summary:hover {
+  background: #f1f5f9; color: #1e40af;
+}
+details.fig-explain[open] summary { color: #1e40af; background: #eff6ff; }
+details.fig-explain[open] summary::before { content: "ℹ"; color: #3b82f6; }
 details.fig-explain .explain-body {
-  font-size: 0.78rem; color: #475569; line-height: 1.65; margin-top: 8px;
-  padding: 10px 14px; background: #f8fafc; border-radius: 6px;
-  border-left: 3px solid #94a3b8;
+  font-size: 0.79rem; color: #475569; line-height: 1.7; margin-top: 10px;
+  padding: 12px 16px; background: #f8fafc; border-radius: 8px;
+  border-left: 4px solid #3b82f6;
 }
 details.fig-explain .explain-body b { color: #1e293b; }
 details.fig-explain .explain-body code {
-  background: #e2e8f0; padding: 1px 4px; border-radius: 3px; font-size: 0.85em;
+  background: #e2e8f0; padding: 1px 5px; border-radius: 4px;
+  font-size: 0.84em; font-family: 'SF Mono', 'Fira Code', monospace;
 }
 /* ---- Inline definition tooltips ---- */
 [data-tip] {
-  border-bottom: 1px dotted #94a3b8; cursor: help; position: relative;
+  border-bottom: 1px dashed #93c5fd; cursor: help; position: relative;
+  text-decoration-skip-ink: none;
 }
 [data-tip]::after {
   content: attr(data-tip);
   position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%);
-  white-space: normal; max-width: 300px; min-width: 140px;
-  background: #1e293b; color: #f1f5f9;
-  font-size: 0.72rem; font-weight: 400; line-height: 1.5;
-  padding: 6px 10px; border-radius: 6px;
-  box-shadow: 0 4px 14px rgba(0,0,0,.3);
+  white-space: normal; max-width: 320px; min-width: 160px;
+  background: #0f172a; color: #e2e8f0;
+  font-size: 0.72rem; font-weight: 400; line-height: 1.55;
+  padding: 8px 12px; border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.4), 0 0 0 1px rgba(99,102,241,.3);
   z-index: 9999; opacity: 0; pointer-events: none;
-  transition: opacity .15s ease;
+  transition: opacity .18s ease;
 }
 [data-tip]:hover::after { opacity: 1; }
 
@@ -97,15 +168,14 @@ details.fig-explain .explain-body code {
 
 
 <div id="header">
-  <h1>CoEval EEA &mdash; Judge Model Score Report</h1>
-  <span class="header-meta">Experiment: <b>medium-benchmark-v1</b></span>
+  <h1>CoEval EEA &nbsp;·&nbsp; <span class="report-type">Judge Model Score Report</span></h1>
+  <span class="header-meta">Experiment:&nbsp;<b>medium-benchmark-v1</b></span>
   <span class="header-badge tag-completed">completed</span>
-  <span class="header-meta">Tasks: 4</span>
-  <span class="header-meta">Models: 5</span>
-  <span class="header-meta">Datapoints: 397</span>
-  <span class="header-meta">Self-judging: 1592</span>
-  <span class="header-meta">Self-teaching: 1599</span>
-  <span class="header-meta">Analyzed: 2026-03-01T09:44:14Z</span>
+  <span class="header-meta">Tasks:&nbsp;4</span>
+  <span class="header-meta">Models:&nbsp;5</span>
+  <span class="header-meta">Datapoints:&nbsp;397</span>
+   <span class="header-badge" title="Self-judging evaluations detected">⚠ 1592 self-judging</span> <span class="header-badge" title="Self-teaching evaluations detected">⚠ 1599 self-teaching</span>
+  <span class="header-meta" style="margin-left:auto;opacity:.6">Analyzed:&nbsp;2026-03-01T10:17:30Z</span>
 </div>
 <div id="stats-bar">Total eval records: 7987 | Valid: 7978 | Invalid: 9</div>
 <div id="filter-panel">
@@ -182,7 +252,7 @@ details.fig-explain .explain-body code {
 </div>
 
 </div>
-<footer>Generated by CoEval EEA &mdash; 2026-03-01T09:44:14Z</footer>
+<footer>Generated by CoEval EEA &mdash; 2026-03-01T10:17:30Z</footer>
 <script>
 
 function getFilter(id) {
@@ -219,6 +289,9 @@ function scoreColor(v) {
   return 'rgb(' + r + ',' + g + ',60)';
 }
 
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 function getMetric() { return getFilter('metric') || 'spa'; }
 
 function renderAll() {
@@ -268,14 +341,23 @@ function renderV2() {
       return entry ? entry[m] : null;
     });
   });
+  var metricLabel = m.toUpperCase();
+  var zmin = m === 'kappa' ? -1 : 0;
+  var colorscale = m === 'kappa'
+    ? [[0,'#dc2626'],[0.25,'#f97316'],[0.5,'#f3f4f6'],[0.75,'#4ade80'],[1,'#16a34a']]
+    : [[0,'#dc2626'],[0.33,'#fb923c'],[0.5,'#fbbf24'],[0.67,'#84cc16'],[1,'#16a34a']];
   Plotly.newPlot('v2-chart', [{
     type: 'heatmap', z: z, x: judges, y: judges,
-    colorscale: m === 'kappa'
-      ? [[0,'#e74c3c'],[0.5,'#f7f7f7'],[1,'#27ae60']]
-      : [[0,'#e74c3c'],[0.5,'#f7f7f7'],[1,'#27ae60']],
-    zmin: m === 'kappa' ? -1 : 0, zmax: 1,
-    hovertemplate: 'Ja: %{y}<br>Jb: %{x}<br>Value: %{z}<extra></extra>',
-  }], {margin:{t:20}});
+    colorscale: colorscale,
+    zmin: zmin, zmax: 1,
+    colorbar: { title: metricLabel, thickness: 14, len: 0.8 },
+    hovertemplate: 'Judge A: %{y}<br>Judge B: %{x}<br>' + metricLabel + ': %{z:.3f}<extra></extra>',
+  }], {
+    xaxis: { tickangle: judges.length > 4 ? -35 : 0, side: 'bottom' },
+    yaxis: { autorange: 'reversed' },
+    margin: { t: 40, b: 100, l: 100, r: 60 },
+    paper_bgcolor: '#fff', plot_bgcolor: '#fafbfc',
+  }, { responsive: true });
 }
 
 function renderV3() {
@@ -283,23 +365,60 @@ function renderV3() {
   var rows = DATA.aspect_rows;
   if (!rows.length) return;
   var aspects = rows.map(function(r){return r.aspect;});
-  var vals = rows.map(function(r){return r[m];});
+  var vals    = rows.map(function(r){return r[m];});
+  var palette = [
+    '#6366f1','#22c55e','#f59e0b','#ef4444','#06b6d4',
+    '#ec4899','#84cc16','#f97316','#8b5cf6','#14b8a6',
+  ];
+  var colors = aspects.map(function(a, i) { return palette[i % palette.length]; });
+  var metricLabel = m.toUpperCase();
+  var tipMap = DATA.tips && DATA.tips.aspects ? DATA.tips.aspects : {};
+  var hoverLines = aspects.map(function(a, i) {
+    var t = tipMap[a];
+    return '<b>' + escHtml(a) + '</b>'
+      + (t ? '<br><i style="font-size:.85em">' + escHtml(t.substring(0,90)) + '</i>' : '')
+      + '<br>' + metricLabel + ': ' + (vals[i] != null ? vals[i].toFixed(4) : 'N/A');
+  });
   Plotly.newPlot('v3-chart', [{
-    type:'bar', x: aspects, y: vals, marker:{color:'#8e44ad'},
-  }], {yaxis:{title:'Mean ' + m.toUpperCase() + ' across judge pairs', range:[0,1]},
-       margin:{t:20}});
+    type: 'bar', x: aspects, y: vals,
+    marker: { color: colors, line: { color: 'rgba(0,0,0,.1)', width: 1 } },
+    text: hoverLines, hovertemplate: '%{text}<extra></extra>',
+  }], {
+    yaxis: {
+      title: 'Mean ' + metricLabel + ' (0–1)', range: [0, 1.05], gridcolor: '#f1f5f9',
+    },
+    xaxis: { tickangle: aspects.length > 5 ? -35 : 0, automargin: true },
+    margin: { t: 24, b: 100, l: 60, r: 20 },
+    paper_bgcolor: '#fff', plot_bgcolor: '#fafbfc',
+  }, { responsive: true });
 }
 
 function renderV4() {
   var hist = DATA.judge_score_hist;
   var judges = Object.keys(hist);
-  var traces = judges.map(function(j) {
-    return {type:'histogram', name:j, x:hist[j], xbins:{start:0,end:1.01,size:0.1},
-            opacity:0.7};
+  if (!judges.length) return;
+  var palette = [
+    '#3b82f6','#22c55e','#f59e0b','#ef4444','#8b5cf6',
+    '#06b6d4','#ec4899','#84cc16','#f97316','#14b8a6',
+  ];
+  var traces = judges.map(function(j, ji) {
+    var col = palette[ji % palette.length];
+    return {
+      type: 'histogram', name: j, x: hist[j],
+      xbins: { start: 0, end: 1.01, size: 0.1 },
+      opacity: 0.72,
+      marker: { color: col, line: { color: col, width: 1 } },
+      hovertemplate: 'Judge: ' + escHtml(j) + '<br>Score bin: %{x}<br>Count: %{y}<extra></extra>',
+    };
   });
-  Plotly.newPlot('v4-chart', traces,
-    {barmode:'overlay', xaxis:{title:'Score value'},
-     yaxis:{title:'Count'}, margin:{t:20}});
+  Plotly.newPlot('v4-chart', traces, {
+    barmode: 'overlay',
+    xaxis: { title: 'Normalised score value (0=Low, 0.5=Medium, 1=High)', dtick: 0.1 },
+    yaxis: { title: 'Count', gridcolor: '#f1f5f9' },
+    legend: { orientation: 'h', y: -0.25, x: 0.5, xanchor: 'center', font: { size: 11 } },
+    margin: { t: 24, b: 110, l: 60, r: 20 },
+    paper_bgcolor: '#fff', plot_bgcolor: '#fafbfc',
+  }, { responsive: true });
 }
 
 document.addEventListener('DOMContentLoaded', renderAll);

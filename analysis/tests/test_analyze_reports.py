@@ -230,6 +230,187 @@ class TestCoverageSummary:
         assert out_dir.is_dir()
 
 
+class TestCoverageSummaryUX:
+    """UX and content validation for the redesigned coverage_summary report
+    (3 interactive stacked-bar charts + experiment overview panel)."""
+
+    def test_three_chart_divs_present(self, tmp_path, minimal_model, fake_plotly_cache):
+        """Teacher/student/judge chart divs must all be present."""
+        from analysis.reports.coverage import write_coverage_summary
+        out_dir = tmp_path / 'cov_divs'
+        write_coverage_summary(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert 'teacher-coverage-chart' in html, "teacher-coverage-chart missing"
+        assert 'student-coverage-chart' in html, "student-coverage-chart missing"
+        assert 'judge-coverage-chart' in html, "judge-coverage-chart missing"
+
+    def test_stack_selects_present(self, tmp_path, minimal_model, fake_plotly_cache):
+        """Each chart must have a 'Stack by' select control."""
+        from analysis.reports.coverage import write_coverage_summary
+        out_dir = tmp_path / 'cov_sels'
+        write_coverage_summary(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert 'teacher-stack-sel' in html, "teacher-stack-sel missing"
+        assert 'student-stack-sel' in html, "student-stack-sel missing"
+        assert 'judge-stack-sel' in html, "judge-stack-sel missing"
+
+    def test_render_functions_present(self, tmp_path, minimal_model, fake_plotly_cache):
+        """Core JS rendering functions must be defined."""
+        from analysis.reports.coverage import write_coverage_summary
+        out_dir = tmp_path / 'cov_fns'
+        write_coverage_summary(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        for fn in ('renderTeacherCoverage', 'renderStudentCoverage', 'renderJudgeCoverage',
+                   '_renderStackedBar', '_populateDimSelect'):
+            assert fn in html, f"JS function '{fn}' missing"
+
+    def test_data_stacks_present(self, tmp_path, minimal_model, fake_plotly_cache):
+        """DATA must contain teacher_stacks, student_stacks, and judge_stacks."""
+        from analysis.reports.coverage import write_coverage_summary
+        out_dir = tmp_path / 'cov_stacks'
+        write_coverage_summary(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        assert 'teacher_stacks' in data, "teacher_stacks missing"
+        assert 'student_stacks' in data, "student_stacks missing"
+        assert 'judge_stacks' in data, "judge_stacks missing"
+
+    def test_data_dims_present(self, tmp_path, minimal_model, fake_plotly_cache):
+        """DATA must contain teacher_dims, student_dims, judge_dims."""
+        from analysis.reports.coverage import write_coverage_summary
+        out_dir = tmp_path / 'cov_dims'
+        write_coverage_summary(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        assert 'teacher_dims' in data, "teacher_dims missing"
+        assert 'student_dims' in data, "student_dims missing"
+        assert 'judge_dims' in data, "judge_dims missing"
+
+    def test_judge_dims_include_teacher_stacking(self, tmp_path, minimal_model, fake_plotly_cache):
+        """judge_dims must include 'teacher' as an extra stacking option."""
+        from analysis.reports.coverage import write_coverage_summary
+        out_dir = tmp_path / 'cov_judgedim'
+        write_coverage_summary(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        assert 'teacher' in data.get('judge_dims', []), "'teacher' missing from judge_dims"
+
+    def test_teacher_dims_do_not_include_teacher(self, tmp_path, minimal_model, fake_plotly_cache):
+        """teacher_dims must NOT include 'teacher' (no self-stacking)."""
+        from analysis.reports.coverage import write_coverage_summary
+        out_dir = tmp_path / 'cov_no_self'
+        write_coverage_summary(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        # teacher_dims should have 'task' and attr keys, but not 'teacher' itself
+        assert 'task' in data.get('teacher_dims', [])
+
+    def test_data_meta_panel_present(self, tmp_path, minimal_model, fake_plotly_cache):
+        """DATA.meta_panel must contain experiment metadata fields."""
+        from analysis.reports.coverage import write_coverage_summary
+        out_dir = tmp_path / 'cov_meta'
+        write_coverage_summary(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        assert 'meta_panel' in data, "meta_panel missing"
+        mp = data['meta_panel']
+        for field in ('experiment_id', 'tasks', 'teachers', 'students', 'judges',
+                      'datapoints', 'total_evals', 'valid_evals'):
+            assert field in mp, f"meta_panel missing field '{field}'"
+
+    def test_stat_grid_and_timeline_containers(self, tmp_path, minimal_model, fake_plotly_cache):
+        """Overview section must have stat-grid and phase-timeline containers."""
+        from analysis.reports.coverage import write_coverage_summary
+        out_dir = tmp_path / 'cov_grid'
+        write_coverage_summary(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert 'stat-grid-container' in html, "stat-grid-container missing"
+        assert 'phase-timeline-container' in html, "phase-timeline-container missing"
+
+    def test_four_fig_explain_sections(self, tmp_path, minimal_model, fake_plotly_cache):
+        """Coverage report has 4 fig-explain sections (overview + 3 charts)."""
+        from analysis.reports.coverage import write_coverage_summary
+        out_dir = tmp_path / 'cov_explain'
+        write_coverage_summary(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        count = html.count('class="fig-explain"')
+        assert count >= 4, f"Need >= 4 fig-explain sections, got {count}"
+
+    def test_tips_in_data(self, tmp_path, minimal_model, fake_plotly_cache):
+        """DATA.tips must be present for hover tooltips."""
+        from analysis.reports.coverage import write_coverage_summary
+        out_dir = tmp_path / 'cov_tips'
+        write_coverage_summary(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        assert 'tips' in data, "tips missing from DATA"
+
+    def test_dim_labels_present(self, tmp_path, minimal_model, fake_plotly_cache):
+        """DATA.dim_labels must map dimension names to human-readable labels."""
+        from analysis.reports.coverage import write_coverage_summary
+        out_dir = tmp_path / 'cov_dimlbls'
+        write_coverage_summary(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        assert 'dim_labels' in data, "dim_labels missing"
+        assert 'task' in data['dim_labels'], "'task' missing from dim_labels"
+
+    def test_teacher_stacks_contain_task_dim(self, tmp_path, minimal_model, fake_plotly_cache):
+        """teacher_stacks['task'] must have data for teacher T1."""
+        from analysis.reports.coverage import write_coverage_summary
+        out_dir = tmp_path / 'cov_t1'
+        write_coverage_summary(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        teacher_task = data['teacher_stacks'].get('task', {})
+        assert 'T1' in teacher_task, "T1 not in teacher_stacks['task']"
+
+    def test_no_responses_still_renders(self, tmp_path, minimal_model, fake_plotly_cache):
+        """Coverage report must not crash when there are no student responses."""
+        from analysis.reports.coverage import write_coverage_summary
+        minimal_model.responses.clear()
+        out_dir = tmp_path / 'cov_no_resp'
+        write_coverage_summary(minimal_model, out_dir)
+        assert (out_dir / 'index.html').exists()
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert len(html) > 300
+
+    def test_no_eval_records_still_renders(self, tmp_path, minimal_model, fake_plotly_cache):
+        """Coverage report must not crash when there are no eval records."""
+        from analysis.reports.coverage import write_coverage_summary
+        minimal_model.eval_records.clear()
+        out_dir = tmp_path / 'cov_no_evals'
+        write_coverage_summary(minimal_model, out_dir)
+        assert (out_dir / 'index.html').exists()
+
+    def test_view_sections_present(self, tmp_path, minimal_model, fake_plotly_cache):
+        """All four view sections must be present (meta + 3 charts)."""
+        from analysis.reports.coverage import write_coverage_summary
+        out_dir = tmp_path / 'cov_vsect'
+        write_coverage_summary(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert 'id="view-meta"' in html, "view-meta section missing"
+        assert 'id="view-teacher"' in html, "view-teacher section missing"
+        assert 'id="view-student"' in html, "view-student section missing"
+        assert 'id="view-judge"' in html, "view-judge section missing"
+
+    def test_stat_card_css_defined(self, tmp_path, minimal_model, fake_plotly_cache):
+        """The .stat-card CSS class must be defined for the overview panel."""
+        from analysis.reports.coverage import write_coverage_summary
+        out_dir = tmp_path / 'cov_statcss'
+        write_coverage_summary(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert '.stat-card' in html, ".stat-card CSS missing"
+
+    def test_phase_badge_css_defined(self, tmp_path, minimal_model, fake_plotly_cache):
+        """The .phase-badge CSS class must be defined for the phase timeline."""
+        from analysis.reports.coverage import write_coverage_summary
+        out_dir = tmp_path / 'cov_phasecss'
+        write_coverage_summary(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert '.phase-badge' in html, ".phase-badge CSS missing"
+
+
 # ---------------------------------------------------------------------------
 # Score Distribution — REQ-A-7.3
 # ---------------------------------------------------------------------------
@@ -853,61 +1034,286 @@ class TestStudentReportUX:
 
 
 class TestScoreDistributionUX:
-    """Bug-fix and UX regression tests for score_dist.py."""
+    """UX and regression tests for the redesigned score_dist.py (3 charts, aggregation selects,
+    help-icon tooltips, target-attribute cross-aggregation)."""
 
-    def test_v4_toggle_button_present(self, tmp_path, minimal_model, fake_plotly_cache):
-        """V4 must have a toggle button to switch between heatmap and drift views."""
+    def test_three_chart_divs_present(self, tmp_path, minimal_model, fake_plotly_cache):
+        """The three distribution charts must have correct div IDs."""
         from analysis.reports.score_dist import write_score_distribution
-        out_dir = tmp_path / 'sd'
+        out_dir = tmp_path / 'sd_divs'
         write_score_distribution(minimal_model, out_dir)
         html = (out_dir / 'index.html').read_text(encoding='utf-8')
-        assert 'v4-toggle-btn' in html, "V4 toggle button missing"
-        assert 'toggleV4Mode' in html, "toggleV4Mode() function missing"
+        assert 'student-dist-chart' in html, "student-dist-chart div missing"
+        assert 'teacher-dist-chart' in html, "teacher-dist-chart div missing"
+        assert 'judge-dist-chart' in html, "judge-dist-chart div missing"
 
-    def test_v3_no_data_message_when_no_attrs(self, tmp_path, minimal_model, fake_plotly_cache):
-        """When no sampled_target_attributes exist, V3 must show an informative message."""
+    def test_six_select_controls_present(self, tmp_path, minimal_model, fake_plotly_cache):
+        """Each chart must have an agg and level select control (6 selects total)."""
         from analysis.reports.score_dist import write_score_distribution
-        # Remove target attrs
-        minimal_model.target_attrs_by_task.clear()
-        for dp in minimal_model.datapoints.values():
-            dp.pop('sampled_target_attributes', None)
-        out_dir = tmp_path / 'sd_noattr'
+        out_dir = tmp_path / 'sd_selects'
         write_score_distribution(minimal_model, out_dir)
         html = (out_dir / 'index.html').read_text(encoding='utf-8')
-        # renderV3 shows a message when attrLabels is empty; the message text is in the JS
-        assert 'sampled_target_attributes' in html
+        for sel_id in ('s1-agg', 's2-agg', 's3-agg',
+                       's1-level', 's2-level', 's3-level'):
+            assert sel_id in html, f"Select id='{sel_id}' missing"
 
-    def test_v4_heatmap_function_present(self, tmp_path, minimal_model, fake_plotly_cache):
-        """renderV4Heatmap() must be defined — always-visible judge×aspect heatmap."""
+    def test_render_functions_present(self, tmp_path, minimal_model, fake_plotly_cache):
+        """Core JS render functions must be defined."""
         from analysis.reports.score_dist import write_score_distribution
-        out_dir = tmp_path / 'sd2'
+        out_dir = tmp_path / 'sd_fns'
         write_score_distribution(minimal_model, out_dir)
         html = (out_dir / 'index.html').read_text(encoding='utf-8')
-        assert 'renderV4Heatmap' in html, "renderV4Heatmap() function missing"
+        for fn in ('renderStudent', 'renderTeacher', 'renderJudge',
+                   '_renderDistChart', '_getAggValue', '_populateAgg', 'renderAll'):
+            assert fn in html, f"JS function '{fn}' missing"
+
+    def test_help_icon_css_present(self, tmp_path, minimal_model, fake_plotly_cache):
+        """The .help-icon CSS class must be defined with hover tooltip styles."""
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd_css'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert '.help-icon' in html, ".help-icon CSS class missing"
+        assert 'data-tip' in html, "data-tip attribute missing"
+
+    def test_help_icons_with_tooltips(self, tmp_path, minimal_model, fake_plotly_cache):
+        """Each chart title must have a help icon (3 minimum)."""
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd_helpicons'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        count = html.count('class="help-icon"')
+        assert count >= 3, f"Expected >= 3 help icons, got {count}"
+
+    def test_data_contains_agg_dims(self, tmp_path, minimal_model, fake_plotly_cache):
+        """DATA.agg_dims must be a non-empty list."""
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd_agg'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        assert 'agg_dims' in data, "agg_dims missing from DATA"
+        assert isinstance(data['agg_dims'], list), "agg_dims must be a list"
+        assert len(data['agg_dims']) >= 5, (
+            "agg_dims must have at least aspect/judge/teacher/student/task"
+        )
+
+    def test_agg_dims_includes_standard_dimensions(self, tmp_path, minimal_model, fake_plotly_cache):
+        """agg_dims must include all 5 standard dimensions."""
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd_std_dims'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        for dim in ('aspect', 'judge', 'teacher', 'student', 'task'):
+            assert dim in data['agg_dims'], f"Standard dim '{dim}' missing from agg_dims"
+
+    def test_agg_dims_includes_target_attr_keys(self, tmp_path, minimal_model, fake_plotly_cache):
+        """agg_dims must include target attribute keys discovered from datapoints."""
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd_attr_dims'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        # minimal_model has 'sentiment' as target attr
+        assert 'sentiment' in data['agg_dims'], (
+            "Target attr key 'sentiment' missing from agg_dims"
+        )
+
+    def test_data_all_units_have_attrs_field(self, tmp_path, minimal_model, fake_plotly_cache):
+        """Every unit in DATA.all_units must have an 'attrs' dict for attribute join."""
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd_unit_attrs'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        assert 'all_units' in data, "all_units missing from DATA"
+        for i, u in enumerate(data['all_units']):
+            assert 'attrs' in u, f"Unit {i} missing 'attrs' field"
+            assert isinstance(u['attrs'], dict), f"Unit {i} 'attrs' must be a dict"
+
+    def test_units_attrs_populated_from_datapoints(self, tmp_path, minimal_model, fake_plotly_cache):
+        """Units must have attrs populated from the datapoint join."""
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd_join'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        units_with_attrs = [u for u in data['all_units'] if u.get('attrs')]
+        assert len(units_with_attrs) > 0, "No units have attrs populated from datapoints"
+        # Verify sentiment values come through correctly
+        sentiment_vals = {u['attrs'].get('sentiment') for u in units_with_attrs
+                         if 'sentiment' in u['attrs']}
+        assert 'positive' in sentiment_vals or 'negative' in sentiment_vals, (
+            "Expected sentiment attribute values from datapoints"
+        )
 
     def test_data_contains_judges(self, tmp_path, minimal_model, fake_plotly_cache):
-        """DATA.judges must be present (used by V4 heatmap)."""
+        """DATA.judges must list all judge models."""
         from analysis.reports.score_dist import write_score_distribution
-        out_dir = tmp_path / 'sd3'
+        out_dir = tmp_path / 'sd_judges'
         write_score_distribution(minimal_model, out_dir)
         html = (out_dir / 'index.html').read_text(encoding='utf-8')
         data = _get_data_json(html)
         assert 'judges' in data, "judges missing from DATA"
+        assert 'J1' in data['judges'], "J1 missing from judges list"
+        assert 'J2' in data['judges'], "J2 missing from judges list"
 
     def test_data_contains_tooltip_tips(self, tmp_path, minimal_model, fake_plotly_cache):
+        """DATA.tips must be present for rubric/task/attr hover tooltips."""
         from analysis.reports.score_dist import write_score_distribution
-        out_dir = tmp_path / 'sd4'
+        out_dir = tmp_path / 'sd_tips'
         write_score_distribution(minimal_model, out_dir)
         html = (out_dir / 'index.html').read_text(encoding='utf-8')
         data = _get_data_json(html)
-        assert 'tips' in data
+        assert 'tips' in data, "tips missing from DATA"
 
-    def test_html_has_fig_explain_sections(self, tmp_path, minimal_model, fake_plotly_cache):
+    def test_data_contains_attr_keys(self, tmp_path, minimal_model, fake_plotly_cache):
+        """DATA.attr_keys must list discovered target attribute keys."""
         from analysis.reports.score_dist import write_score_distribution
-        out_dir = tmp_path / 'sd5'
+        out_dir = tmp_path / 'sd_attrkeys'
         write_score_distribution(minimal_model, out_dir)
         html = (out_dir / 'index.html').read_text(encoding='utf-8')
-        assert html.count('class="fig-explain"') >= 4
+        data = _get_data_json(html)
+        assert 'attr_keys' in data, "attr_keys missing from DATA"
+        assert 'sentiment' in data['attr_keys'], "'sentiment' must be in attr_keys"
+
+    def test_three_fig_explain_sections(self, tmp_path, minimal_model, fake_plotly_cache):
+        """Score distribution report must have >= 3 fig-explain collapsible sections."""
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd_explain'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        count = html.count('class="fig-explain"')
+        assert count >= 3, f"Need >= 3 fig-explain sections, got {count}"
+
+    def test_three_view_sections_present(self, tmp_path, minimal_model, fake_plotly_cache):
+        """Three view sections (view-student, view-teacher, view-judge) must exist."""
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd_views'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert 'id="view-student"' in html, "view-student section missing"
+        assert 'id="view-teacher"' in html, "view-teacher section missing"
+        assert 'id="view-judge"' in html, "view-judge section missing"
+
+    def test_filteredunits_function_present(self, tmp_path, minimal_model, fake_plotly_cache):
+        """filteredUnits() must be present for cross-filter support."""
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd_filter'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert 'filteredUnits' in html, "filteredUnits() function missing"
+
+    def test_no_units_still_creates_html(self, tmp_path, minimal_model, fake_plotly_cache):
+        """Report generation with no units must not crash and create valid HTML."""
+        from analysis.reports.score_dist import write_score_distribution
+        minimal_model.units[:] = []
+        out_dir = tmp_path / 'sd_no_units'
+        write_score_distribution(minimal_model, out_dir)
+        assert (out_dir / 'index.html').exists()
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert len(html) > 300
+
+    def test_no_target_attrs_still_creates_html(self, tmp_path, minimal_model, fake_plotly_cache):
+        """Report with no target attributes must not crash; agg_dims keeps standard dims."""
+        from analysis.reports.score_dist import write_score_distribution
+        minimal_model.target_attrs_by_task.clear()
+        for dp in minimal_model.datapoints.values():
+            dp.pop('sampled_target_attributes', None)
+        out_dir = tmp_path / 'sd_no_attrs'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        assert data.get('attr_keys') == [], "attr_keys must be empty list when no attrs"
+        for dim in ('aspect', 'judge', 'teacher', 'student', 'task'):
+            assert dim in data['agg_dims'], f"Standard dim '{dim}' missing when no attrs"
+
+    def test_unit_score_fields_present(self, tmp_path, minimal_model, fake_plotly_cache):
+        """DATA.all_units must include score, score_norm, task, teacher, student, judge, aspect."""
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd_unitfields'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        required_fields = ('score', 'score_norm', 'task', 'teacher', 'student',
+                           'judge', 'aspect', 'attrs')
+        for u in data['all_units']:
+            for field in required_fields:
+                assert field in u, f"Unit missing field '{field}'"
+            assert u['score'] in ('High', 'Medium', 'Low'), f"Bad score value: {u['score']}"
+            assert isinstance(u['score_norm'], (int, float)), "score_norm must be numeric"
+
+    def test_score_level_options_in_html(self, tmp_path, minimal_model, fake_plotly_cache):
+        """Score level dropdowns must include High, Medium, Low and mean options."""
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd_levelopts'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        for opt in ('High', 'Medium', 'Low', 'mean'):
+            assert f'value="{opt}"' in html, f"Score level option '{opt}' missing"
+
+    def test_get_agg_value_handles_attrs(self, tmp_path, minimal_model, fake_plotly_cache):
+        """_getAggValue must fall through to u.attrs for target attribute keys."""
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd_getagg'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert 'u.attrs' in html, "_getAggValue attrs lookup missing from JS"
+
+    def test_about_this_figure_in_each_chart(self, tmp_path, minimal_model, fake_plotly_cache):
+        """Each chart must have an 'About this figure' collapsible section."""
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd_about'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        count = html.count('About this figure')
+        assert count >= 3, f"Need >= 3 'About this figure' sections, got {count}"
+
+    def test_sd_controls_style_present(self, tmp_path, minimal_model, fake_plotly_cache):
+        """The .sd-controls CSS class must be defined for chart controls layout."""
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd_ctrl_css'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert '.sd-controls' in html, ".sd-controls CSS missing"
+
+    def test_dim_label_function_present(self, tmp_path, minimal_model, fake_plotly_cache):
+        """_dimLabel() helper must be defined for human-readable axis labels."""
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd_dimlabel'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        assert '_dimLabel' in html, "_dimLabel() function missing"
+
+    def test_data_contains_aspects(self, tmp_path, minimal_model, fake_plotly_cache):
+        """DATA.aspects must list rubric aspects for tooltip support."""
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd_aspects'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        assert 'aspects' in data, "aspects missing from DATA"
+        assert 'acc' in data['aspects']
+        assert 'fmt' in data['aspects']
+
+    def test_multiple_judges_each_in_data(self, tmp_path, minimal_model, fake_plotly_cache):
+        """With two judges (J1, J2), both must appear in DATA.judges."""
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd_multijudge'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        assert set(data['judges']) == {'J1', 'J2'}
+
+    def test_multiple_students_each_in_data(self, tmp_path, minimal_model, fake_plotly_cache):
+        """With two students (S1, S2), both must appear in DATA.students."""
+        from analysis.reports.score_dist import write_score_distribution
+        out_dir = tmp_path / 'sd_multistudent'
+        write_score_distribution(minimal_model, out_dir)
+        html = (out_dir / 'index.html').read_text(encoding='utf-8')
+        data = _get_data_json(html)
+        assert set(data['students']) == {'S1', 'S2'}
 
 
 class TestSummaryReportUX:

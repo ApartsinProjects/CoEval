@@ -6,88 +6,159 @@
   <title>Coverage Summary — medium-benchmark-v1</title>
   <script src="../plotly.min.js"></script>
   <script>
-const DATA = {"coverage_rows": [{"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 30, "valid": 30, "invalid": 0, "coverage_pct": 150.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 30, "valid": 30, "invalid": 0, "coverage_pct": 150.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 19, "valid": 18, "invalid": 1, "coverage_pct": 90.0, "errors": "INCOMPLETE_SCORES:1"}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 19, "valid": 18, "invalid": 1, "coverage_pct": 90.0, "errors": "INCOMPLETE_SCORES:1"}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 19, "valid": 19, "invalid": 0, "coverage_pct": 95.0, "errors": ""}, {"task": "code_explanation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 19, "valid": 17, "invalid": 2, "coverage_pct": 85.0, "errors": "INCOMPLETE_SCORES:2"}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 18, "valid": 18, "invalid": 0, "coverage_pct": 90.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 18, "valid": 18, "invalid": 0, "coverage_pct": 90.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 18, "valid": 18, "invalid": 0, "coverage_pct": 90.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 18, "valid": 17, "invalid": 1, "coverage_pct": 85.0, "errors": "INCOMPLETE_SCORES:1"}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 18, "valid": 18, "invalid": 0, "coverage_pct": 90.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 18, "valid": 18, "invalid": 0, "coverage_pct": 90.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 18, "valid": 18, "invalid": 0, "coverage_pct": 90.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 18, "valid": 17, "invalid": 1, "coverage_pct": 85.0, "errors": "INCOMPLETE_SCORES:1"}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 19, "invalid": 1, "coverage_pct": 95.0, "errors": "INCOMPLETE_SCORES:1"}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 19, "invalid": 1, "coverage_pct": 95.0, "errors": "INCOMPLETE_SCORES:1"}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "data_interpretation", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 19, "invalid": 1, "coverage_pct": 95.0, "errors": "INCOMPLETE_SCORES:1"}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "email_composition", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "qwen2p5-0b5", "expected": 20, "actual": 3, "valid": 3, "invalid": 0, "coverage_pct": 15.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-3.5-turbo", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "gpt-4o-mini", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-0b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "qwen2p5-1b5", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-3.5-turbo", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "gpt-4o-mini", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-0b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "qwen2p5-1b5", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-3.5-turbo", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "gpt-4o-mini", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "qwen2p5-1b5", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}, {"task": "text_summarization", "teacher": "smollm2-1b7", "student": "smollm2-1b7", "judge": "smollm2-1b7", "expected": 20, "actual": 20, "valid": 20, "invalid": 0, "coverage_pct": 100.0, "errors": ""}], "waterfall": [{"task": "code_explanation", "datapoints": 99, "responses": 495, "eval_actual": 2000, "eval_valid": 1996}, {"task": "data_interpretation", "datapoints": 98, "responses": 490, "eval_actual": 1984, "eval_valid": 1979}, {"task": "email_composition", "datapoints": 100, "responses": 500, "eval_actual": 2000, "eval_valid": 2000}, {"task": "text_summarization", "datapoints": 100, "responses": 500, "eval_actual": 2003, "eval_valid": 2003}], "error_totals": {"INCOMPLETE_SCORES": 9}, "meta_panel": {"experiment_id": "medium-benchmark-v1", "status": "completed", "created_at": "2026-02-24T12:22:23Z", "updated_at": "2026-03-01T07:28:19Z", "phases_completed": ["attribute_mapping", "rubric_mapping", "data_generation", "response_collection", "evaluation"], "phases_in_progress": [], "tasks": 4, "teachers": 5, "students": 5, "judges": 5, "datapoints": 397, "total_evals": 7987, "valid_evals": 7978}};
+const DATA = {"teachers": ["gpt-3.5-turbo", "gpt-4o-mini", "qwen2p5-0b5", "qwen2p5-1b5", "smollm2-1b7"], "students": ["gpt-3.5-turbo", "gpt-4o-mini", "qwen2p5-0b5", "qwen2p5-1b5", "smollm2-1b7"], "judges": ["gpt-3.5-turbo", "gpt-4o-mini", "qwen2p5-0b5", "qwen2p5-1b5", "smollm2-1b7"], "teacher_stacks": {"task": {"gpt-3.5-turbo": {"code_explanation": 20, "data_interpretation": 20, "email_composition": 20, "text_summarization": 20}, "gpt-4o-mini": {"code_explanation": 20, "data_interpretation": 20, "email_composition": 20, "text_summarization": 20}, "qwen2p5-0b5": {"code_explanation": 20, "data_interpretation": 20, "email_composition": 20, "text_summarization": 20}, "qwen2p5-1b5": {"code_explanation": 20, "data_interpretation": 20, "email_composition": 20, "text_summarization": 20}, "smollm2-1b7": {"code_explanation": 19, "data_interpretation": 18, "email_composition": 20, "text_summarization": 20}}, "depth": {"gpt-3.5-turbo": {"deep_dive": 3, "(none)": 77}, "gpt-4o-mini": {"(none)": 76, "surface": 2, "deep_dive": 2}, "qwen2p5-0b5": {"(none)": 75, "surface": 2, "standard": 2, "deep_dive": 1}, "qwen2p5-1b5": {"(none)": 77, "standard": 2, "deep_dive": 1}, "smollm2-1b7": {"standard": 3, "(none)": 72, "surface": 2}}, "explanation_style": {"gpt-3.5-turbo": {"conceptual_overview": 3, "annotated_walkthrough": 3, "(none)": 72, "example_driven": 1, "step_by_step": 1}, "gpt-4o-mini": {"(none)": 73, "annotated_walkthrough": 2, "step_by_step": 1, "conceptual_overview": 4}, "qwen2p5-0b5": {"step_by_step": 1, "(none)": 75, "annotated_walkthrough": 2, "conceptual_overview": 2}, "qwen2p5-1b5": {"conceptual_overview": 3, "annotated_walkthrough": 4, "(none)": 71, "example_driven": 1, "step_by_step": 1}, "smollm2-1b7": {"(none)": 75, "conceptual_overview": 1, "annotated_walkthrough": 1}}, "complexity": {"gpt-3.5-turbo": {"(none)": 67, "advanced": 2, "beginner": 3, "multivariate_statistical": 1, "simple": 2, "technical": 3, "complex": 1, "moderate": 1}, "gpt-4o-mini": {"(none)": 66, "intermediate": 3, "beginner": 1, "single_variable": 4, "complex": 2, "simple": 3, "moderate": 1}, "qwen2p5-0b5": {"(none)": 59, "beginner": 3, "intermediate": 2, "multivariate_statistical": 5, "single_variable": 2, "moderate": 2, "simple": 2, "complex": 2, "technical": 3}, "qwen2p5-1b5": {"(none)": 62, "beginner": 4, "advanced": 2, "single_variable": 1, "multivariate_statistical": 2, "bivariate_comparison": 2, "technical": 2, "complex": 2, "moderate": 1, "simple": 2}, "smollm2-1b7": {"(none)": 55, "intermediate": 2, "beginner": 2, "advanced": 2, "multivariate_statistical": 3, "single_variable": 2, "moderate": 2, "complex": 3, "simple": 3, "technical": 3}}, "audience": {"gpt-3.5-turbo": {"(none)": 62, "junior_developer": 2, "non_technical": 1, "technical_specialist": 1, "data_analyst": 1, "general_public": 3, "executive": 2, "student": 3, "expert": 3, "professional": 2}, "gpt-4o-mini": {"(none)": 67, "junior_developer": 3, "senior_engineer": 2, "general_public": 3, "executive": 1, "data_analyst": 1, "technical_specialist": 1, "expert": 1, "professional": 1}, "qwen2p5-0b5": {"(none)": 59, "non_technical": 1, "junior_developer": 2, "senior_engineer": 4, "data_analyst": 2, "technical_specialist": 2, "executive": 1, "general_public": 3, "professional": 3, "expert": 1, "student": 2}, "qwen2p5-1b5": {"(none)": 63, "senior_engineer": 2, "novice_programmer": 2, "executive": 3, "technical_specialist": 2, "data_analyst": 1, "expert": 3, "general_public": 3, "student": 1}, "smollm2-1b7": {"(none)": 58, "non_technical": 2, "senior_engineer": 1, "novice_programmer": 1, "technical_specialist": 4, "executive": 1, "data_analyst": 1, "general_public": 4, "professional": 3, "student": 1, "expert": 1}}, "language": {"gpt-3.5-turbo": {"(none)": 75, "python": 2, "bash": 2, "java": 1}, "gpt-4o-mini": {"javascript": 1, "(none)": 76, "java": 1, "bash": 1, "python": 1}, "qwen2p5-0b5": {"(none)": 75, "python": 3, "bash": 1, "java": 1}, "qwen2p5-1b5": {"(none)": 76, "javascript": 1, "java": 1, "python": 1, "sql": 1}, "smollm2-1b7": {"(none)": 69, "sql": 3, "javascript": 1, "python": 1, "java": 1, "bash": 2}}, "snippet_type": {"gpt-3.5-turbo": {"(none)": 77, "function": 1, "shell_script": 1, "class_definition": 1}, "gpt-4o-mini": {"(none)": 73, "shell_script": 3, "database_query": 1, "function": 2, "class_definition": 1}, "qwen2p5-0b5": {"(none)": 75, "database_query": 1, "class_definition": 1, "algorithm": 1, "function": 1, "shell_script": 1}, "qwen2p5-1b5": {"function": 3, "algorithm": 4, "(none)": 72, "shell_script": 1}, "smollm2-1b7": {"function": 1, "(none)": 70, "database_query": 2, "algorithm": 1, "shell_script": 2, "class_definition": 1}}, "domain": {"gpt-3.5-turbo": {"(none)": 74, "sales_revenue": 2, "demographics": 2, "financial_markets": 2}, "gpt-4o-mini": {"(none)": 73, "financial_markets": 3, "sales_revenue": 2, "demographics": 1, "climate": 1}, "qwen2p5-0b5": {"(none)": 76, "financial_markets": 1, "public_health": 1, "climate": 2}, "qwen2p5-1b5": {"(none)": 75, "climate": 4, "public_health": 1}, "smollm2-1b7": {"(none)": 71, "public_health": 3, "demographics": 2, "sales_revenue": 1}}, "trend_type": {"gpt-3.5-turbo": {"(none)": 72, "seasonal_cycle": 1, "upward_growth": 2, "flat_stable": 3, "anomalous_spike": 2}, "gpt-4o-mini": {"(none)": 76, "downward_decline": 3, "seasonal_cycle": 1}, "qwen2p5-0b5": {"(none)": 75, "downward_decline": 1, "anomalous_spike": 1, "upward_growth": 2, "seasonal_cycle": 1}, "qwen2p5-1b5": {"(none)": 75, "downward_decline": 1, "anomalous_spike": 2, "seasonal_cycle": 1, "upward_growth": 1}, "smollm2-1b7": {"(none)": 75, "anomalous_spike": 1, "flat_stable": 1}}, "data_type": {"gpt-3.5-turbo": {"(none)": 77, "bar_chart": 1, "scatter_plot": 1, "heatmap": 1}, "gpt-4o-mini": {"(none)": 75, "histogram": 2, "bar_chart": 1, "line_graph": 2}, "qwen2p5-0b5": {"(none)": 76, "pivot_table": 1, "heatmap": 2, "line_graph": 1}, "qwen2p5-1b5": {"(none)": 77, "scatter_plot": 1, "heatmap": 2}, "smollm2-1b7": {"(none)": 70, "pivot_table": 1, "scatter_plot": 1, "histogram": 3, "bar_chart": 2}}, "insight_depth": {"gpt-3.5-turbo": {"(none)": 76, "predictive_inference": 1, "analytical_interpretation": 1, "surface_observation": 2}, "gpt-4o-mini": {"(none)": 77, "analytical_interpretation": 2, "predictive_inference": 1}, "qwen2p5-0b5": {"(none)": 74, "analytical_interpretation": 2, "surface_observation": 3, "predictive_inference": 1}, "qwen2p5-1b5": {"(none)": 77, "analytical_interpretation": 2, "predictive_inference": 1}, "smollm2-1b7": {"(none)": 74, "surface_observation": 2, "predictive_inference": 1}}, "urgency": {"gpt-3.5-turbo": {"(none)": 74, "low": 1, "high": 2, "critical": 1, "medium": 2}, "gpt-4o-mini": {"(none)": 74, "low": 2, "medium": 4}, "qwen2p5-0b5": {"(none)": 72, "low": 2, "medium": 2, "critical": 3, "high": 1}, "qwen2p5-1b5": {"(none)": 75, "low": 2, "critical": 2, "high": 1}, "smollm2-1b7": {"(none)": 70, "low": 3, "medium": 2, "high": 2}}, "formality": {"gpt-3.5-turbo": {"(none)": 72, "executive": 2, "manager_to_report": 2, "report_to_manager": 1, "peer_to_peer": 3}, "gpt-4o-mini": {"(none)": 79, "executive": 1}, "qwen2p5-0b5": {"(none)": 76, "report_to_manager": 2, "executive": 2}, "qwen2p5-1b5": {"(none)": 71, "executive": 1, "external_client": 4, "peer_to_peer": 1, "manager_to_report": 2, "report_to_manager": 1}, "smollm2-1b7": {"(none)": 72, "report_to_manager": 1, "external_client": 2, "peer_to_peer": 2}}, "tone": {"gpt-3.5-turbo": {"(none)": 71, "casual": 2, "formal": 3, "empathetic": 1, "critical": 1, "neutral": 1, "conversational": 1}, "gpt-4o-mini": {"(none)": 67, "formal": 7, "assertive": 1, "neutral": 2, "critical": 2, "conversational": 1}, "qwen2p5-0b5": {"(none)": 68, "assertive": 1, "formal": 5, "casual": 1, "empathetic": 1, "semi_formal": 1, "critical": 1, "conversational": 2}, "qwen2p5-1b5": {"(none)": 63, "assertive": 2, "empathetic": 2, "casual": 2, "semi_formal": 1, "neutral": 2, "conversational": 4, "critical": 2, "formal": 2}, "smollm2-1b7": {"(none)": 61, "empathetic": 2, "assertive": 3, "casual": 3, "formal": 4, "semi_formal": 1, "critical": 3}}, "length": {"gpt-3.5-turbo": {"(none)": 69, "standard": 3, "detailed": 4, "moderate": 1, "brief": 3}, "gpt-4o-mini": {"(none)": 67, "brief": 5, "standard": 2, "detailed": 4, "moderate": 2}, "qwen2p5-0b5": {"(none)": 72, "brief": 6, "detailed": 2}, "qwen2p5-1b5": {"(none)": 70, "detailed": 2, "brief": 4, "standard": 1, "moderate": 3}, "smollm2-1b7": {"(none)": 73, "detailed": 2, "brief": 2}}, "purpose": {"gpt-3.5-turbo": {"(none)": 72, "information_request": 1, "proposal": 2, "complaint_resolution": 2, "project_update": 2, "follow_up": 1}, "gpt-4o-mini": {"(none)": 75, "complaint_resolution": 2, "information_request": 2, "project_update": 1}, "qwen2p5-0b5": {"(none)": 73, "information_request": 2, "follow_up": 1, "proposal": 2, "complaint_resolution": 1, "project_update": 1}, "qwen2p5-1b5": {"(none)": 76, "complaint_resolution": 2, "information_request": 2}, "smollm2-1b7": {"(none)": 71, "follow_up": 2, "project_update": 1, "proposal": 1, "complaint_resolution": 2}}, "format": {"gpt-3.5-turbo": {"(none)": 74, "bullet_points": 2, "paragraph": 4}, "gpt-4o-mini": {"(none)": 75, "paragraph": 3, "headline_and_body": 1, "bullet_points": 1}, "qwen2p5-0b5": {"(none)": 77, "headline_and_body": 2, "paragraph": 1}, "qwen2p5-1b5": {"(none)": 74, "paragraph": 1, "bullet_points": 1, "headline_and_body": 4}, "smollm2-1b7": {"(none)": 74, "bullet_points": 2, "headline_and_body": 1}}}, "student_stacks": {"task": {"gpt-3.5-turbo": {"code_explanation": 99, "data_interpretation": 98, "email_composition": 100, "text_summarization": 100}, "gpt-4o-mini": {"code_explanation": 99, "data_interpretation": 98, "email_composition": 100, "text_summarization": 100}, "qwen2p5-0b5": {"code_explanation": 99, "data_interpretation": 98, "email_composition": 100, "text_summarization": 100}, "qwen2p5-1b5": {"code_explanation": 99, "data_interpretation": 98, "email_composition": 100, "text_summarization": 100}, "smollm2-1b7": {"code_explanation": 99, "data_interpretation": 98, "email_composition": 100, "text_summarization": 100}}, "depth": {"gpt-3.5-turbo": {"deep_dive": 7, "(none)": 377, "surface": 6, "standard": 7}, "gpt-4o-mini": {"deep_dive": 7, "(none)": 377, "surface": 6, "standard": 7}, "qwen2p5-0b5": {"deep_dive": 7, "(none)": 377, "surface": 6, "standard": 7}, "qwen2p5-1b5": {"deep_dive": 7, "(none)": 377, "surface": 6, "standard": 7}, "smollm2-1b7": {"deep_dive": 7, "(none)": 377, "surface": 6, "standard": 7}}, "explanation_style": {"gpt-3.5-turbo": {"conceptual_overview": 13, "annotated_walkthrough": 12, "(none)": 366, "example_driven": 2, "step_by_step": 4}, "gpt-4o-mini": {"conceptual_overview": 13, "annotated_walkthrough": 12, "(none)": 366, "example_driven": 2, "step_by_step": 4}, "qwen2p5-0b5": {"conceptual_overview": 13, "annotated_walkthrough": 12, "(none)": 366, "example_driven": 2, "step_by_step": 4}, "qwen2p5-1b5": {"conceptual_overview": 13, "annotated_walkthrough": 12, "(none)": 366, "example_driven": 2, "step_by_step": 4}, "smollm2-1b7": {"conceptual_overview": 13, "annotated_walkthrough": 12, "(none)": 366, "example_driven": 2, "step_by_step": 4}}, "complexity": {"gpt-3.5-turbo": {"(none)": 309, "advanced": 6, "beginner": 13, "intermediate": 7, "multivariate_statistical": 11, "single_variable": 9, "bivariate_comparison": 2, "simple": 12, "technical": 11, "complex": 10, "moderate": 7}, "gpt-4o-mini": {"(none)": 309, "advanced": 6, "beginner": 13, "intermediate": 7, "multivariate_statistical": 11, "single_variable": 9, "bivariate_comparison": 2, "simple": 12, "technical": 11, "complex": 10, "moderate": 7}, "qwen2p5-0b5": {"(none)": 309, "advanced": 6, "beginner": 13, "intermediate": 7, "multivariate_statistical": 11, "single_variable": 9, "bivariate_comparison": 2, "simple": 12, "technical": 11, "complex": 10, "moderate": 7}, "qwen2p5-1b5": {"(none)": 309, "advanced": 6, "beginner": 13, "intermediate": 7, "multivariate_statistical": 11, "single_variable": 9, "bivariate_comparison": 2, "simple": 12, "technical": 11, "complex": 10, "moderate": 7}, "smollm2-1b7": {"(none)": 309, "advanced": 6, "beginner": 13, "intermediate": 7, "multivariate_statistical": 11, "single_variable": 9, "bivariate_comparison": 2, "simple": 12, "technical": 11, "complex": 10, "moderate": 7}}, "audience": {"gpt-3.5-turbo": {"(none)": 309, "junior_developer": 7, "non_technical": 4, "senior_engineer": 9, "novice_programmer": 3, "technical_specialist": 10, "data_analyst": 6, "general_public": 16, "executive": 8, "student": 7, "expert": 9, "professional": 9}, "gpt-4o-mini": {"(none)": 309, "junior_developer": 7, "non_technical": 4, "senior_engineer": 9, "novice_programmer": 3, "technical_specialist": 10, "data_analyst": 6, "general_public": 16, "executive": 8, "student": 7, "expert": 9, "professional": 9}, "qwen2p5-0b5": {"(none)": 309, "junior_developer": 7, "non_technical": 4, "senior_engineer": 9, "novice_programmer": 3, "technical_specialist": 10, "data_analyst": 6, "general_public": 16, "executive": 8, "student": 7, "expert": 9, "professional": 9}, "qwen2p5-1b5": {"(none)": 309, "junior_developer": 7, "non_technical": 4, "senior_engineer": 9, "novice_programmer": 3, "technical_specialist": 10, "data_analyst": 6, "general_public": 16, "executive": 8, "student": 7, "expert": 9, "professional": 9}, "smollm2-1b7": {"(none)": 309, "junior_developer": 7, "non_technical": 4, "senior_engineer": 9, "novice_programmer": 3, "technical_specialist": 10, "data_analyst": 6, "general_public": 16, "executive": 8, "student": 7, "expert": 9, "professional": 9}}, "language": {"gpt-3.5-turbo": {"(none)": 371, "python": 8, "bash": 6, "java": 5, "javascript": 3, "sql": 4}, "gpt-4o-mini": {"(none)": 371, "python": 8, "bash": 6, "java": 5, "javascript": 3, "sql": 4}, "qwen2p5-0b5": {"(none)": 371, "python": 8, "bash": 6, "java": 5, "javascript": 3, "sql": 4}, "qwen2p5-1b5": {"(none)": 371, "python": 8, "bash": 6, "java": 5, "javascript": 3, "sql": 4}, "smollm2-1b7": {"(none)": 371, "python": 8, "bash": 6, "java": 5, "javascript": 3, "sql": 4}}, "snippet_type": {"gpt-3.5-turbo": {"(none)": 367, "function": 8, "shell_script": 8, "class_definition": 4, "database_query": 4, "algorithm": 6}, "gpt-4o-mini": {"(none)": 367, "function": 8, "shell_script": 8, "class_definition": 4, "database_query": 4, "algorithm": 6}, "qwen2p5-0b5": {"(none)": 367, "function": 8, "shell_script": 8, "class_definition": 4, "database_query": 4, "algorithm": 6}, "qwen2p5-1b5": {"(none)": 367, "function": 8, "shell_script": 8, "class_definition": 4, "database_query": 4, "algorithm": 6}, "smollm2-1b7": {"(none)": 367, "function": 8, "shell_script": 8, "class_definition": 4, "database_query": 4, "algorithm": 6}}, "domain": {"gpt-3.5-turbo": {"(none)": 369, "sales_revenue": 5, "demographics": 5, "financial_markets": 6, "climate": 7, "public_health": 5}, "gpt-4o-mini": {"(none)": 369, "sales_revenue": 5, "demographics": 5, "financial_markets": 6, "climate": 7, "public_health": 5}, "qwen2p5-0b5": {"(none)": 369, "sales_revenue": 5, "demographics": 5, "financial_markets": 6, "climate": 7, "public_health": 5}, "qwen2p5-1b5": {"(none)": 369, "sales_revenue": 5, "demographics": 5, "financial_markets": 6, "climate": 7, "public_health": 5}, "smollm2-1b7": {"(none)": 369, "sales_revenue": 5, "demographics": 5, "financial_markets": 6, "climate": 7, "public_health": 5}}, "trend_type": {"gpt-3.5-turbo": {"(none)": 373, "seasonal_cycle": 4, "upward_growth": 5, "flat_stable": 4, "anomalous_spike": 6, "downward_decline": 5}, "gpt-4o-mini": {"(none)": 373, "seasonal_cycle": 4, "upward_growth": 5, "flat_stable": 4, "anomalous_spike": 6, "downward_decline": 5}, "qwen2p5-0b5": {"(none)": 373, "seasonal_cycle": 4, "upward_growth": 5, "flat_stable": 4, "anomalous_spike": 6, "downward_decline": 5}, "qwen2p5-1b5": {"(none)": 373, "seasonal_cycle": 4, "upward_growth": 5, "flat_stable": 4, "anomalous_spike": 6, "downward_decline": 5}, "smollm2-1b7": {"(none)": 373, "seasonal_cycle": 4, "upward_growth": 5, "flat_stable": 4, "anomalous_spike": 6, "downward_decline": 5}}, "data_type": {"gpt-3.5-turbo": {"(none)": 375, "bar_chart": 4, "scatter_plot": 3, "heatmap": 5, "histogram": 5, "line_graph": 3, "pivot_table": 2}, "gpt-4o-mini": {"(none)": 375, "bar_chart": 4, "scatter_plot": 3, "heatmap": 5, "histogram": 5, "line_graph": 3, "pivot_table": 2}, "qwen2p5-0b5": {"(none)": 375, "bar_chart": 4, "scatter_plot": 3, "heatmap": 5, "histogram": 5, "line_graph": 3, "pivot_table": 2}, "qwen2p5-1b5": {"(none)": 375, "bar_chart": 4, "scatter_plot": 3, "heatmap": 5, "histogram": 5, "line_graph": 3, "pivot_table": 2}, "smollm2-1b7": {"(none)": 375, "bar_chart": 4, "scatter_plot": 3, "heatmap": 5, "histogram": 5, "line_graph": 3, "pivot_table": 2}}, "insight_depth": {"gpt-3.5-turbo": {"(none)": 378, "predictive_inference": 5, "analytical_interpretation": 7, "surface_observation": 7}, "gpt-4o-mini": {"(none)": 378, "predictive_inference": 5, "analytical_interpretation": 7, "surface_observation": 7}, "qwen2p5-0b5": {"(none)": 378, "predictive_inference": 5, "analytical_interpretation": 7, "surface_observation": 7}, "qwen2p5-1b5": {"(none)": 378, "predictive_inference": 5, "analytical_interpretation": 7, "surface_observation": 7}, "smollm2-1b7": {"(none)": 378, "predictive_inference": 5, "analytical_interpretation": 7, "surface_observation": 7}}, "urgency": {"gpt-3.5-turbo": {"(none)": 365, "low": 10, "high": 6, "critical": 6, "medium": 10}, "gpt-4o-mini": {"(none)": 365, "low": 10, "high": 6, "critical": 6, "medium": 10}, "qwen2p5-0b5": {"(none)": 365, "low": 10, "high": 6, "critical": 6, "medium": 10}, "qwen2p5-1b5": {"(none)": 365, "low": 10, "high": 6, "critical": 6, "medium": 10}, "smollm2-1b7": {"(none)": 365, "low": 10, "high": 6, "critical": 6, "medium": 10}}, "formality": {"gpt-3.5-turbo": {"(none)": 370, "executive": 6, "manager_to_report": 4, "report_to_manager": 5, "peer_to_peer": 6, "external_client": 6}, "gpt-4o-mini": {"(none)": 370, "executive": 6, "manager_to_report": 4, "report_to_manager": 5, "peer_to_peer": 6, "external_client": 6}, "qwen2p5-0b5": {"(none)": 370, "executive": 6, "manager_to_report": 4, "report_to_manager": 5, "peer_to_peer": 6, "external_client": 6}, "qwen2p5-1b5": {"(none)": 370, "executive": 6, "manager_to_report": 4, "report_to_manager": 5, "peer_to_peer": 6, "external_client": 6}, "smollm2-1b7": {"(none)": 370, "executive": 6, "manager_to_report": 4, "report_to_manager": 5, "peer_to_peer": 6, "external_client": 6}}, "tone": {"gpt-3.5-turbo": {"(none)": 330, "casual": 8, "formal": 21, "empathetic": 6, "assertive": 7, "semi_formal": 3, "critical": 9, "neutral": 5, "conversational": 8}, "gpt-4o-mini": {"(none)": 330, "casual": 8, "formal": 21, "empathetic": 6, "assertive": 7, "semi_formal": 3, "critical": 9, "neutral": 5, "conversational": 8}, "qwen2p5-0b5": {"(none)": 330, "casual": 8, "formal": 21, "empathetic": 6, "assertive": 7, "semi_formal": 3, "critical": 9, "neutral": 5, "conversational": 8}, "qwen2p5-1b5": {"(none)": 330, "casual": 8, "formal": 21, "empathetic": 6, "assertive": 7, "semi_formal": 3, "critical": 9, "neutral": 5, "conversational": 8}, "smollm2-1b7": {"(none)": 330, "casual": 8, "formal": 21, "empathetic": 6, "assertive": 7, "semi_formal": 3, "critical": 9, "neutral": 5, "conversational": 8}}, "length": {"gpt-3.5-turbo": {"(none)": 351, "standard": 6, "detailed": 14, "brief": 20, "moderate": 6}, "gpt-4o-mini": {"(none)": 351, "standard": 6, "detailed": 14, "brief": 20, "moderate": 6}, "qwen2p5-0b5": {"(none)": 351, "standard": 6, "detailed": 14, "brief": 20, "moderate": 6}, "qwen2p5-1b5": {"(none)": 351, "standard": 6, "detailed": 14, "brief": 20, "moderate": 6}, "smollm2-1b7": {"(none)": 351, "standard": 6, "detailed": 14, "brief": 20, "moderate": 6}}, "purpose": {"gpt-3.5-turbo": {"(none)": 367, "information_request": 7, "proposal": 5, "complaint_resolution": 9, "project_update": 5, "follow_up": 4}, "gpt-4o-mini": {"(none)": 367, "information_request": 7, "proposal": 5, "complaint_resolution": 9, "project_update": 5, "follow_up": 4}, "qwen2p5-0b5": {"(none)": 367, "information_request": 7, "proposal": 5, "complaint_resolution": 9, "project_update": 5, "follow_up": 4}, "qwen2p5-1b5": {"(none)": 367, "information_request": 7, "proposal": 5, "complaint_resolution": 9, "project_update": 5, "follow_up": 4}, "smollm2-1b7": {"(none)": 367, "information_request": 7, "proposal": 5, "complaint_resolution": 9, "project_update": 5, "follow_up": 4}}, "format": {"gpt-3.5-turbo": {"(none)": 374, "bullet_points": 6, "paragraph": 9, "headline_and_body": 8}, "gpt-4o-mini": {"(none)": 374, "bullet_points": 6, "paragraph": 9, "headline_and_body": 8}, "qwen2p5-0b5": {"(none)": 374, "bullet_points": 6, "paragraph": 9, "headline_and_body": 8}, "qwen2p5-1b5": {"(none)": 374, "bullet_points": 6, "paragraph": 9, "headline_and_body": 8}, "smollm2-1b7": {"(none)": 374, "bullet_points": 6, "paragraph": 9, "headline_and_body": 8}}}, "judge_stacks": {"task": {"gpt-3.5-turbo": {"code_explanation": 505, "data_interpretation": 496, "email_composition": 500, "text_summarization": 500}, "gpt-4o-mini": {"code_explanation": 505, "data_interpretation": 496, "email_composition": 500, "text_summarization": 500}, "qwen2p5-0b5": {"text_summarization": 3}, "qwen2p5-1b5": {"code_explanation": 495, "data_interpretation": 496, "email_composition": 500, "text_summarization": 500}, "smollm2-1b7": {"code_explanation": 491, "data_interpretation": 491, "email_composition": 500, "text_summarization": 500}}, "depth": {"gpt-3.5-turbo": {"deep_dive": 37, "(none)": 1898, "surface": 31, "standard": 35}, "gpt-4o-mini": {"deep_dive": 37, "(none)": 1898, "surface": 31, "standard": 35}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"deep_dive": 35, "(none)": 1891, "surface": 30, "standard": 35}, "smollm2-1b7": {"deep_dive": 35, "(none)": 1882, "surface": 30, "standard": 35}}, "explanation_style": {"gpt-3.5-turbo": {"conceptual_overview": 67, "annotated_walkthrough": 62, "(none)": 1841, "example_driven": 10, "step_by_step": 21}, "gpt-4o-mini": {"conceptual_overview": 67, "annotated_walkthrough": 62, "(none)": 1841, "example_driven": 10, "step_by_step": 21}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"conceptual_overview": 65, "annotated_walkthrough": 60, "(none)": 1836, "example_driven": 10, "step_by_step": 20}, "smollm2-1b7": {"conceptual_overview": 65, "annotated_walkthrough": 57, "(none)": 1830, "example_driven": 10, "step_by_step": 20}}, "complexity": {"gpt-3.5-turbo": {"(none)": 1554, "advanced": 30, "beginner": 65, "intermediate": 36, "multivariate_statistical": 61, "single_variable": 45, "bivariate_comparison": 10, "simple": 60, "technical": 55, "complex": 50, "moderate": 35}, "gpt-4o-mini": {"(none)": 1554, "advanced": 30, "beginner": 65, "intermediate": 36, "multivariate_statistical": 61, "single_variable": 45, "bivariate_comparison": 10, "simple": 60, "technical": 55, "complex": 50, "moderate": 35}, "qwen2p5-0b5": {"(none)": 1, "simple": 1, "technical": 1}, "qwen2p5-1b5": {"(none)": 1545, "advanced": 30, "beginner": 65, "intermediate": 35, "multivariate_statistical": 61, "single_variable": 45, "bivariate_comparison": 10, "simple": 60, "technical": 55, "complex": 50, "moderate": 35}, "smollm2-1b7": {"(none)": 1536, "advanced": 30, "beginner": 65, "intermediate": 35, "multivariate_statistical": 61, "single_variable": 45, "bivariate_comparison": 10, "simple": 60, "technical": 55, "complex": 50, "moderate": 35}}, "audience": {"gpt-3.5-turbo": {"(none)": 1556, "junior_developer": 36, "non_technical": 20, "senior_engineer": 46, "novice_programmer": 15, "technical_specialist": 50, "data_analyst": 33, "general_public": 80, "executive": 40, "student": 35, "expert": 45, "professional": 45}, "gpt-4o-mini": {"(none)": 1556, "junior_developer": 36, "non_technical": 20, "senior_engineer": 46, "novice_programmer": 15, "technical_specialist": 50, "data_analyst": 33, "general_public": 80, "executive": 40, "student": 35, "expert": 45, "professional": 45}, "qwen2p5-0b5": {"student": 1, "(none)": 2}, "qwen2p5-1b5": {"(none)": 1548, "junior_developer": 35, "non_technical": 20, "senior_engineer": 45, "novice_programmer": 15, "technical_specialist": 50, "data_analyst": 33, "general_public": 80, "executive": 40, "student": 35, "expert": 45, "professional": 45}, "smollm2-1b7": {"(none)": 1542, "junior_developer": 35, "non_technical": 17, "senior_engineer": 45, "novice_programmer": 15, "technical_specialist": 50, "data_analyst": 33, "general_public": 80, "executive": 40, "student": 35, "expert": 45, "professional": 45}}, "language": {"gpt-3.5-turbo": {"(none)": 1869, "python": 40, "bash": 31, "java": 26, "javascript": 15, "sql": 20}, "gpt-4o-mini": {"(none)": 1869, "python": 40, "bash": 31, "java": 26, "javascript": 15, "sql": 20}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"(none)": 1861, "python": 40, "bash": 30, "java": 25, "javascript": 15, "sql": 20}, "smollm2-1b7": {"(none)": 1853, "python": 40, "bash": 30, "java": 25, "javascript": 15, "sql": 19}}, "snippet_type": {"gpt-3.5-turbo": {"(none)": 1848, "function": 40, "shell_script": 42, "class_definition": 20, "database_query": 21, "algorithm": 30}, "gpt-4o-mini": {"(none)": 1848, "function": 40, "shell_script": 42, "class_definition": 20, "database_query": 21, "algorithm": 30}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"(none)": 1841, "function": 40, "shell_script": 40, "class_definition": 20, "database_query": 20, "algorithm": 30}, "smollm2-1b7": {"(none)": 1832, "function": 40, "shell_script": 40, "class_definition": 20, "database_query": 20, "algorithm": 30}}, "domain": {"gpt-3.5-turbo": {"(none)": 1858, "sales_revenue": 25, "demographics": 25, "financial_markets": 30, "climate": 35, "public_health": 28}, "gpt-4o-mini": {"(none)": 1858, "sales_revenue": 25, "demographics": 25, "financial_markets": 30, "climate": 35, "public_health": 28}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"(none)": 1848, "sales_revenue": 25, "demographics": 25, "financial_markets": 30, "climate": 35, "public_health": 28}, "smollm2-1b7": {"(none)": 1844, "sales_revenue": 25, "demographics": 25, "financial_markets": 30, "climate": 35, "public_health": 23}}, "trend_type": {"gpt-3.5-turbo": {"(none)": 1881, "seasonal_cycle": 20, "upward_growth": 25, "flat_stable": 20, "anomalous_spike": 30, "downward_decline": 25}, "gpt-4o-mini": {"(none)": 1881, "seasonal_cycle": 20, "upward_growth": 25, "flat_stable": 20, "anomalous_spike": 30, "downward_decline": 25}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"(none)": 1871, "seasonal_cycle": 20, "upward_growth": 25, "flat_stable": 20, "anomalous_spike": 30, "downward_decline": 25}, "smollm2-1b7": {"(none)": 1862, "seasonal_cycle": 20, "upward_growth": 25, "flat_stable": 20, "anomalous_spike": 30, "downward_decline": 25}}, "data_type": {"gpt-3.5-turbo": {"(none)": 1891, "bar_chart": 20, "scatter_plot": 15, "heatmap": 25, "histogram": 25, "line_graph": 15, "pivot_table": 10}, "gpt-4o-mini": {"(none)": 1891, "bar_chart": 20, "scatter_plot": 15, "heatmap": 25, "histogram": 25, "line_graph": 15, "pivot_table": 10}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"(none)": 1881, "bar_chart": 20, "scatter_plot": 15, "heatmap": 25, "histogram": 25, "line_graph": 15, "pivot_table": 10}, "smollm2-1b7": {"(none)": 1872, "bar_chart": 20, "scatter_plot": 15, "heatmap": 25, "histogram": 25, "line_graph": 15, "pivot_table": 10}}, "insight_depth": {"gpt-3.5-turbo": {"(none)": 1906, "predictive_inference": 25, "analytical_interpretation": 35, "surface_observation": 35}, "gpt-4o-mini": {"(none)": 1906, "predictive_inference": 25, "analytical_interpretation": 35, "surface_observation": 35}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"(none)": 1896, "predictive_inference": 25, "analytical_interpretation": 35, "surface_observation": 35}, "smollm2-1b7": {"(none)": 1892, "predictive_inference": 25, "analytical_interpretation": 35, "surface_observation": 30}}, "urgency": {"gpt-3.5-turbo": {"(none)": 1841, "low": 50, "high": 30, "critical": 30, "medium": 50}, "gpt-4o-mini": {"(none)": 1841, "low": 50, "high": 30, "critical": 30, "medium": 50}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"(none)": 1831, "low": 50, "high": 30, "critical": 30, "medium": 50}, "smollm2-1b7": {"(none)": 1822, "low": 50, "high": 30, "critical": 30, "medium": 50}}, "formality": {"gpt-3.5-turbo": {"(none)": 1866, "executive": 30, "manager_to_report": 20, "report_to_manager": 25, "peer_to_peer": 30, "external_client": 30}, "gpt-4o-mini": {"(none)": 1866, "executive": 30, "manager_to_report": 20, "report_to_manager": 25, "peer_to_peer": 30, "external_client": 30}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"(none)": 1856, "executive": 30, "manager_to_report": 20, "report_to_manager": 25, "peer_to_peer": 30, "external_client": 30}, "smollm2-1b7": {"(none)": 1847, "executive": 30, "manager_to_report": 20, "report_to_manager": 25, "peer_to_peer": 30, "external_client": 30}}, "tone": {"gpt-3.5-turbo": {"(none)": 1666, "casual": 40, "formal": 105, "empathetic": 30, "assertive": 35, "semi_formal": 15, "critical": 45, "neutral": 25, "conversational": 40}, "gpt-4o-mini": {"(none)": 1666, "casual": 40, "formal": 105, "empathetic": 30, "assertive": 35, "semi_formal": 15, "critical": 45, "neutral": 25, "conversational": 40}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"(none)": 1656, "casual": 40, "formal": 105, "empathetic": 30, "assertive": 35, "semi_formal": 15, "critical": 45, "neutral": 25, "conversational": 40}, "smollm2-1b7": {"(none)": 1647, "casual": 40, "formal": 105, "empathetic": 30, "assertive": 35, "semi_formal": 15, "critical": 45, "neutral": 25, "conversational": 40}}, "length": {"gpt-3.5-turbo": {"(none)": 1771, "standard": 30, "detailed": 70, "brief": 100, "moderate": 30}, "gpt-4o-mini": {"(none)": 1771, "standard": 30, "detailed": 70, "brief": 100, "moderate": 30}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"(none)": 1761, "standard": 30, "detailed": 70, "brief": 100, "moderate": 30}, "smollm2-1b7": {"(none)": 1752, "standard": 30, "detailed": 70, "brief": 100, "moderate": 30}}, "purpose": {"gpt-3.5-turbo": {"(none)": 1851, "information_request": 35, "proposal": 25, "complaint_resolution": 45, "project_update": 25, "follow_up": 20}, "gpt-4o-mini": {"(none)": 1851, "information_request": 35, "proposal": 25, "complaint_resolution": 45, "project_update": 25, "follow_up": 20}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"(none)": 1841, "information_request": 35, "proposal": 25, "complaint_resolution": 45, "project_update": 25, "follow_up": 20}, "smollm2-1b7": {"(none)": 1832, "information_request": 35, "proposal": 25, "complaint_resolution": 45, "project_update": 25, "follow_up": 20}}, "format": {"gpt-3.5-turbo": {"(none)": 1886, "bullet_points": 30, "paragraph": 45, "headline_and_body": 40}, "gpt-4o-mini": {"(none)": 1886, "bullet_points": 30, "paragraph": 45, "headline_and_body": 40}, "qwen2p5-0b5": {"(none)": 2, "bullet_points": 1}, "qwen2p5-1b5": {"(none)": 1876, "bullet_points": 30, "paragraph": 45, "headline_and_body": 40}, "smollm2-1b7": {"(none)": 1867, "bullet_points": 30, "paragraph": 45, "headline_and_body": 40}}, "teacher": {"gpt-3.5-turbo": {"gpt-3.5-turbo": 400, "gpt-4o-mini": 410, "qwen2p5-0b5": 400, "qwen2p5-1b5": 400, "smollm2-1b7": 391}, "gpt-4o-mini": {"gpt-3.5-turbo": 400, "gpt-4o-mini": 410, "qwen2p5-0b5": 400, "qwen2p5-1b5": 400, "smollm2-1b7": 391}, "qwen2p5-0b5": {"gpt-3.5-turbo": 3}, "qwen2p5-1b5": {"gpt-3.5-turbo": 400, "gpt-4o-mini": 400, "qwen2p5-0b5": 400, "qwen2p5-1b5": 400, "smollm2-1b7": 391}, "smollm2-1b7": {"gpt-3.5-turbo": 400, "gpt-4o-mini": 400, "qwen2p5-0b5": 400, "qwen2p5-1b5": 400, "smollm2-1b7": 382}}}, "teacher_dims": ["task", "depth", "explanation_style", "complexity", "audience", "language", "snippet_type", "domain", "trend_type", "data_type", "insight_depth", "urgency", "formality", "tone", "length", "purpose", "format"], "student_dims": ["task", "depth", "explanation_style", "complexity", "audience", "language", "snippet_type", "domain", "trend_type", "data_type", "insight_depth", "urgency", "formality", "tone", "length", "purpose", "format"], "judge_dims": ["task", "depth", "explanation_style", "complexity", "audience", "language", "snippet_type", "domain", "trend_type", "data_type", "insight_depth", "urgency", "formality", "tone", "length", "purpose", "format", "teacher"], "dim_labels": {"task": "Task", "teacher": "Teacher Model", "depth": "Depth (target attr)", "explanation_style": "Explanation Style (target attr)", "complexity": "Complexity (target attr)", "audience": "Audience (target attr)", "language": "Language (target attr)", "snippet_type": "Snippet Type (target attr)", "domain": "Domain (target attr)", "trend_type": "Trend Type (target attr)", "data_type": "Data Type (target attr)", "insight_depth": "Insight Depth (target attr)", "urgency": "Urgency (target attr)", "formality": "Formality (target attr)", "tone": "Tone (target attr)", "length": "Length (target attr)", "purpose": "Purpose (target attr)", "format": "Format (target attr)"}, "meta_panel": {"experiment_id": "medium-benchmark-v1", "status": "completed", "created_at": "2026-02-24T12:22:23Z", "updated_at": "2026-03-01T07:28:19Z", "phases_completed": ["attribute_mapping", "rubric_mapping", "data_generation", "response_collection", "evaluation"], "phases_in_progress": [], "tasks": 4, "teachers": 5, "students": 5, "judges": 5, "datapoints": 397, "total_evals": 7987, "valid_evals": 7978}, "tips": {"tasks": {"text_summarization": "Summarise a given passage of text. The summary must capture all key information at the specified depth, match the required tone, and be appropriate for the target audience.\n", "code_explanation": "Explain a given code snippet clearly for the specified audience and at the specified depth. The explanation must match the programming language, complexity level, and chosen explanation style.\n", "email_composition": "Write a professional email matching the specified purpose, tone, urgency, and length. The email must be appropriate for the described relationship and organisational context.\n", "data_interpretation": "Interpret a described dataset or visualisation for the specified audience and domain. The interpretation must identify the key trend, explain its significance, and offer appropriate observations at the specified depth.\n"}, "aspects": {"technical_accuracy": "All statements about what the code does are factually correct.", "clarity": "The explanation is clearly written and avoids unnecessary jargon for the audience level.", "appropriate_level": "The depth and vocabulary precisely match the specified audience and depth level.", "completeness": "The explanation covers all significant parts of the snippet without skipping key logic.", "practical_value": "The explanation helps the reader understand when and how to use or avoid this pattern.", "structure": "The explanation is logically ordered; ideas flow naturally from one to the next.", "accuracy": "All numerical claims and trend descriptions accurately reflect the described data.", "insight_quality": "The interpretation goes beyond stating the obvious; it explains why the trend matters.", "statistical_literacy": "Statistical language is used correctly and proportionally to the data complexity.", "appropriate_caveats": "Limitations in the data are acknowledged where relevant; claims are not overstated.", "actionability": "The conclusion or implication is specific and useful for the stated audience.", "appropriate_tone": "The tone and formality precisely match the specified relationship and context.", "professionalism": "The email is free of grammatical errors and follows professional email conventions.", "conciseness": "The summary avoids redundancy and stays within the specified length and format.", "readability": "The summary is grammatically correct, well-structured, and easy to read.", "tone_consistency": "The tone matches the specified requirement throughout the summary."}, "attrs": {"depth=deep_dive": "depth: one of [deep_dive, standard, surface]", "depth=standard": "depth: one of [deep_dive, standard, surface]", "depth=surface": "depth: one of [deep_dive, standard, surface]", "explanation_style=annotated_walkthrough": "explanation_style: one of [annotated_walkthrough, conceptual_overview, example_driven, step_by_step]", "explanation_style=conceptual_overview": "explanation_style: one of [annotated_walkthrough, conceptual_overview, example_driven, step_by_step]", "explanation_style=example_driven": "explanation_style: one of [annotated_walkthrough, conceptual_overview, example_driven, step_by_step]", "explanation_style=step_by_step": "explanation_style: one of [annotated_walkthrough, conceptual_overview, example_driven, step_by_step]", "complexity=advanced": "complexity: one of [advanced, beginner, intermediate]", "complexity=beginner": "complexity: one of [advanced, beginner, intermediate]", "complexity=intermediate": "complexity: one of [advanced, beginner, intermediate]", "audience=junior_developer": "audience: one of [junior_developer, non_technical, novice_programmer, senior_engineer]", "audience=non_technical": "audience: one of [junior_developer, non_technical, novice_programmer, senior_engineer]", "audience=novice_programmer": "audience: one of [junior_developer, non_technical, novice_programmer, senior_engineer]", "audience=senior_engineer": "audience: one of [junior_developer, non_technical, novice_programmer, senior_engineer]", "language=bash": "language: one of [bash, java, javascript, python, sql]", "language=java": "language: one of [bash, java, javascript, python, sql]", "language=javascript": "language: one of [bash, java, javascript, python, sql]", "language=python": "language: one of [bash, java, javascript, python, sql]", "language=sql": "language: one of [bash, java, javascript, python, sql]", "snippet_type=algorithm": "snippet_type: one of [algorithm, class_definition, database_query, function, shell_script]", "snippet_type=class_definition": "snippet_type: one of [algorithm, class_definition, database_query, function, shell_script]", "snippet_type=database_query": "snippet_type: one of [algorithm, class_definition, database_query, function, shell_script]", "snippet_type=function": "snippet_type: one of [algorithm, class_definition, database_query, function, shell_script]", "snippet_type=shell_script": "snippet_type: one of [algorithm, class_definition, database_query, function, shell_script]", "domain=climate": "domain: one of [climate, demographics, financial_markets, public_health, sales_revenue]", "domain=demographics": "domain: one of [climate, demographics, financial_markets, public_health, sales_revenue]", "domain=financial_markets": "domain: one of [climate, demographics, financial_markets, public_health, sales_revenue]", "domain=public_health": "domain: one of [climate, demographics, financial_markets, public_health, sales_revenue]", "domain=sales_revenue": "domain: one of [climate, demographics, financial_markets, public_health, sales_revenue]", "trend_type=anomalous_spike": "trend_type: one of [anomalous_spike, downward_decline, flat_stable, seasonal_cycle, upward_growth]", "trend_type=downward_decline": "trend_type: one of [anomalous_spike, downward_decline, flat_stable, seasonal_cycle, upward_growth]", "trend_type=flat_stable": "trend_type: one of [anomalous_spike, downward_decline, flat_stable, seasonal_cycle, upward_growth]", "trend_type=seasonal_cycle": "trend_type: one of [anomalous_spike, downward_decline, flat_stable, seasonal_cycle, upward_growth]", "trend_type=upward_growth": "trend_type: one of [anomalous_spike, downward_decline, flat_stable, seasonal_cycle, upward_growth]", "audience=data_analyst": "audience: one of [data_analyst, executive, general_public, technical_specialist]", "audience=executive": "audience: one of [data_analyst, executive, general_public, technical_specialist]", "audience=general_public": "audience: one of [data_analyst, executive, general_public, technical_specialist]", "audience=technical_specialist": "audience: one of [data_analyst, executive, general_public, technical_specialist]", "complexity=bivariate_comparison": "complexity: one of [bivariate_comparison, multivariate_statistical, single_variable]", "complexity=multivariate_statistical": "complexity: one of [bivariate_comparison, multivariate_statistical, single_variable]", "complexity=single_variable": "complexity: one of [bivariate_comparison, multivariate_statistical, single_variable]", "data_type=bar_chart": "data_type: one of [bar_chart, heatmap, histogram, line_graph, pivot_table, scatter_plot]", "data_type=heatmap": "data_type: one of [bar_chart, heatmap, histogram, line_graph, pivot_table, scatter_plot]", "data_type=histogram": "data_type: one of [bar_chart, heatmap, histogram, line_graph, pivot_table, scatter_plot]", "data_type=line_graph": "data_type: one of [bar_chart, heatmap, histogram, line_graph, pivot_table, scatter_plot]", "data_type=pivot_table": "data_type: one of [bar_chart, heatmap, histogram, line_graph, pivot_table, scatter_plot]", "data_type=scatter_plot": "data_type: one of [bar_chart, heatmap, histogram, line_graph, pivot_table, scatter_plot]", "insight_depth=analytical_interpretation": "insight_depth: one of [analytical_interpretation, predictive_inference, surface_observation]", "insight_depth=predictive_inference": "insight_depth: one of [analytical_interpretation, predictive_inference, surface_observation]", "insight_depth=surface_observation": "insight_depth: one of [analytical_interpretation, predictive_inference, surface_observation]", "urgency=critical": "urgency: one of [critical, high, low, medium]", "urgency=high": "urgency: one of [critical, high, low, medium]", "urgency=low": "urgency: one of [critical, high, low, medium]", "urgency=medium": "urgency: one of [critical, high, low, medium]", "formality=executive": "formality: one of [executive, external_client, manager_to_report, peer_to_peer, report_to_manager]", "formality=external_client": "formality: one of [executive, external_client, manager_to_report, peer_to_peer, report_to_manager]", "formality=manager_to_report": "formality: one of [executive, external_client, manager_to_report, peer_to_peer, report_to_manager]", "formality=peer_to_peer": "formality: one of [executive, external_client, manager_to_report, peer_to_peer, report_to_manager]", "formality=report_to_manager": "formality: one of [executive, external_client, manager_to_report, peer_to_peer, report_to_manager]", "tone=assertive": "tone: one of [assertive, casual, empathetic, formal, semi_formal]", "tone=casual": "tone: one of [assertive, casual, empathetic, formal, semi_formal]", "tone=empathetic": "tone: one of [assertive, casual, empathetic, formal, semi_formal]", "tone=formal": "tone: one of [assertive, casual, empathetic, formal, semi_formal]", "tone=semi_formal": "tone: one of [assertive, casual, empathetic, formal, semi_formal]", "length=brief": "length: one of [brief, detailed, standard]", "length=detailed": "length: one of [brief, detailed, standard]", "length=standard": "length: one of [brief, detailed, standard]", "purpose=complaint_resolution": "purpose: one of [complaint_resolution, follow_up, information_request, project_update, proposal]", "purpose=follow_up": "purpose: one of [complaint_resolution, follow_up, information_request, project_update, proposal]", "purpose=information_request": "purpose: one of [complaint_resolution, follow_up, information_request, project_update, proposal]", "purpose=project_update": "purpose: one of [complaint_resolution, follow_up, information_request, project_update, proposal]", "purpose=proposal": "purpose: one of [complaint_resolution, follow_up, information_request, project_update, proposal]", "audience=expert": "audience: one of [expert, general_public, professional, student]", "audience=professional": "audience: one of [expert, general_public, professional, student]", "audience=student": "audience: one of [expert, general_public, professional, student]", "complexity=complex": "complexity: one of [complex, moderate, simple, technical]", "complexity=moderate": "complexity: one of [complex, moderate, simple, technical]", "complexity=simple": "complexity: one of [complex, moderate, simple, technical]", "complexity=technical": "complexity: one of [complex, moderate, simple, technical]", "format=bullet_points": "format: one of [bullet_points, headline_and_body, paragraph]", "format=headline_and_body": "format: one of [bullet_points, headline_and_body, paragraph]", "format=paragraph": "format: one of [bullet_points, headline_and_body, paragraph]", "tone=conversational": "tone: one of [conversational, critical, formal, neutral]", "tone=critical": "tone: one of [conversational, critical, formal, neutral]", "tone=neutral": "tone: one of [conversational, critical, formal, neutral]", "length=moderate": "length: one of [brief, detailed, moderate]"}}};
   </script>
   <style>
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-       background: #f5f5f5; color: #333; }
-#header { background: #1a1a2e; color: #fff; padding: 14px 20px;
-          display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
-#header h1 { font-size: 1.1rem; font-weight: 600; }
-.header-meta { font-size: 0.78rem; opacity: 0.8; }
-.header-badge { background: rgba(255,255,255,.15); border-radius: 4px;
-                padding: 2px 8px; font-size: 0.75rem; }
-.partial-notice { background: #f59e0b; color: #000; padding: 8px 20px;
-                  font-size: 0.85rem; font-weight: 500; }
-#filter-panel { background: #fff; border-bottom: 1px solid #e0e0e0;
-                padding: 10px 20px; display: flex; flex-wrap: wrap; gap: 12px;
-                align-items: center; }
-.filter-group { display: flex; align-items: center; gap: 6px; }
-.filter-group label { font-size: 0.8rem; font-weight: 500; color: #555; }
-.filter-group select { font-size: 0.8rem; border: 1px solid #ccc;
-                        border-radius: 4px; padding: 3px 6px; }
-#stats-bar { background: #e8f4f8; padding: 6px 20px; font-size: 0.78rem;
-             color: #555; border-bottom: 1px solid #c9e3ee; }
-#main { padding: 16px 20px; }
-.view-section { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.1);
-                padding: 16px; margin-bottom: 16px; }
-.view-section h2 { font-size: 1rem; font-weight: 600; margin-bottom: 12px; color: #1a1a2e; }
-.view-section p.note { font-size: 0.8rem; color: #666; background: #fffbeb;
-                       border-left: 3px solid #f59e0b; padding: 6px 10px;
-                       margin-bottom: 10px; border-radius: 0 4px 4px 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  background: #f0f4f8; color: #1e293b; font-size: 14px; line-height: 1.5;
+}
+/* ---- Header ---- */
+#header {
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #1e40af 100%);
+  color: #fff; padding: 14px 24px;
+  display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,.35);
+}
+#header h1 { font-size: 1.05rem; font-weight: 700; letter-spacing: 0.01em; }
+#header h1 .report-type { opacity: 0.75; font-weight: 400; }
+.header-meta { font-size: 0.76rem; opacity: 0.78; }
+.header-badge {
+  background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.25);
+  border-radius: 12px; padding: 2px 10px; font-size: 0.72rem; font-weight: 600;
+}
+.header-badge.tag-completed { background: rgba(34,197,94,.25); border-color: rgba(34,197,94,.4); }
+.header-badge.tag-partial   { background: rgba(245,158,11,.25); border-color: rgba(245,158,11,.4); }
+.partial-notice {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  color: #1c1917; padding: 7px 24px; font-size: 0.82rem; font-weight: 600;
+  border-bottom: 2px solid #d97706;
+}
+/* ---- Filter Panel ---- */
+#filter-panel {
+  background: #fff; border-bottom: 1px solid #dde3ed;
+  padding: 9px 24px; display: flex; flex-wrap: wrap; gap: 14px;
+  align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  position: sticky; top: 0; z-index: 100;
+}
+.filter-group { display: flex; align-items: center; gap: 7px; }
+.filter-group label {
+  font-size: 0.76rem; font-weight: 600; color: #475569;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.filter-group select {
+  font-size: 0.8rem; border: 1px solid #cbd5e1; border-radius: 6px;
+  padding: 4px 8px; background: #f8fafc; cursor: pointer; color: #1e293b;
+  transition: border-color .15s;
+}
+.filter-group select:focus { outline: none; border-color: #3b82f6; }
+/* ---- Stats Bar ---- */
+#stats-bar {
+  background: linear-gradient(90deg, #dbeafe 0%, #e0f2fe 100%);
+  padding: 6px 24px; font-size: 0.77rem; color: #1e40af;
+  border-bottom: 1px solid #bfdbfe; letter-spacing: 0.01em;
+}
+/* ---- Main Content ---- */
+#main { padding: 18px 24px; max-width: 1400px; margin: 0 auto; }
+.view-section {
+  background: #fff; border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(15,23,42,.08), 0 0 0 1px rgba(15,23,42,.04);
+  padding: 20px 22px; margin-bottom: 20px;
+  border-top: 3px solid transparent;
+}
+.view-section:hover { border-top-color: #3b82f6; }
+.view-section h2 {
+  font-size: 1rem; font-weight: 700; margin-bottom: 14px; color: #0f172a;
+  display: flex; align-items: center; gap: 8px;
+}
+.view-section h2::before {
+  content: ''; display: inline-block; width: 4px; height: 18px;
+  background: linear-gradient(180deg, #3b82f6, #6366f1);
+  border-radius: 2px; flex-shrink: 0;
+}
+.view-section p.note {
+  font-size: 0.8rem; color: #78350f; background: #fffbeb;
+  border-left: 4px solid #f59e0b; padding: 8px 12px;
+  margin-bottom: 12px; border-radius: 0 6px 6px 0;
+}
 .chart-container { min-height: 360px; }
-table.data-table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
-table.data-table th { background: #f0f4f8; text-align: left;
-                       padding: 6px 10px; border-bottom: 2px solid #d0d8e0;
-                       font-weight: 600; color: #444; white-space: nowrap; }
-table.data-table td { padding: 5px 10px; border-bottom: 1px solid #eee; }
-table.data-table tr:hover td { background: #f8f9fb; }
-.warn-flag { color: #d97706; font-size: 0.85em; cursor: help; }
-.degenerate-notice { background: #fef3c7; border: 1px solid #fbbf24;
-                     border-radius: 6px; padding: 10px 14px; margin-bottom: 12px;
-                     font-size: 0.82rem; }
-.na { color: #aaa; font-style: italic; }
-.tag { display: inline-block; font-size: 0.7rem; border-radius: 3px;
-       padding: 1px 5px; margin: 0 2px; }
-.tag-partial { background: #fef3c7; color: #92400e; }
-.tag-completed { background: #d1fae5; color: #065f46; }
-footer { text-align: center; padding: 16px; font-size: 0.75rem; color: #999; }
+/* ---- Data Tables ---- */
+table.data-table { border-collapse: collapse; width: 100%; font-size: 0.81rem; }
+table.data-table th {
+  background: linear-gradient(180deg, #f1f5f9 0%, #e9eef4 100%);
+  text-align: left; padding: 8px 12px;
+  border-bottom: 2px solid #cbd5e1; border-top: 1px solid #e2e8f0;
+  font-weight: 700; color: #334155; white-space: nowrap;
+  font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em;
+}
+table.data-table td { padding: 6px 12px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+table.data-table tbody tr:nth-child(odd) td  { background: #fafbfc; }
+table.data-table tbody tr:nth-child(even) td { background: #fff; }
+table.data-table tr:hover td { background: #eff6ff !important; }
+/* ---- Utility classes ---- */
+.warn-flag { color: #d97706; font-size: 0.85em; cursor: help; margin-left: 3px; }
+.degenerate-notice {
+  background: linear-gradient(90deg, #fef9c3, #fef3c7);
+  border: 1px solid #fcd34d; border-radius: 8px;
+  padding: 11px 16px; margin-bottom: 14px; font-size: 0.82rem; color: #78350f;
+}
+.na { color: #94a3b8; font-style: italic; }
+.tag { display: inline-block; font-size: 0.7rem; border-radius: 12px;
+       padding: 2px 8px; margin: 0 2px; font-weight: 600; }
+.tag-partial   { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.tag-completed { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+footer {
+  text-align: center; padding: 20px; font-size: 0.74rem; color: #94a3b8;
+  border-top: 1px solid #e2e8f0; margin-top: 8px;
+  background: linear-gradient(180deg, #f8fafc, #f0f4f8);
+}
 /* ---- Collapsible figure explanations ---- */
-details.fig-explain { margin-top: 12px; border-top: 1px dashed #e2e8f0; padding-top: 8px; }
+details.fig-explain {
+  margin-top: 14px; border-top: 1px dashed #e2e8f0; padding-top: 10px;
+}
 details.fig-explain summary {
   font-size: 0.75rem; color: #64748b; cursor: pointer; user-select: none;
-  display: inline-flex; align-items: center; gap: 5px; outline: none;
-  list-style: none;
+  display: inline-flex; align-items: center; gap: 6px; outline: none;
+  list-style: none; padding: 4px 8px; border-radius: 6px;
+  transition: background .12s, color .12s;
 }
 details.fig-explain summary::-webkit-details-marker { display: none; }
-details.fig-explain summary::before { content: "ℹ"; color: #94a3b8; }
-details.fig-explain[open] summary { color: #1e40af; }
-details.fig-explain[open] summary::before { content: "ℹ"; color: #1e40af; }
+details.fig-explain summary::before {
+  content: "ℹ"; color: #94a3b8; font-size: 0.85rem;
+}
+details.fig-explain summary:hover {
+  background: #f1f5f9; color: #1e40af;
+}
+details.fig-explain[open] summary { color: #1e40af; background: #eff6ff; }
+details.fig-explain[open] summary::before { content: "ℹ"; color: #3b82f6; }
 details.fig-explain .explain-body {
-  font-size: 0.78rem; color: #475569; line-height: 1.65; margin-top: 8px;
-  padding: 10px 14px; background: #f8fafc; border-radius: 6px;
-  border-left: 3px solid #94a3b8;
+  font-size: 0.79rem; color: #475569; line-height: 1.7; margin-top: 10px;
+  padding: 12px 16px; background: #f8fafc; border-radius: 8px;
+  border-left: 4px solid #3b82f6;
 }
 details.fig-explain .explain-body b { color: #1e293b; }
 details.fig-explain .explain-body code {
-  background: #e2e8f0; padding: 1px 4px; border-radius: 3px; font-size: 0.85em;
+  background: #e2e8f0; padding: 1px 5px; border-radius: 4px;
+  font-size: 0.84em; font-family: 'SF Mono', 'Fira Code', monospace;
 }
 /* ---- Inline definition tooltips ---- */
 [data-tip] {
-  border-bottom: 1px dotted #94a3b8; cursor: help; position: relative;
+  border-bottom: 1px dashed #93c5fd; cursor: help; position: relative;
+  text-decoration-skip-ink: none;
 }
 [data-tip]::after {
   content: attr(data-tip);
   position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%);
-  white-space: normal; max-width: 300px; min-width: 140px;
-  background: #1e293b; color: #f1f5f9;
-  font-size: 0.72rem; font-weight: 400; line-height: 1.5;
-  padding: 6px 10px; border-radius: 6px;
-  box-shadow: 0 4px 14px rgba(0,0,0,.3);
+  white-space: normal; max-width: 320px; min-width: 160px;
+  background: #0f172a; color: #e2e8f0;
+  font-size: 0.72rem; font-weight: 400; line-height: 1.55;
+  padding: 8px 12px; border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.4), 0 0 0 1px rgba(99,102,241,.3);
   z-index: 9999; opacity: 0; pointer-events: none;
-  transition: opacity .15s ease;
+  transition: opacity .18s ease;
 }
 [data-tip]:hover::after { opacity: 1; }
 
@@ -97,219 +168,159 @@ details.fig-explain .explain-body code {
 
 
 <div id="header">
-  <h1>CoEval EEA &mdash; Coverage Summary</h1>
-  <span class="header-meta">Experiment: <b>medium-benchmark-v1</b></span>
+  <h1>CoEval EEA &nbsp;·&nbsp; <span class="report-type">Coverage Summary</span></h1>
+  <span class="header-meta">Experiment:&nbsp;<b>medium-benchmark-v1</b></span>
   <span class="header-badge tag-completed">completed</span>
-  <span class="header-meta">Tasks: 4</span>
-  <span class="header-meta">Models: 5</span>
-  <span class="header-meta">Datapoints: 397</span>
-  <span class="header-meta">Self-judging: 1592</span>
-  <span class="header-meta">Self-teaching: 1599</span>
-  <span class="header-meta">Analyzed: 2026-03-01T09:44:13Z</span>
+  <span class="header-meta">Tasks:&nbsp;4</span>
+  <span class="header-meta">Models:&nbsp;5</span>
+  <span class="header-meta">Datapoints:&nbsp;397</span>
+   <span class="header-badge" title="Self-judging evaluations detected">⚠ 1592 self-judging</span> <span class="header-badge" title="Self-teaching evaluations detected">⚠ 1599 self-teaching</span>
+  <span class="header-meta" style="margin-left:auto;opacity:.6">Analyzed:&nbsp;2026-03-01T10:17:29Z</span>
 </div>
 <div id="stats-bar">Total eval records: 7987 | Valid: 7978 | Invalid: 9</div>
-<div id="filter-panel">
-<div class="filter-group"><label for="flt_task">Task:</label><select id="flt_task" onchange="applyFilters()"><option value="__all__">All</option><option value="code_explanation">code_explanation</option><option value="data_interpretation">data_interpretation</option><option value="email_composition">email_composition</option><option value="text_summarization">text_summarization</option></select></div>
-</div>
+
 <div id="main">
 
 <style>
-/* ---- Coverage report interactive panels ---- */
+/* ---- Coverage Summary ---- */
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 14px;
-  margin-bottom: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
 }
 .stat-card {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
-  padding: 14px 16px;
+  padding: 13px 14px;
   text-align: center;
 }
-.stat-card .stat-val {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1e3a5f;
-  line-height: 1;
-}
-.stat-card .stat-lbl {
-  font-size: 0.72rem;
-  color: #64748b;
-  margin-top: 5px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.stat-card.good  .stat-val { color: #16a34a; }
-.stat-card.warn  .stat-val { color: #d97706; }
-.stat-card.bad   .stat-val { color: #dc2626; }
+.stat-card .stat-val { font-size: 1.9rem; font-weight: 700; color: #1e3a5f; line-height: 1; }
+.stat-card .stat-lbl { font-size: 0.71rem; color: #64748b; margin-top: 4px; text-transform: uppercase; letter-spacing:.04em; }
+.stat-card.good .stat-val { color: #16a34a; }
+.stat-card.warn .stat-val { color: #d97706; }
+.stat-card.bad  .stat-val { color: #dc2626; }
 
-.phase-timeline {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
+.phase-timeline { display:flex; flex-wrap:wrap; gap:7px; margin-top:10px; }
 .phase-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.73rem;
-  font-weight: 600;
-  border: 1px solid;
+  display:inline-flex; align-items:center; gap:4px;
+  padding:3px 11px; border-radius:20px; font-size:.72rem; font-weight:600; border:1px solid;
 }
-.phase-badge.done     { background: #dcfce7; color: #15803d; border-color: #86efac; }
-.phase-badge.running  { background: #fef3c7; color: #b45309; border-color: #fcd34d; }
-.phase-badge.pending  { background: #f1f5f9; color: #64748b; border-color: #cbd5e1; }
-.phase-badge .ph-dot  { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.phase-badge.done    { background:#dcfce7; color:#15803d; border-color:#86efac; }
+.phase-badge.running { background:#fef3c7; color:#b45309; border-color:#fcd34d; }
+.phase-badge.pending { background:#f1f5f9; color:#64748b; border-color:#cbd5e1; }
+.phase-badge .ph-dot { width:7px; height:7px; border-radius:50%; background:currentColor; }
 
-.coverage-controls {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-  padding: 10px 14px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+.fig-controls {
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  padding:9px 13px; background:#f8fafc; border:1px solid #e2e8f0;
+  border-radius:8px; margin-bottom:10px;
 }
-.coverage-controls label {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #475569;
+.fig-controls label { font-size:.77rem; font-weight:600; color:#475569; }
+.fig-controls select {
+  border:1px solid #cbd5e1; border-radius:5px; padding:4px 8px;
+  font-size:.77rem; background:#fff; cursor:pointer;
 }
-.coverage-controls select {
-  border: 1px solid #cbd5e1;
-  border-radius: 5px;
-  padding: 4px 8px;
-  font-size: 0.78rem;
-  background: #fff;
-}
-.coverage-legend {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.72rem;
-  color: #64748b;
-  margin-left: auto;
-}
-.legend-bar {
-  width: 80px;
-  height: 10px;
-  border-radius: 4px;
-  background: linear-gradient(to right, #ef4444, #facc15, #22c55e);
-  border: 1px solid #e2e8f0;
-}
+.fig-controls .fc-tip { font-size:.71rem; color:#94a3b8; margin-left:auto; }
 </style>
 
-<!-- ============================================================ -->
-<!-- Panel 1 — Experiment Overview                                -->
-<!-- ============================================================ -->
+<!-- ====================================================== -->
+<!-- Overview                                               -->
+<!-- ====================================================== -->
 <div class="view-section" id="view-meta">
-  <h2>Overview</h2>
+  <h2>Experiment Overview</h2>
   <div id="stat-grid-container"></div>
   <div id="phase-timeline-container"></div>
   <details class="fig-explain">
     <summary>About this panel</summary>
     <div class="explain-body">
-      <b>Stat cards</b> summarise the experiment at a glance: number of tasks, teacher/student/judge
-      models, generated datapoints, and overall valid-evaluation coverage.<br>
-      <b>Coverage %</b> = valid evaluations ÷ expected evaluations × 100. Values below 90 % are
-      flagged amber; below 80 % are flagged red.<br>
-      <b>Phase timeline</b> shows which pipeline phases have completed (<span style="color:#15803d">✓ done</span>),
-      are in progress (<span style="color:#b45309">… running</span>), or are still pending
-      (<span style="color:#64748b">○ pending</span>).
+      <b>Stat cards</b> summarise the experiment at a glance: tasks, teacher/student/judge counts,
+      generated datapoints, and overall valid-evaluation coverage.<br>
+      <b>Coverage&nbsp;%</b> = valid evaluations ÷ total evaluations. ≥&nbsp;100&nbsp;% is green;
+      ≥&nbsp;90&nbsp;% amber; below 80&nbsp;% red.<br>
+      <b>Phase timeline</b> shows pipeline phase status.
     </div>
   </details>
 </div>
 
-<!-- ============================================================ -->
-<!-- Panel 2 — Coverage Heatmaps                                  -->
-<!-- ============================================================ -->
-<div class="view-section" id="view-coverage">
-  <h2>Coverage Heatmaps</h2>
-  <div class="coverage-controls">
-    <label>Judge:</label>
-    <select id="cov-judge-select" onchange="renderCoverageHeatmaps()"></select>
-    <div class="coverage-legend" id="cov-legend-label">
-      <span id="cov-legend-low">0 %</span>
-      <div class="legend-bar" id="cov-legend-bar"></div>
-      <span id="cov-legend-high">100 %</span>
-    </div>
+<!-- ====================================================== -->
+<!-- Figure 1 — Teacher Coverage                            -->
+<!-- ====================================================== -->
+<div class="view-section" id="view-teacher">
+  <h2>Teacher Coverage</h2>
+  <div class="fig-controls">
+    <label for="teacher-stack-sel">Stack by:</label>
+    <select id="teacher-stack-sel" onchange="renderTeacherCoverage()"></select>
+    <span class="fc-tip">Bars show datapoints generated; hover for counts.</span>
   </div>
-  <div id="coverage-heatmap-container"></div>
+  <div id="teacher-coverage-chart" class="chart-container"></div>
   <details class="fig-explain">
     <summary>About this figure</summary>
     <div class="explain-body">
-      <b>What it shows:</b> One heatmap per task. Each cell represents a
-      (teacher&nbsp;×&nbsp;student) pair evaluated by the selected judge. Cell colour
-      encodes the valid-evaluation coverage percentage for that combination.<br>
-      <b>Colour scale:</b> The palette is selected dynamically based on the actual data
-      range. When all values are tightly clustered (range &lt; 20 pp), a high-contrast
-      sequential scale is used to reveal small differences. When values span a wide range,
-      a diverging red→yellow→green scale is used.<br>
-      <b>How to read it:</b> A fully green heatmap means every expected evaluation record
-      was generated and is valid. Red or orange cells indicate missing or invalid evaluations
-      — often caused by judge model failures or API timeouts. Hover over a cell for counts
-      and error codes.
+      <b>What it shows:</b> Total datapoints generated by each teacher model
+      (Phase&nbsp;3), broken down by the selected stacking dimension.<br>
+      <b>Stacking options:</b>
+      <b>Task</b>&nbsp;— coloured by which task each datapoint belongs to;
+      <b>Target attribute</b>&nbsp;— coloured by sampled attribute value (e.g. difficulty);
+      <b>Nuance attribute</b>&nbsp;— coloured by nuance sampling value.<br>
+      <b>How to read it:</b> A balanced stack indicates the teacher generated a
+      representative sample across all attribute values. A lopsided stack suggests
+      the teacher model was biased toward certain tasks or attribute combinations.
     </div>
   </details>
 </div>
 
-<!-- ============================================================ -->
-<!-- Panel 3 — Phase Coverage Waterfall                           -->
-<!-- ============================================================ -->
-<div class="view-section" id="view-waterfall">
-  <h2>Phase Coverage Waterfall</h2>
-  <div id="waterfall-chart" class="chart-container"></div>
+<!-- ====================================================== -->
+<!-- Figure 2 — Student Coverage                            -->
+<!-- ====================================================== -->
+<div class="view-section" id="view-student">
+  <h2>Student Coverage</h2>
+  <div class="fig-controls">
+    <label for="student-stack-sel">Stack by:</label>
+    <select id="student-stack-sel" onchange="renderStudentCoverage()"></select>
+    <span class="fc-tip">Bars show responses collected; hover for counts.</span>
+  </div>
+  <div id="student-coverage-chart" class="chart-container"></div>
   <details class="fig-explain">
     <summary>About this figure</summary>
     <div class="explain-body">
-      <b>What it shows:</b> A grouped bar chart showing artifact counts at each pipeline
-      stage, broken down by task.<br>
-      <b>Bars:</b>
-      <b>Datapoints (P3)</b> = items generated by teacher models in Phase 3;
-      <b>Responses (P4)</b> = student-model responses collected in Phase 4;
-      <b>Evals total</b> = all evaluation records written in Phase 5 (including invalid);
-      <b>Evals valid</b> = evaluation records that passed validation and carry usable scores.<br>
-      <b>How to read it:</b> The bars should form a waterfall: Datapoints ≥ Responses ≥ Evals.
-      A large gap between <em>Evals total</em> and <em>Evals valid</em> signals systematic
-      judge failures for that task. A gap between <em>Datapoints</em> and <em>Responses</em>
-      indicates student models that failed or were skipped.
+      <b>What it shows:</b> Total responses collected from each student model
+      (Phase&nbsp;4), broken down by the selected stacking dimension.<br>
+      <b>How to read it:</b> All student bars should be roughly equal in height — large
+      differences indicate that a student model failed on certain tasks or attribute
+      combinations and produced fewer responses than expected.
     </div>
   </details>
 </div>
 
-<!-- ============================================================ -->
-<!-- Panel 4 — Error Code Breakdown                               -->
-<!-- ============================================================ -->
-<div class="view-section" id="view-errors">
-  <h2>Error Code Breakdown</h2>
-  <div id="error-chart" class="chart-container"></div>
+<!-- ====================================================== -->
+<!-- Figure 3 — Judge Coverage                              -->
+<!-- ====================================================== -->
+<div class="view-section" id="view-judge">
+  <h2>Judge Coverage</h2>
+  <div class="fig-controls">
+    <label for="judge-stack-sel">Stack by:</label>
+    <select id="judge-stack-sel" onchange="renderJudgeCoverage()"></select>
+    <span class="fc-tip">Bars show valid evaluations; hover for counts.</span>
+  </div>
+  <div id="judge-coverage-chart" class="chart-container"></div>
   <details class="fig-explain">
     <summary>About this figure</summary>
     <div class="explain-body">
-      <b>What it shows:</b> A bar chart of error code frequencies across all invalid
-      evaluation records in the experiment. Each bar is labelled with its percentage
-      share of total errors.<br>
-      <b>Common error codes:</b>
-      <code>empty_output</code> — judge produced no text;
-      <code>json_parse</code> — judge output could not be parsed as JSON;
-      <code>missing_scores</code> — parsed JSON lacked required score fields;
-      <code>api_error</code> — provider API returned an error.<br>
-      <b>How to read it:</b> The dominant error code usually reveals the root cause.
-      <code>empty_output</code> and <code>json_parse</code> together typically indicate
-      that the judge model is too small to reliably follow the structured evaluation prompt.
+      <b>What it shows:</b> Total <em>valid</em> evaluations produced by each judge model
+      (Phase&nbsp;5), broken down by the selected stacking dimension.<br>
+      <b>Teacher stacking</b>&nbsp;— reveals whether a judge evaluated all teacher
+      models equally, or concentrated effort on certain teacher-student pairs.<br>
+      <b>Task stacking</b>&nbsp;— shows whether evaluation load is balanced across tasks.<br>
+      <b>How to read it:</b> A very short bar for a judge means it produced few valid
+      evaluations, which may degrade ensemble reliability for that task or teacher.
     </div>
   </details>
 </div>
 
 </div>
-<footer>Generated by CoEval EEA &mdash; 2026-03-01T09:44:13Z</footer>
+<footer>Generated by CoEval EEA &mdash; 2026-03-01T10:17:29Z</footer>
 <script>
 
 function getFilter(id) {
@@ -347,35 +358,171 @@ function scoreColor(v) {
 }
 
 // -----------------------------------------------------------------------
-// Main render entry
+// Shared colour palette (20 distinguishable colours, cycles if >20 stacks)
 // -----------------------------------------------------------------------
-function renderAll() {
-  renderMeta();
-  populateJudgeSelect();
-  renderCoverageHeatmaps();
-  renderWaterfall();
-  renderErrors();
+var _PALETTE = [
+  '#3b82f6','#22c55e','#f59e0b','#ef4444','#8b5cf6',
+  '#06b6d4','#ec4899','#84cc16','#f97316','#14b8a6',
+  '#6366f1','#a3e635','#fb923c','#38bdf8','#e879f9',
+  '#4ade80','#fbbf24','#f43f5e','#34d399','#818cf8',
+];
+function _colour(i) { return _PALETTE[i % _PALETTE.length]; }
+
+// -----------------------------------------------------------------------
+// Tooltip helpers (data-tip CSS is in html_base)
+// -----------------------------------------------------------------------
+function tipFor(key) {
+  var tips = (DATA.tips || {});
+  var task_tips = (tips.tasks || {});
+  var attr_tips = (tips.attrs || {});
+  return task_tips[key] || attr_tips[key] || '';
 }
 
 // -----------------------------------------------------------------------
-// Panel 1 — Overview stat cards + phase timeline
+// Build a Plotly stacked-bar chart
+// params:
+//   divId  : DOM id to render into
+//   models : array of model names (x-axis)
+//   stacks : DATA.teacher_stacks[dim] etc  → {model: {value: count}}
+//   dim    : selected dimension string
+//   yLabel : label for y-axis
+// -----------------------------------------------------------------------
+function _renderStackedBar(divId, models, stacks, dim, yLabel) {
+  if (!models || models.length === 0) {
+    document.getElementById(divId).innerHTML =
+      '<p style="color:#94a3b8;padding:20px">No data available.</p>';
+    return;
+  }
+
+  var dimData = stacks[dim] || {};
+
+  // Collect all unique values for this dimension across all models
+  var valueSet = {};
+  models.forEach(function(m) {
+    var mData = dimData[m] || {};
+    Object.keys(mData).forEach(function(v) { valueSet[v] = true; });
+  });
+  var values = Object.keys(valueSet).sort();
+
+  if (values.length === 0) {
+    document.getElementById(divId).innerHTML =
+      '<p style="color:#94a3b8;padding:20px">No stacking data for this dimension.</p>';
+    return;
+  }
+
+  // One trace per unique value
+  var traces = values.map(function(val, i) {
+    var y = models.map(function(m) {
+      return (dimData[m] || {})[val] || 0;
+    });
+    var tipText = tipFor(val) || tipFor(dim);
+    var traceName = val === '(none)' ? '(unset)' : val;
+    return {
+      type: 'bar',
+      name: traceName,
+      x: models,
+      y: y,
+      marker: { color: _colour(i) },
+      hovertemplate: '<b>' + escHtml(traceName) + '</b><br>Model: %{x}<br>Count: %{y}'
+        + (tipText ? '<br><i>' + escHtml(tipText.substring(0,80)) + '…</i>' : '')
+        + '<extra></extra>',
+    };
+  });
+
+  // Dynamic height: taller when there are many models
+  var heightPx = Math.max(340, models.length * 36 + 140);
+
+  Plotly.newPlot(divId, traces, {
+    barmode: 'stack',
+    xaxis: {
+      title: 'Model',
+      tickangle: models.length > 5 ? -35 : 0,
+      automargin: true,
+    },
+    yaxis: { title: yLabel, rangemode: 'tozero' },
+    legend: {
+      orientation: values.length > 8 ? 'v' : 'h',
+      y: values.length > 8 ? 0.5 : -0.28,
+      x: values.length > 8 ? 1.02 : 0.5,
+      xanchor: values.length > 8 ? 'left' : 'center',
+      font: { size: 11 },
+    },
+    margin: { t: 20, b: values.length > 8 ? 80 : 120, l: 60, r: values.length > 8 ? 180 : 40 },
+    height: heightPx,
+    paper_bgcolor: '#fff',
+    plot_bgcolor: '#f8fafc',
+  }, { responsive: true });
+}
+
+// -----------------------------------------------------------------------
+// Populate a stacking-dimension dropdown
+// -----------------------------------------------------------------------
+function _populateDimSelect(selectId, dims) {
+  var sel = document.getElementById(selectId);
+  sel.innerHTML = '';
+  dims.forEach(function(dim) {
+    var lbl = (DATA.dim_labels || {})[dim] || dim.replace(/_/g, ' ');
+    var opt = document.createElement('option');
+    opt.value = dim;
+    opt.textContent = lbl;
+    sel.appendChild(opt);
+  });
+}
+
+// -----------------------------------------------------------------------
+// Render functions
+// -----------------------------------------------------------------------
+function renderTeacherCoverage() {
+  var dim = document.getElementById('teacher-stack-sel').value || 'task';
+  _renderStackedBar(
+    'teacher-coverage-chart',
+    DATA.teachers,
+    DATA.teacher_stacks,
+    dim,
+    'Datapoints generated'
+  );
+}
+
+function renderStudentCoverage() {
+  var dim = document.getElementById('student-stack-sel').value || 'task';
+  _renderStackedBar(
+    'student-coverage-chart',
+    DATA.students,
+    DATA.student_stacks,
+    dim,
+    'Responses collected'
+  );
+}
+
+function renderJudgeCoverage() {
+  var dim = document.getElementById('judge-stack-sel').value || 'task';
+  _renderStackedBar(
+    'judge-coverage-chart',
+    DATA.judges,
+    DATA.judge_stacks,
+    dim,
+    'Valid evaluations'
+  );
+}
+
+// -----------------------------------------------------------------------
+// Overview: stat cards + phase timeline
 // -----------------------------------------------------------------------
 function renderMeta() {
   var m = DATA.meta_panel;
   var validPct = m.total_evals > 0
     ? Math.round(m.valid_evals / m.total_evals * 100) : 100;
-
   var statClass = validPct === 100 ? 'good' : (validPct >= 90 ? 'warn' : 'bad');
 
   var stats = [
-    { val: m.tasks,      lbl: 'Tasks',       cls: '' },
-    { val: m.teachers,   lbl: 'Teachers',    cls: '' },
-    { val: m.students,   lbl: 'Students',    cls: '' },
-    { val: m.judges,     lbl: 'Judges',      cls: '' },
-    { val: m.datapoints, lbl: 'Datapoints',  cls: '' },
-    { val: m.total_evals,lbl: 'Total Evals', cls: '' },
-    { val: m.valid_evals,lbl: 'Valid Evals', cls: statClass },
-    { val: validPct + '%', lbl: 'Coverage',  cls: statClass },
+    { val: m.tasks,        lbl: 'Tasks',       cls: '' },
+    { val: m.teachers,     lbl: 'Teachers',    cls: '' },
+    { val: m.students,     lbl: 'Students',    cls: '' },
+    { val: m.judges,       lbl: 'Judges',      cls: '' },
+    { val: m.datapoints,   lbl: 'Datapoints',  cls: '' },
+    { val: m.total_evals,  lbl: 'Total Evals', cls: '' },
+    { val: m.valid_evals,  lbl: 'Valid Evals', cls: statClass },
+    { val: validPct + '%', lbl: 'Coverage',    cls: statClass },
   ];
 
   var gridHtml = '<div class="stat-grid">';
@@ -388,25 +535,24 @@ function renderMeta() {
   gridHtml += '</div>';
   document.getElementById('stat-grid-container').innerHTML = gridHtml;
 
-  // Phase timeline
   var allPhases = [
-    'attribute_mapping', 'rubric_mapping', 'data_generation',
-    'response_collection', 'evaluation'
+    'attribute_mapping','rubric_mapping','data_generation',
+    'response_collection','evaluation'
   ];
   var phaseLabels = {
-    attribute_mapping:  'Attr Mapping',
-    rubric_mapping:     'Rubric Mapping',
-    data_generation:    'Data Gen',
-    response_collection:'Resp Collection',
-    evaluation:         'Evaluation'
+    attribute_mapping:   'Attr Mapping',
+    rubric_mapping:      'Rubric Mapping',
+    data_generation:     'Data Gen',
+    response_collection: 'Resp Collection',
+    evaluation:          'Evaluation'
   };
-  var completed = new Set(m.phases_completed || []);
+  var completed  = new Set(m.phases_completed  || []);
   var inProgress = new Set(m.phases_in_progress || []);
 
   var tlHtml = '<div class="phase-timeline">';
   allPhases.forEach(function(ph) {
-    var cls = completed.has(ph) ? 'done' : (inProgress.has(ph) ? 'running' : 'pending');
-    var icon = completed.has(ph) ? '✓' : (inProgress.has(ph) ? '…' : '○');
+    var cls  = completed.has(ph) ? 'done' : (inProgress.has(ph) ? 'running' : 'pending');
+    var icon = completed.has(ph) ? '✓'    : (inProgress.has(ph) ? '…'       : '○');
     tlHtml += '<span class="phase-badge ' + cls + '">'
             + '<span class="ph-dot"></span>'
             + icon + ' ' + (phaseLabels[ph] || ph)
@@ -417,231 +563,26 @@ function renderMeta() {
 }
 
 // -----------------------------------------------------------------------
-// Panel 2 — Coverage heatmaps (one Plotly heatmap per task)
+// HTML-escape helper
 // -----------------------------------------------------------------------
-function _getUniqueValues(rows, key) {
-  var seen = {};
-  var vals = [];
-  rows.forEach(function(r) {
-    if (!seen[r[key]]) { seen[r[key]] = true; vals.push(r[key]); }
-  });
-  return vals.sort();
-}
-
-function populateJudgeSelect() {
-  var judges = _getUniqueValues(DATA.coverage_rows, 'judge');
-  var sel = document.getElementById('cov-judge-select');
-  sel.innerHTML = '';
-  judges.forEach(function(j) {
-    var opt = document.createElement('option');
-    opt.value = j; opt.textContent = j;
-    sel.appendChild(opt);
-  });
-}
-
-function renderCoverageHeatmaps() {
-  var taskFilter = getFilter('task');
-  var judgeFilter = document.getElementById('cov-judge-select').value;
-
-  var rows = DATA.coverage_rows.filter(function(r) {
-    return r.judge === judgeFilter &&
-           (taskFilter === '__all__' || r.task === taskFilter);
-  });
-
-  var tasks = _getUniqueValues(rows, 'task');
-  var container = document.getElementById('coverage-heatmap-container');
-
-  if (rows.length === 0) {
-    container.innerHTML = '<p style="color:#94a3b8;padding:20px">No data for this selection.</p>';
-    return;
-  }
-
-  // One div per task
-  container.innerHTML = '';
-  tasks.forEach(function(task, idx) {
-    var taskRows = rows.filter(function(r) { return r.task === task; });
-    var teachers = _getUniqueValues(taskRows, 'teacher');
-    var students = _getUniqueValues(taskRows, 'student');
-
-    // Build z-matrix [teacher_index][student_index] = coverage_pct
-    var z = teachers.map(function(t) {
-      return students.map(function(s) {
-        var match = taskRows.find(function(r){ return r.teacher === t && r.student === s; });
-        return match ? match.coverage_pct : null;
-      });
-    });
-
-    // Hover text
-    var text = teachers.map(function(t) {
-      return students.map(function(s) {
-        var r = taskRows.find(function(r){ return r.teacher === t && r.student === s; });
-        if (!r) return 'No data';
-        return 'Teacher: ' + r.teacher
-          + '<br>Student: ' + r.student
-          + '<br>Expected: ' + r.expected
-          + '<br>Actual: ' + r.actual
-          + '<br>Valid: ' + r.valid
-          + '<br>Invalid: ' + r.invalid
-          + '<br>Coverage: ' + r.coverage_pct + '%'
-          + (r.errors ? '<br>Errors: ' + r.errors : '');
-      });
-    });
-
-    // --- Dynamic colour scale based on actual data range ---
-    var validZ = [];
-    z.forEach(function(row) { row.forEach(function(v) { if (v !== null) validZ.push(v); }); });
-    var dataMin = validZ.length ? Math.min.apply(null, validZ) : 0;
-    var dataMax = validZ.length ? Math.max.apply(null, validZ) : 100;
-    var dataRange = dataMax - dataMin;
-
-    var colorscale, zminVal, zmaxVal, legendLow, legendHigh, barGradient;
-    if (dataRange < 15) {
-      // Very tight range — sequential high-contrast blue scale, padded ±5 pp
-      zminVal = Math.max(0, dataMin - 5);
-      zmaxVal = Math.min(100, dataMax + 5);
-      colorscale = [[0,'#0369a1'],[0.35,'#38bdf8'],[0.7,'#a5f3fc'],[1.0,'#ecfdf5']];
-      barGradient = 'linear-gradient(to right, #0369a1, #38bdf8, #ecfdf5)';
-      legendLow = dataMin.toFixed(0) + ' %';
-      legendHigh = dataMax.toFixed(0) + ' %';
-    } else if (dataMin >= 75) {
-      // All high — green gradient with precise scaling
-      zminVal = Math.max(50, dataMin - 10);
-      zmaxVal = 100;
-      colorscale = [[0,'#fef9c3'],[0.4,'#86efac'],[1.0,'#15803d']];
-      barGradient = 'linear-gradient(to right, #fef9c3, #86efac, #15803d)';
-      legendLow = zminVal.toFixed(0) + ' %';
-      legendHigh = '100 %';
-    } else {
-      // Wide or mixed range — vivid 5-stop RdYlGn
-      zminVal = 0; zmaxVal = 100;
-      colorscale = [
-        [0.0,  '#7f0000'],
-        [0.2,  '#d73027'],
-        [0.5,  '#ffffbf'],
-        [0.75, '#1a9850'],
-        [1.0,  '#00441b'],
-      ];
-      barGradient = 'linear-gradient(to right, #7f0000, #d73027, #ffffbf, #1a9850, #00441b)';
-      legendLow = '0 %'; legendHigh = '100 %';
-    }
-
-    // Update legend bar in the controls row (only on first task)
-    if (idx === 0) {
-      var lb = document.getElementById('cov-legend-bar');
-      var ll = document.getElementById('cov-legend-low');
-      var lh = document.getElementById('cov-legend-high');
-      if (lb) lb.style.background = barGradient;
-      if (ll) ll.textContent = legendLow;
-      if (lh) lh.textContent = legendHigh;
-    }
-    // -------------------------------------------------------
-
-    var divId = 'heatmap-task-' + idx;
-    var divEl = document.createElement('div');
-    divEl.id = divId;
-    divEl.style.marginBottom = '28px';
-    container.appendChild(divEl);
-
-    var heightPx = Math.max(200, teachers.length * 44 + 80);
-
-    Plotly.newPlot(divId, [{
-      type: 'heatmap',
-      z: z,
-      x: students,
-      y: teachers,
-      text: text,
-      hovertemplate: '%{text}<extra></extra>',
-      colorscale: colorscale,
-      zmin: zminVal, zmax: zmaxVal,
-      colorbar: {
-        title: { text: 'Coverage %', side: 'right' },
-        thickness: 14,
-        len: 0.8,
-        ticksuffix: '%',
-      },
-      xgap: 2, ygap: 2,
-    }], {
-      title: { text: 'Task: ' + task + ' &nbsp;|&nbsp; Judge: ' + judgeFilter,
-               font: { size: 13 } },
-      xaxis: { title: 'Student', tickangle: -30, automargin: true },
-      yaxis: { title: 'Teacher', automargin: true },
-      margin: { t: 50, l: 130, r: 80, b: 90 },
-      height: heightPx,
-      paper_bgcolor: '#fff',
-      plot_bgcolor: '#f8fafc',
-    }, { responsive: true });
-  });
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+         .replace(/"/g,'&quot;');
 }
 
 // -----------------------------------------------------------------------
-// Panel 3 — Phase Coverage Waterfall (grouped bar chart)
+// Main entry
 // -----------------------------------------------------------------------
-function renderWaterfall() {
-  var wf = DATA.waterfall;
-  if (!wf || wf.length === 0) return;
-  var tasks = wf.map(function(w) { return w.task; });
-  var traces = [
-    { name: 'Datapoints (P3)',
-      y: wf.map(function(w){return w.datapoints;}), x: tasks,
-      type: 'bar', marker: { color: '#3b82f6' }, width: 0.18 },
-    { name: 'Responses (P4)',
-      y: wf.map(function(w){return w.responses;}), x: tasks,
-      type: 'bar', marker: { color: '#8b5cf6' }, width: 0.18 },
-    { name: 'Evals (total)',
-      y: wf.map(function(w){return w.eval_actual;}), x: tasks,
-      type: 'bar', marker: { color: '#f59e0b' }, width: 0.18 },
-    { name: 'Evals (valid)',
-      y: wf.map(function(w){return w.eval_valid;}), x: tasks,
-      type: 'bar', marker: { color: '#22c55e' }, width: 0.18 },
-  ];
-  Plotly.newPlot('waterfall-chart', traces, {
-    barmode: 'group',
-    xaxis: { title: 'Task', automargin: true },
-    yaxis: { title: 'Artifact count', rangemode: 'tozero' },
-    legend: { orientation: 'h', y: -0.22 },
-    margin: { t: 20, b: 100 },
-    paper_bgcolor: '#fff',
-    plot_bgcolor: '#f8fafc',
-  }, { responsive: true });
-}
+function renderAll() {
+  renderMeta();
 
-// -----------------------------------------------------------------------
-// Panel 4 — Error Code Breakdown
-// -----------------------------------------------------------------------
-function renderErrors() {
-  var et = DATA.error_totals;
-  var keys = Object.keys(et).sort(function(a, b){ return et[b] - et[a]; });
-  if (keys.length === 0) {
-    document.getElementById('error-chart').innerHTML =
-      '<div style="display:flex;align-items:center;gap:10px;padding:20px;color:#16a34a;">'
-      + '<span style="font-size:1.5rem;">&#10003;</span>'
-      + '<span style="font-size:0.9rem;font-weight:500;">No errors found in evaluation records.</span></div>';
-    return;
-  }
-  var vals = keys.map(function(k) { return et[k]; });
-  var total = vals.reduce(function(a, b){ return a + b; }, 0);
-  var pcts  = vals.map(function(v){ return (v / total * 100).toFixed(1) + '%'; });
+  _populateDimSelect('teacher-stack-sel', DATA.teacher_dims || ['task']);
+  _populateDimSelect('student-stack-sel', DATA.student_dims || ['task']);
+  _populateDimSelect('judge-stack-sel',   DATA.judge_dims   || ['task']);
 
-  Plotly.newPlot('error-chart', [{
-    type: 'bar',
-    x: keys,
-    y: vals,
-    text: pcts,
-    textposition: 'outside',
-    marker: {
-      color: vals.map(function(_, i) {
-        var colors = ['#ef4444','#f97316','#f59e0b','#84cc16','#06b6d4'];
-        return colors[i % colors.length];
-      }),
-    },
-    hovertemplate: '<b>%{x}</b><br>Count: %{y}<br>Share: %{text}<extra></extra>',
-  }], {
-    xaxis: { title: 'Error code', automargin: true },
-    yaxis: { title: 'Count', rangemode: 'tozero' },
-    margin: { t: 20, b: 80 },
-    paper_bgcolor: '#fff',
-    plot_bgcolor: '#f8fafc',
-  }, { responsive: true });
+  renderTeacherCoverage();
+  renderStudentCoverage();
+  renderJudgeCoverage();
 }
 
 document.addEventListener('DOMContentLoaded', renderAll);

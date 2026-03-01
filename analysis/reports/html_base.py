@@ -97,83 +97,154 @@ _HTML_TEMPLATE = """\
 
 _BASE_CSS = """
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-       background: #f5f5f5; color: #333; }
-#header { background: #1a1a2e; color: #fff; padding: 14px 20px;
-          display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
-#header h1 { font-size: 1.1rem; font-weight: 600; }
-.header-meta { font-size: 0.78rem; opacity: 0.8; }
-.header-badge { background: rgba(255,255,255,.15); border-radius: 4px;
-                padding: 2px 8px; font-size: 0.75rem; }
-.partial-notice { background: #f59e0b; color: #000; padding: 8px 20px;
-                  font-size: 0.85rem; font-weight: 500; }
-#filter-panel { background: #fff; border-bottom: 1px solid #e0e0e0;
-                padding: 10px 20px; display: flex; flex-wrap: wrap; gap: 12px;
-                align-items: center; }
-.filter-group { display: flex; align-items: center; gap: 6px; }
-.filter-group label { font-size: 0.8rem; font-weight: 500; color: #555; }
-.filter-group select { font-size: 0.8rem; border: 1px solid #ccc;
-                        border-radius: 4px; padding: 3px 6px; }
-#stats-bar { background: #e8f4f8; padding: 6px 20px; font-size: 0.78rem;
-             color: #555; border-bottom: 1px solid #c9e3ee; }
-#main { padding: 16px 20px; }
-.view-section { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.1);
-                padding: 16px; margin-bottom: 16px; }
-.view-section h2 { font-size: 1rem; font-weight: 600; margin-bottom: 12px; color: #1a1a2e; }
-.view-section p.note { font-size: 0.8rem; color: #666; background: #fffbeb;
-                       border-left: 3px solid #f59e0b; padding: 6px 10px;
-                       margin-bottom: 10px; border-radius: 0 4px 4px 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  background: #f0f4f8; color: #1e293b; font-size: 14px; line-height: 1.5;
+}
+/* ---- Header ---- */
+#header {
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #1e40af 100%);
+  color: #fff; padding: 14px 24px;
+  display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,.35);
+}
+#header h1 { font-size: 1.05rem; font-weight: 700; letter-spacing: 0.01em; }
+#header h1 .report-type { opacity: 0.75; font-weight: 400; }
+.header-meta { font-size: 0.76rem; opacity: 0.78; }
+.header-badge {
+  background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.25);
+  border-radius: 12px; padding: 2px 10px; font-size: 0.72rem; font-weight: 600;
+}
+.header-badge.tag-completed { background: rgba(34,197,94,.25); border-color: rgba(34,197,94,.4); }
+.header-badge.tag-partial   { background: rgba(245,158,11,.25); border-color: rgba(245,158,11,.4); }
+.partial-notice {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  color: #1c1917; padding: 7px 24px; font-size: 0.82rem; font-weight: 600;
+  border-bottom: 2px solid #d97706;
+}
+/* ---- Filter Panel ---- */
+#filter-panel {
+  background: #fff; border-bottom: 1px solid #dde3ed;
+  padding: 9px 24px; display: flex; flex-wrap: wrap; gap: 14px;
+  align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  position: sticky; top: 0; z-index: 100;
+}
+.filter-group { display: flex; align-items: center; gap: 7px; }
+.filter-group label {
+  font-size: 0.76rem; font-weight: 600; color: #475569;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.filter-group select {
+  font-size: 0.8rem; border: 1px solid #cbd5e1; border-radius: 6px;
+  padding: 4px 8px; background: #f8fafc; cursor: pointer; color: #1e293b;
+  transition: border-color .15s;
+}
+.filter-group select:focus { outline: none; border-color: #3b82f6; }
+/* ---- Stats Bar ---- */
+#stats-bar {
+  background: linear-gradient(90deg, #dbeafe 0%, #e0f2fe 100%);
+  padding: 6px 24px; font-size: 0.77rem; color: #1e40af;
+  border-bottom: 1px solid #bfdbfe; letter-spacing: 0.01em;
+}
+/* ---- Main Content ---- */
+#main { padding: 18px 24px; max-width: 1400px; margin: 0 auto; }
+.view-section {
+  background: #fff; border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(15,23,42,.08), 0 0 0 1px rgba(15,23,42,.04);
+  padding: 20px 22px; margin-bottom: 20px;
+  border-top: 3px solid transparent;
+}
+.view-section:hover { border-top-color: #3b82f6; }
+.view-section h2 {
+  font-size: 1rem; font-weight: 700; margin-bottom: 14px; color: #0f172a;
+  display: flex; align-items: center; gap: 8px;
+}
+.view-section h2::before {
+  content: ''; display: inline-block; width: 4px; height: 18px;
+  background: linear-gradient(180deg, #3b82f6, #6366f1);
+  border-radius: 2px; flex-shrink: 0;
+}
+.view-section p.note {
+  font-size: 0.8rem; color: #78350f; background: #fffbeb;
+  border-left: 4px solid #f59e0b; padding: 8px 12px;
+  margin-bottom: 12px; border-radius: 0 6px 6px 0;
+}
 .chart-container { min-height: 360px; }
-table.data-table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
-table.data-table th { background: #f0f4f8; text-align: left;
-                       padding: 6px 10px; border-bottom: 2px solid #d0d8e0;
-                       font-weight: 600; color: #444; white-space: nowrap; }
-table.data-table td { padding: 5px 10px; border-bottom: 1px solid #eee; }
-table.data-table tr:hover td { background: #f8f9fb; }
-.warn-flag { color: #d97706; font-size: 0.85em; cursor: help; }
-.degenerate-notice { background: #fef3c7; border: 1px solid #fbbf24;
-                     border-radius: 6px; padding: 10px 14px; margin-bottom: 12px;
-                     font-size: 0.82rem; }
-.na { color: #aaa; font-style: italic; }
-.tag { display: inline-block; font-size: 0.7rem; border-radius: 3px;
-       padding: 1px 5px; margin: 0 2px; }
-.tag-partial { background: #fef3c7; color: #92400e; }
-.tag-completed { background: #d1fae5; color: #065f46; }
-footer { text-align: center; padding: 16px; font-size: 0.75rem; color: #999; }
+/* ---- Data Tables ---- */
+table.data-table { border-collapse: collapse; width: 100%; font-size: 0.81rem; }
+table.data-table th {
+  background: linear-gradient(180deg, #f1f5f9 0%, #e9eef4 100%);
+  text-align: left; padding: 8px 12px;
+  border-bottom: 2px solid #cbd5e1; border-top: 1px solid #e2e8f0;
+  font-weight: 700; color: #334155; white-space: nowrap;
+  font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em;
+}
+table.data-table td { padding: 6px 12px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+table.data-table tbody tr:nth-child(odd) td  { background: #fafbfc; }
+table.data-table tbody tr:nth-child(even) td { background: #fff; }
+table.data-table tr:hover td { background: #eff6ff !important; }
+/* ---- Utility classes ---- */
+.warn-flag { color: #d97706; font-size: 0.85em; cursor: help; margin-left: 3px; }
+.degenerate-notice {
+  background: linear-gradient(90deg, #fef9c3, #fef3c7);
+  border: 1px solid #fcd34d; border-radius: 8px;
+  padding: 11px 16px; margin-bottom: 14px; font-size: 0.82rem; color: #78350f;
+}
+.na { color: #94a3b8; font-style: italic; }
+.tag { display: inline-block; font-size: 0.7rem; border-radius: 12px;
+       padding: 2px 8px; margin: 0 2px; font-weight: 600; }
+.tag-partial   { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.tag-completed { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+footer {
+  text-align: center; padding: 20px; font-size: 0.74rem; color: #94a3b8;
+  border-top: 1px solid #e2e8f0; margin-top: 8px;
+  background: linear-gradient(180deg, #f8fafc, #f0f4f8);
+}
 /* ---- Collapsible figure explanations ---- */
-details.fig-explain { margin-top: 12px; border-top: 1px dashed #e2e8f0; padding-top: 8px; }
+details.fig-explain {
+  margin-top: 14px; border-top: 1px dashed #e2e8f0; padding-top: 10px;
+}
 details.fig-explain summary {
   font-size: 0.75rem; color: #64748b; cursor: pointer; user-select: none;
-  display: inline-flex; align-items: center; gap: 5px; outline: none;
-  list-style: none;
+  display: inline-flex; align-items: center; gap: 6px; outline: none;
+  list-style: none; padding: 4px 8px; border-radius: 6px;
+  transition: background .12s, color .12s;
 }
 details.fig-explain summary::-webkit-details-marker { display: none; }
-details.fig-explain summary::before { content: "ℹ"; color: #94a3b8; }
-details.fig-explain[open] summary { color: #1e40af; }
-details.fig-explain[open] summary::before { content: "ℹ"; color: #1e40af; }
+details.fig-explain summary::before {
+  content: "ℹ"; color: #94a3b8; font-size: 0.85rem;
+}
+details.fig-explain summary:hover {
+  background: #f1f5f9; color: #1e40af;
+}
+details.fig-explain[open] summary { color: #1e40af; background: #eff6ff; }
+details.fig-explain[open] summary::before { content: "ℹ"; color: #3b82f6; }
 details.fig-explain .explain-body {
-  font-size: 0.78rem; color: #475569; line-height: 1.65; margin-top: 8px;
-  padding: 10px 14px; background: #f8fafc; border-radius: 6px;
-  border-left: 3px solid #94a3b8;
+  font-size: 0.79rem; color: #475569; line-height: 1.7; margin-top: 10px;
+  padding: 12px 16px; background: #f8fafc; border-radius: 8px;
+  border-left: 4px solid #3b82f6;
 }
 details.fig-explain .explain-body b { color: #1e293b; }
 details.fig-explain .explain-body code {
-  background: #e2e8f0; padding: 1px 4px; border-radius: 3px; font-size: 0.85em;
+  background: #e2e8f0; padding: 1px 5px; border-radius: 4px;
+  font-size: 0.84em; font-family: 'SF Mono', 'Fira Code', monospace;
 }
 /* ---- Inline definition tooltips ---- */
 [data-tip] {
-  border-bottom: 1px dotted #94a3b8; cursor: help; position: relative;
+  border-bottom: 1px dashed #93c5fd; cursor: help; position: relative;
+  text-decoration-skip-ink: none;
 }
 [data-tip]::after {
   content: attr(data-tip);
   position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%);
-  white-space: normal; max-width: 300px; min-width: 140px;
-  background: #1e293b; color: #f1f5f9;
-  font-size: 0.72rem; font-weight: 400; line-height: 1.5;
-  padding: 6px 10px; border-radius: 6px;
-  box-shadow: 0 4px 14px rgba(0,0,0,.3);
+  white-space: normal; max-width: 320px; min-width: 160px;
+  background: #0f172a; color: #e2e8f0;
+  font-size: 0.72rem; font-weight: 400; line-height: 1.55;
+  padding: 8px 12px; border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.4), 0 0 0 1px rgba(99,102,241,.3);
   z-index: 9999; opacity: 0; pointer-events: none;
-  transition: opacity .15s ease;
+  transition: opacity .18s ease;
 }
 [data-tip]:hover::after { opacity: 1; }
 """
@@ -297,18 +368,27 @@ def _build_header(meta: dict, report_type: str, partial: bool) -> str:
         '— analysis reflects only artifacts present so far.</div>'
         if partial else ''
     )
+    self_judging  = meta.get('self_judging', 0)
+    self_teaching = meta.get('self_teaching', 0)
+    sj_notice = (
+        f' <span class="header-badge" title="Self-judging evaluations detected">'
+        f'⚠ {self_judging} self-judging</span>'
+    ) if self_judging else ''
+    st_notice = (
+        f' <span class="header-badge" title="Self-teaching evaluations detected">'
+        f'⚠ {self_teaching} self-teaching</span>'
+    ) if self_teaching else ''
     return f"""
 {partial_banner}
 <div id="header">
-  <h1>CoEval EEA &mdash; {report_type}</h1>
-  <span class="header-meta">Experiment: <b>{meta.get('id','?')}</b></span>
+  <h1>CoEval EEA &nbsp;·&nbsp; <span class="report-type">{report_type}</span></h1>
+  <span class="header-meta">Experiment:&nbsp;<b>{meta.get('id','?')}</b></span>
   <span class="header-badge {badge_cls}">{status}</span>
-  <span class="header-meta">Tasks: {meta.get('tasks','?')}</span>
-  <span class="header-meta">Models: {meta.get('models','?')}</span>
-  <span class="header-meta">Datapoints: {meta.get('datapoints','?')}</span>
-  <span class="header-meta">Self-judging: {meta.get('self_judging',0)}</span>
-  <span class="header-meta">Self-teaching: {meta.get('self_teaching',0)}</span>
-  <span class="header-meta">Analyzed: {meta.get('analysis_date','?')}</span>
+  <span class="header-meta">Tasks:&nbsp;{meta.get('tasks','?')}</span>
+  <span class="header-meta">Models:&nbsp;{meta.get('models','?')}</span>
+  <span class="header-meta">Datapoints:&nbsp;{meta.get('datapoints','?')}</span>
+  {sj_notice}{st_notice}
+  <span class="header-meta" style="margin-left:auto;opacity:.6">Analyzed:&nbsp;{meta.get('analysis_date','?')}</span>
 </div>
 <div id="stats-bar">{meta.get('stats','')}</div>"""
 

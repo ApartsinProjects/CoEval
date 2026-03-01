@@ -10,7 +10,7 @@ Complete reference for all `coeval` command-line options.
 coeval <subcommand> [options]
 ```
 
-Subcommands: [`run`](#coeval-run), [`probe`](#coeval-probe), [`plan`](#coeval-plan), [`status`](#coeval-status), [`repair`](#coeval-repair), [`wizard`](#coeval-wizard), [`generate`](#coeval-generate), [`models`](#coeval-models), [`analyze`](#coeval-analyze)
+Subcommands: [`run`](#coeval-run), [`probe`](#coeval-probe), [`plan`](#coeval-plan), [`status`](#coeval-status), [`repair`](#coeval-repair), [`wizard`](#coeval-wizard), [`generate`](#coeval-generate), [`models`](#coeval-models), [`ingest`](#coeval-ingest), [`analyze`](#coeval-analyze)
 
 ---
 
@@ -635,6 +635,64 @@ coeval models --keys ~/.coeval/prod-keys.yaml
 # Show verbose details
 coeval models --providers openai --verbose
 ```
+
+---
+
+## `coeval ingest`
+
+Inject a downloaded standard benchmark into an existing experiment run as a virtual teacher model.
+
+```
+coeval ingest --run PATH --benchmarks NAME [NAME ...] [options]
+```
+
+After ingesting, resume the experiment with `coeval run --config PATH/config.yaml --continue`
+to run Phases 4–5 (response collection and evaluation) on the new teacher.
+
+### Options
+
+| Flag | Description |
+|------|-------------|
+| `--run PATH` | Path to an existing EES run folder (must contain `meta.json` and `config.yaml`). |
+| `--benchmarks NAME [NAME ...]` | One or more benchmark names to ingest. Supported: `mmlu`, `hellaswag`, `truthfulqa`, `humaneval`, `medqa`, `gsm8k`. |
+| `--data-dir PATH` | Root directory of downloaded benchmark data (default: `./stdbenchmarks/data`). |
+| `--split SPLIT` | Dataset split to load (default: adapter's `default_split`, e.g. `test` or `validation`). |
+| `--limit N` | Ingest at most N datapoints per benchmark (useful for quick tests). |
+| `--task-name NAME` | Override the task name written to the EES run. |
+| `--verbose` | Print progress every 100 items. |
+
+### Benchmark support
+
+| Benchmark | Category | Task type | Label eval? |
+|-----------|----------|-----------|-------------|
+| `mmlu` | General | Multiple-choice (57 subjects) | Yes — exact match on `correct_answer` |
+| `hellaswag` | General | Multiple-choice (commonsense) | Yes — exact match on `correct_answer` |
+| `truthfulqa` | General | Open-ended factuality | No — judge required |
+| `humaneval` | Code | Python function synthesis | No — judge required |
+| `medqa` | Medical | USMLE-style MCQ | Yes — exact match on `correct_answer` |
+| `gsm8k` | Math | Arithmetic word problems | Yes — exact match on `answer` |
+
+### Download benchmarks first
+
+```bash
+python stdbenchmarks/download_benchmarks.py --benchmarks mmlu hellaswag gsm8k
+```
+
+### Workflow
+
+```bash
+# 1. Download benchmarks
+python stdbenchmarks/download_benchmarks.py --benchmarks mmlu
+
+# 2. Ingest into an existing run
+coeval ingest --run benchmark/runs/my-exp --benchmarks mmlu --limit 200
+
+# 3. Resume the experiment (Phases 4–5 only for the new teacher)
+coeval run --config benchmark/runs/my-exp/config.yaml --continue
+```
+
+The ingest command is **idempotent**: re-running it skips items already written.
+The virtual teacher model is named `<benchmark>-benchmark` (e.g. `mmlu-benchmark`).
 
 ---
 

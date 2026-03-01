@@ -250,13 +250,31 @@ function renderV2() {
   var f = getFormula();
   var rows = DATA.ranking.slice().sort(function(a,b){return (b[f]||0)-(a[f]||0);});
   var names = rows.map(function(r){return r.teacher;});
-  var vals = rows.map(function(r){return r[f];});
+  var vals  = rows.map(function(r){return r[f];});
   var labels = vals.map(function(v){return (typeof v === 'number') ? v.toFixed(4) : '';});
+  // Color bars by relative rank: top → #22c55e (green), mid → #3b82f6 (blue), low → #ef4444 (red)
+  var maxV = vals.reduce(function(a,b){return Math.max(a,b||0);}, 0) || 1;
+  var colors = vals.map(function(v) {
+    var t = maxV > 0 ? (v||0) / maxV : 0;
+    if (t >= 0.66) return '#22c55e';
+    if (t >= 0.33) return '#3b82f6';
+    return '#f97316';
+  });
+  var formulaLabel = {'v1':'V1 Variance','s2':'S2 Spread','r3':'R3 Range'}[f] || f;
   Plotly.newPlot('v2-chart',
-    [{type:'bar', x: names, y: vals, marker:{color:'#2980b9'},
-      text: labels, textposition: 'outside', cliponaxis: false}],
-    {yaxis:{title:'Teacher differentiation score (' + f + ')', autorange: true},
-     xaxis:{title:'Teacher'}, margin:{t:40}});
+    [{
+      type: 'bar', x: names, y: vals,
+      marker: { color: colors, line: { color: 'rgba(0,0,0,.12)', width: 1 } },
+      text: labels, textposition: 'outside', cliponaxis: false,
+      hovertemplate: '<b>%{x}</b><br>' + formulaLabel + ': %{y:.4f}<extra></extra>',
+    }],
+    {
+      yaxis: { title: formulaLabel + ' score', autorange: true, gridcolor: '#f1f5f9' },
+      xaxis: { title: 'Teacher model', tickangle: names.length > 5 ? -35 : 0 },
+      margin: { t: 32, b: 100, l: 60, r: 20 },
+      paper_bgcolor: '#fff', plot_bgcolor: '#fafbfc',
+      showlegend: false,
+    }, { responsive: true });
 }
 
 function renderV3() {
@@ -285,19 +303,34 @@ function renderV3() {
 function renderV4() {
   var teachers = DATA.teachers;
   var students = DATA.students;
+  var palette = [
+    '#3b82f6','#22c55e','#f59e0b','#ef4444','#8b5cf6',
+    '#06b6d4','#ec4899','#84cc16','#f97316','#14b8a6',
+  ];
   var traces = [];
-  teachers.forEach(function(t) {
+  teachers.forEach(function(t, ti) {
     students.forEach(function(s) {
       var key = t + '||' + s;
       var vals = DATA.teacher_student_boxes[key] || [];
       if (vals.length) {
-        traces.push({type:'box', name: t + ' / ' + s, y: vals, boxpoints:'outliers'});
+        traces.push({
+          type: 'box', name: t + ' / ' + s, y: vals,
+          boxpoints: 'outliers', jitter: 0.3, pointpos: 0,
+          marker: { color: palette[ti % palette.length], size: 4 },
+          line: { color: palette[ti % palette.length], width: 2 },
+          fillcolor: palette[ti % palette.length].replace(')',', 0.15)').replace('rgb','rgba'),
+          hovertemplate: '<b>%{x}</b><br>Score: %{y:.3f}<extra></extra>',
+        });
       }
     });
   });
   if (!traces.length) return;
-  Plotly.newPlot('v4-chart', traces,
-    {yaxis:{title:'Score', range:[-.05,1.05]}, margin:{t:20}});
+  Plotly.newPlot('v4-chart', traces, {
+    yaxis: { title: 'Normalised score (0–1)', range: [-0.08, 1.08], gridcolor: '#f1f5f9' },
+    xaxis: { tickangle: traces.length > 4 ? -35 : 0 },
+    margin: { t: 24, b: 100, l: 60, r: 20 },
+    paper_bgcolor: '#fff', plot_bgcolor: '#fafbfc',
+  }, { responsive: true });
 }
 
 document.addEventListener('DOMContentLoaded', renderAll);
