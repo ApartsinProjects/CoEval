@@ -8,6 +8,8 @@ plan      Standalone cost/time estimation (no experiment phases started).
 status    Experiment progress dashboard; optionally fetch completed batch results.
 repair    Scan experiment JSONL files for invalid records and mark them for
           re-generation; follow with `coeval run --continue` to regenerate.
+wizard    Interactive LLM-assisted wizard: describe your goal in plain English
+          and get a ready-to-run YAML configuration.
 generate  Run phases 1-2 (attribute + rubric mapping) and write a materialized
           YAML config with static attributes and rubric ready for `coeval run`.
 models    List available text-generation models from each configured provider.
@@ -337,6 +339,30 @@ def _build_parser() -> argparse.ArgumentParser:
         help='Path to a provider key file (YAML); overrides default ~/.coeval/keys.yaml',
     )
 
+    # ---- coeval wizard ----
+    wizard_p = sub.add_parser(
+        'wizard',
+        help=(
+            'Interactive LLM-assisted experiment wizard: describe your goal in '
+            'plain English and get a ready-to-run YAML configuration'
+        ),
+    )
+    wizard_p.add_argument(
+        '--out', metavar='PATH', default=None,
+        help='Output path for the generated YAML config file (default: prompt interactively)',
+    )
+    wizard_p.add_argument(
+        '--model', metavar='MODEL_ID', default=None,
+        help=(
+            'Model to use for config generation (default: best available from key file). '
+            'Examples: gpt-4o-mini, claude-3-5-haiku-20241022, gemini-2.0-flash'
+        ),
+    )
+    wizard_p.add_argument(
+        '--keys', metavar='PATH', default=None,
+        help='Path to a provider key file (YAML); overrides default ~/.coeval/keys.yaml',
+    )
+
     # ---- coeval models ----
     models_p = sub.add_parser(
         'models',
@@ -428,6 +454,9 @@ def main(argv: list[str] | None = None) -> None:
     elif args.command == 'repair':
         from .commands.repair_cmd import cmd_repair
         cmd_repair(args)
+    elif args.command == 'wizard':
+        from .commands.wizard_cmd import cmd_wizard
+        cmd_wizard(args)
     elif args.command == 'generate':
         from .commands.generate_cmd import cmd_generate
         cmd_generate(args)

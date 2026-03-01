@@ -10,7 +10,7 @@ Complete reference for all `coeval` command-line options.
 coeval <subcommand> [options]
 ```
 
-Subcommands: [`run`](#coeval-run), [`probe`](#coeval-probe), [`plan`](#coeval-plan), [`status`](#coeval-status), [`repair`](#coeval-repair), [`generate`](#coeval-generate), [`models`](#coeval-models), [`analyze`](#coeval-analyze)
+Subcommands: [`run`](#coeval-run), [`probe`](#coeval-probe), [`plan`](#coeval-plan), [`status`](#coeval-status), [`repair`](#coeval-repair), [`wizard`](#coeval-wizard), [`generate`](#coeval-generate), [`models`](#coeval-models), [`analyze`](#coeval-analyze)
 
 ---
 
@@ -430,6 +430,77 @@ coeval run --config benchmark/medium-benchmark-v1.yaml --continue
 
 ---
 
+## `coeval wizard`
+
+Interactive LLM-assisted experiment configuration wizard.
+
+Guides you through defining an evaluation experiment via a conversational
+interface.  Describe your goal in plain English, answer a few clarifying
+questions, and the wizard generates a complete, valid YAML configuration
+ready for `coeval run`.
+
+```
+coeval wizard [options]
+```
+
+### How it works
+
+1. **Describe your goal** — Type a free-text description of what you want to evaluate (e.g. *"Compare how different LLMs summarize scientific papers across different domains and difficulty levels"*).
+2. **Answer clarifying questions** — Experiment ID, storage folder, number of items per task, preferred models.
+3. **Review the generated YAML** — The wizard calls an LLM to produce a complete configuration and displays it for review.
+4. **Refine interactively** — Type any requested changes in plain English (e.g. *"add a third task for question answering"*, *"change the judge model to gpt-4o"*). Repeat until satisfied.
+5. **Save** — The final config is written to the path you specify, ready for use.
+
+### Optional
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--out PATH` | interactive | Output path for the generated YAML config. If omitted, the wizard asks interactively (or prints to stdout if left empty). |
+| `--model MODEL_ID` | auto-selected | LLM model to use for config generation. Defaults to the best available from the key file: OpenAI → Anthropic → Gemini → OpenRouter. |
+| `--keys PATH` | `~/.coeval/keys.yaml` | Path to a provider key file (YAML). |
+
+### Provider selection for generation
+
+The wizard automatically selects the best available generation model in this order:
+
+1. **OpenAI** — `gpt-4o-mini` (requires `OPENAI_API_KEY` or `providers.openai` in key file)
+2. **Anthropic** — `claude-3-5-haiku-20241022`
+3. **Gemini** — `gemini-2.0-flash`
+4. **OpenRouter** — `openai/gpt-4o-mini`
+
+Use `--model` to override, e.g. `--model gpt-4o` or `--model claude-3-5-sonnet-20241022`.
+
+### After the wizard
+
+```bash
+# Verify model access
+coeval probe --config my-experiment.yaml
+
+# Estimate cost before running
+coeval plan --config my-experiment.yaml --estimate-samples 0
+
+# Run the experiment
+coeval run --config my-experiment.yaml
+```
+
+### Examples
+
+```bash
+# Launch wizard interactively (save path prompted at end)
+coeval wizard
+
+# Save directly to a file
+coeval wizard --out experiments/summarization-eval.yaml
+
+# Use a specific generation model
+coeval wizard --out experiments/my-eval.yaml --model gpt-4o
+
+# Use a custom key file
+coeval wizard --out experiments/my-eval.yaml --keys ~/.coeval/prod-keys.yaml
+```
+
+---
+
 ## `coeval generate`
 
 Run phases 1–2 (attribute mapping + rubric mapping) in a temporary staging
@@ -640,6 +711,25 @@ coeval analyze export-benchmark \
 ---
 
 ## Typical workflows
+
+### Quick start with the wizard
+
+```bash
+# 1. Launch the wizard — describe your goal, pick models, get a YAML
+coeval wizard --out experiments/my-eval.yaml
+
+# 2. Preview cost and verify model access
+coeval plan  --config experiments/my-eval.yaml --estimate-samples 0
+coeval probe --config experiments/my-eval.yaml
+
+# 3. Run the experiment
+coeval run --config experiments/my-eval.yaml
+
+# 4. Analyse results
+coeval analyze all \
+    --run experiments/runs/my-eval \
+    --out experiments/runs/my-eval/reports
+```
 
 ### Two-step workflow (generate then run)
 
