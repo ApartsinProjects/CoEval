@@ -39,8 +39,20 @@ Any unparseable JSONL line is also reported as invalid.
     # Compact per-phase summary table (valid/invalid/gap counts)
     coeval repair --run benchmark/runs/my-exp --stats
 
+    # Detailed per-file breakdown table (valid/invalid/gap per JSONL file)
+    coeval repair --run benchmark/runs/my-exp --breakdown
+
+    # Combine for full picture: per-phase + per-file
+    coeval repair --run benchmark/runs/my-exp --stats --breakdown
+
     # Control how many example records are shown per issue group (default 5)
     coeval repair --run benchmark/runs/my-exp --examples 10 --dry-run
+
+    # Show valid record examples for spot-checking (3 per phase)
+    coeval repair --run benchmark/runs/my-exp --show-valid 3 --dry-run
+
+    # Full diagnostics: examples for every case (valid/invalid/gap)
+    coeval repair --run benchmark/runs/my-exp --examples 5 --show-valid 3 --dry-run
 
     # Restrict output to a specific phase only
     coeval repair --run benchmark/runs/my-exp --phase 5 --dry-run
@@ -239,6 +251,78 @@ def count_valid_records(run_path: Path) -> dict[str, int]:
                     counts['phase5'] += 1
 
     return counts
+
+
+def collect_valid_examples(run_path: Path, n: int) -> dict[str, list[dict]]:
+    """Collect up to *n* valid record examples per phase for spot-checking.
+
+    Returns a dict with keys ``'phase3'``, ``'phase4'``, ``'phase5'``, each
+    holding a list of up to *n* valid record dicts (first found, sorted by
+    filename so results are deterministic).
+    """
+    samples: dict[str, list[dict]] = {'phase3': [], 'phase4': [], 'phase5': []}
+    phase_config = [
+        ('phase3', 'phase3_datapoints', _is_invalid_p3),
+        ('phase4', 'phase4_responses',  _is_invalid_p4),
+        ('phase5', 'phase5_evaluations', _is_invalid_p5),
+    ]
+    for key, subdir, is_invalid_fn in phase_config:
+        d = run_path / subdir
+        if not d.exists():
+            continue
+        for f in sorted(d.glob('*.jsonl')):
+            if len(samples[key]) >= n:
+                break
+            for _, rec in _iter_jsonl(f):
+                if isinstance(rec, dict) and not is_invalid_fn(rec):
+                    samples[key].append(rec)
+                    if len(samples[key]) >= n:
+                        break
+    return samples
+
+
+def scan_file_breakdown(run_path: Path, gaps: dict) -> dict[str, list[dict]]:
+    """Compute per-file valid/invalid/gap counts for all phase JSONL files.
+
+    Returns a dict with keys ``'phase3'``, ``'phase4'``, ``'phase5'``, each
+    holding a list of row dicts with keys:
+
+    * ``file`` — filename (basename only)
+    * ``valid`` — count of valid records
+    * ``invalid`` — count of invalid records
+    * ``gaps`` — count of missing records (from upstream cross-reference)
+    """
+    # Build gap counts per filename from the already-computed gap report
+    gap_by_file: dict[str, int] = {}
+    for g in gaps.get('phase4_gaps', []) + gaps.get('phase5_gaps', []):
+        gap_by_file[Path(g['file']).name] = g.get('missing', 0)
+
+    breakdown: dict[str, list[dict]] = {'phase3': [], 'phase4': [], 'phase5': []}
+    phase_config = [
+        ('phase3', 'phase3_datapoints',  _is_invalid_p3),
+        ('phase4', 'phase4_responses',   _is_invalid_p4),
+        ('phase5', 'phase5_evaluations', _is_invalid_p5),
+    ]
+    for key, subdir, is_invalid_fn in phase_config:
+        d = run_path / subdir
+        if not d.exists():
+            continue
+        for f in sorted(d.glob('*.jsonl')):
+            valid = invalid = 0
+            for _, rec in _iter_jsonl(f):
+                if not isinstance(rec, dict):
+                    invalid += 1
+                elif is_invalid_fn(rec):
+                    invalid += 1
+                else:
+                    valid += 1
+            breakdown[key].append({
+                'file': f.name,
+                'valid': valid,
+                'invalid': invalid,
+                'gaps': gap_by_file.get(f.name, 0),
+            })
+    return breakdown
 
 
 # ---------------------------------------------------------------------------
@@ -491,6 +575,85 @@ def reopen_phases(run_path: Path, phases_to_reopen: set[str]) -> list[str]:
 # Report printing
 # ---------------------------------------------------------------------------
 
+def _print_breakdown(breakdown: dict, run_path: Path) -> None:
+    """Print a detailed per-file valid/invalid/gap table for each phase."""
+    PHASE_LABELS = {
+        'phase3': 'Phase 3 — datapoints',
+        'phase4': 'Phase 4 — responses',
+        'phase5': 'Phase 5 — evaluations',
+    }
+    COL = 58   # filename column width
+
+    print(f"\nPer-file breakdown: {run_path.name}")
+    print('=' * (COL + 36))
+
+    grand_valid = grand_invalid = grand_gaps = 0
+    for key in ('phase3', 'phase4', 'phase5'):
+        rows = breakdown.get(key, [])
+        if not rows:
+            continue
+        phase_valid = sum(r['valid'] for r in rows)
+        phase_invalid = sum(r['invalid'] for r in rows)
+        phase_gaps = sum(r['gaps'] for r in rows)
+        grand_valid += phase_valid
+        grand_invalid += phase_invalid
+        grand_gaps += phase_gaps
+
+        print(f"\n  {PHASE_LABELS[key]}")
+        print(f"  {'File':<{COL}} {'Valid':>7} {'Invalid':>8} {'Gaps':>6}")
+        print(f"  {'-'*COL} {'-'*7} {'-'*8} {'-'*6}")
+        for r in rows:
+            flag = ' !' if (r['invalid'] > 0 or r['gaps'] > 0) else ''
+            fname = r['file']
+            if len(fname) > COL:
+                fname = '…' + fname[-(COL - 1):]
+            print(f"  {fname:<{COL}} {r['valid']:>7,} {r['invalid']:>8,} {r['gaps']:>6,}{flag}")
+        print(f"  {'  subtotal':<{COL}} {phase_valid:>7,} {phase_invalid:>8,} {phase_gaps:>6,}")
+
+    print()
+    print(f"  {'GRAND TOTAL':<{COL}} {grand_valid:>7,} {grand_invalid:>8,} {grand_gaps:>6,}")
+    print('=' * (COL + 36))
+
+
+def _print_valid_examples(
+    samples: dict[str, list[dict]],
+    phase_labels: list[tuple],
+) -> None:
+    """Print spot-check examples of valid records per phase."""
+    print("\n--- Valid record examples (spot-check) ---")
+    KEY_FIELDS = {
+        'phase3': ('id', 'task_id', 'teacher_model_id', 'reference_response'),
+        'phase4': ('id', 'task_id', 'teacher_model_id', 'student_model_id', 'response'),
+        'phase5': ('id', 'task_id', 'teacher_model_id', 'judge_model_id', 'scores'),
+    }
+    any_shown = False
+    for key, num, kind in phase_labels:
+        recs = samples.get(key, [])
+        if not recs:
+            print(f"\nPhase {num} ({kind}) — no valid records found")
+            continue
+        any_shown = True
+        print(f"\nPhase {num} ({kind}) — {len(recs)} example(s):")
+        for rec in recs:
+            rid = rec.get('id', '?')
+            fields = KEY_FIELDS.get(key, ('id',))
+            parts = []
+            for field in fields:
+                if field == 'id':
+                    continue   # id shown in prefix
+                val = rec.get(field, '–')
+                if isinstance(val, str) and len(val) > 80:
+                    val = val[:77] + '…'
+                elif isinstance(val, dict):
+                    val = '{' + ', '.join(f'{k}: {v}' for k, v in list(val.items())[:4]) + '}'
+                parts.append(f"{field}={val!r}")
+            print(f"  [{rid}]")
+            for p in parts:
+                print(f"    {p}")
+    if not any_shown:
+        print("  (no valid records found in selected phases)")
+
+
 def _print_stats(report: dict, gaps: dict, valid_counts: dict, run_path: Path) -> None:
     """Print a compact per-phase summary table of valid/invalid/gap counts."""
     invalid_total = sum(len(v) for v in report.values())
@@ -543,6 +706,8 @@ def _print_report(
     valid_counts: dict | None = None,
     examples: int = 5,
     phase_filter: int | None = None,
+    show_valid: int = 0,
+    breakdown: dict | None = None,
 ) -> None:
     invalid_total = sum(len(v) for v in report.values())
     gap_total = sum(g['missing'] for g in gaps['phase4_gaps'] + gaps['phase5_gaps'])
@@ -615,6 +780,15 @@ def _print_report(
             else:
                 print("\nPhase 5 (evaluations) — OK (full coverage)")
 
+    # Valid record examples section
+    if show_valid > 0:
+        samples = collect_valid_examples(run_path, show_valid)
+        _print_valid_examples(samples, phase_labels)
+
+    # Per-file breakdown section
+    if breakdown is not None:
+        _print_breakdown(breakdown, run_path)
+
     print(f"\n{'=' * 70}")
     print(f"Invalid records: {invalid_total:,}  |  Missing records: {gap_total:,}")
     if gaps['phases_to_reopen']:
@@ -634,6 +808,8 @@ def cmd_repair(args: argparse.Namespace) -> None:
     examples: int = getattr(args, 'examples', 5)
     phase_filter: int | None = getattr(args, 'phase', None)
     stats_mode: bool = getattr(args, 'stats', False)
+    show_breakdown: bool = getattr(args, 'breakdown', False)
+    show_valid: int = getattr(args, 'show_valid', 0)
 
     if not run_path.exists():
         print(f"ERROR: Experiment folder not found: {run_path}", file=sys.stderr)
@@ -653,13 +829,19 @@ def cmd_repair(args: argparse.Namespace) -> None:
     if stats_mode:
         valid_counts = count_valid_records(run_path)
         _print_stats(report, gaps, valid_counts, run_path)
+        if show_breakdown:
+            bd = scan_file_breakdown(run_path, gaps)
+            _print_breakdown(bd, run_path)
         sys.exit(0)
 
     valid_counts = count_valid_records(run_path) if examples >= 0 else None
+    bd = scan_file_breakdown(run_path, gaps) if show_breakdown else None
     _print_report(report, gaps, run_path,
                   valid_counts=valid_counts,
                   examples=examples,
-                  phase_filter=phase_filter)
+                  phase_filter=phase_filter,
+                  show_valid=show_valid,
+                  breakdown=bd)
 
     invalid_total = sum(len(v) for v in report.values())
     gap_total = sum(g['missing'] for g in gaps['phase4_gaps'] + gaps['phase5_gaps'])

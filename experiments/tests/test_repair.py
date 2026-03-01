@@ -18,6 +18,8 @@ from experiments.commands.repair_cmd import (
     scan_experiment,
     scan_coverage_gaps,
     count_valid_records,
+    collect_valid_examples,
+    scan_file_breakdown,
     fix_invalid_records,
     reopen_phases,
     _is_invalid_p3,
@@ -675,3 +677,205 @@ class TestRescanAfterFixInvalids:
         assert len(gaps_after['phase5_gaps']) == 1
         assert gaps_after['phase5_gaps'][0]['missing'] == 3
         assert 'evaluation' in gaps_after['phases_to_reopen']
+
+
+# ---------------------------------------------------------------------------
+# collect_valid_examples
+# ---------------------------------------------------------------------------
+
+class TestCollectValidExamples:
+    """collect_valid_examples() samples up to n valid records per phase."""
+
+    def _write_p3(self, run_path, fname, records):
+        f = run_path / 'phase3_datapoints' / fname
+        _write_jsonl(f, records)
+
+    def _write_p4(self, run_path, fname, records):
+        f = run_path / 'phase4_responses' / fname
+        _write_jsonl(f, records)
+
+    def _write_p5(self, run_path, fname, records):
+        f = run_path / 'phase5_evaluations' / fname
+        _write_jsonl(f, records)
+
+    def test_collects_up_to_n_valid_records(self, tmp_path):
+        run_path, _ = _make_exp(tmp_path)
+        self._write_p3(run_path, 'task.tch.datapoints.jsonl', [
+            {'id': f'dp{i}', 'reference_response': f'ref {i}'} for i in range(10)
+        ])
+        samples = collect_valid_examples(run_path, n=3)
+        assert len(samples['phase3']) == 3
+        assert all('reference_response' in r for r in samples['phase3'])
+
+    def test_skips_invalid_records(self, tmp_path):
+        run_path, _ = _make_exp(tmp_path)
+        self._write_p3(run_path, 'task.tch.datapoints.jsonl', [
+            {'id': 'dp1', 'reference_response': ''},        # invalid
+            {'id': 'dp2', 'reference_response': None},      # invalid
+            {'id': 'dp3', 'reference_response': 'good'},    # valid
+            {'id': 'dp4', 'status': 'failed', 'reference_response': 'ok'},  # invalid
+            {'id': 'dp5', 'reference_response': 'also good'},  # valid
+        ])
+        samples = collect_valid_examples(run_path, n=5)
+        assert len(samples['phase3']) == 2
+        ids = {r['id'] for r in samples['phase3']}
+        assert ids == {'dp3', 'dp5'}
+
+    def test_returns_fewer_than_n_when_not_enough_valid(self, tmp_path):
+        run_path, _ = _make_exp(tmp_path)
+        self._write_p3(run_path, 'task.tch.datapoints.jsonl', [
+            {'id': 'dp1', 'reference_response': 'ok'},
+        ])
+        samples = collect_valid_examples(run_path, n=10)
+        assert len(samples['phase3']) == 1
+
+    def test_empty_dirs_return_empty_lists(self, tmp_path):
+        run_path, _ = _make_exp(tmp_path)
+        samples = collect_valid_examples(run_path, n=5)
+        assert samples == {'phase3': [], 'phase4': [], 'phase5': []}
+
+    def test_samples_all_three_phases(self, tmp_path):
+        run_path, _ = _make_exp(tmp_path)
+        self._write_p3(run_path, 'task.tch.datapoints.jsonl', [
+            {'id': 'dp1', 'reference_response': 'good ref'},
+        ])
+        self._write_p4(run_path, 'task.tch.stu.responses.jsonl', [
+            {'id': 'r1', 'response': 'good response'},
+        ])
+        self._write_p5(run_path, 'task.tch.jud.evaluations.jsonl', [
+            {'id': 'e1', 'response_id': 'r1', 'scores': {'quality': 'High'}},
+        ])
+        samples = collect_valid_examples(run_path, n=5)
+        assert len(samples['phase3']) == 1
+        assert len(samples['phase4']) == 1
+        assert len(samples['phase5']) == 1
+
+    def test_n_zero_returns_empty_lists(self, tmp_path):
+        run_path, _ = _make_exp(tmp_path)
+        self._write_p3(run_path, 'task.tch.datapoints.jsonl', [
+            {'id': 'dp1', 'reference_response': 'good ref'},
+        ])
+        samples = collect_valid_examples(run_path, n=0)
+        assert samples['phase3'] == []
+
+    def test_results_are_deterministic_by_filename_sort(self, tmp_path):
+        """Records from lexicographically earlier files appear first."""
+        run_path, _ = _make_exp(tmp_path)
+        self._write_p3(run_path, 'b_task.tch.datapoints.jsonl', [
+            {'id': 'dp_b', 'reference_response': 'from b'},
+        ])
+        self._write_p3(run_path, 'a_task.tch.datapoints.jsonl', [
+            {'id': 'dp_a', 'reference_response': 'from a'},
+        ])
+        samples = collect_valid_examples(run_path, n=1)
+        # 'a_task...' sorts before 'b_task...', so dp_a should appear
+        assert samples['phase3'][0]['id'] == 'dp_a'
+
+
+# ---------------------------------------------------------------------------
+# scan_file_breakdown
+# ---------------------------------------------------------------------------
+
+class TestScanFileBreakdown:
+    """scan_file_breakdown() returns per-file valid/invalid/gap counts."""
+
+    def _empty_gaps(self):
+        return {'phase4_gaps': [], 'phase5_gaps': [], 'phases_to_reopen': set()}
+
+    def test_all_valid_records_shows_zero_invalid(self, tmp_path):
+        run_path, _ = _make_exp(tmp_path)
+        fname = 'task.tch.datapoints.jsonl'
+        _write_jsonl(run_path / 'phase3_datapoints' / fname, [
+            {'id': f'dp{i}', 'reference_response': f'ref {i}'} for i in range(5)
+        ])
+        bd = scan_file_breakdown(run_path, self._empty_gaps())
+        assert len(bd['phase3']) == 1
+        row = bd['phase3'][0]
+        assert row['file'] == fname
+        assert row['valid'] == 5
+        assert row['invalid'] == 0
+        assert row['gaps'] == 0
+
+    def test_mixed_valid_invalid_counted_correctly(self, tmp_path):
+        run_path, _ = _make_exp(tmp_path)
+        fname = 'task.tch.datapoints.jsonl'
+        _write_jsonl(run_path / 'phase3_datapoints' / fname, [
+            {'id': 'dp1', 'reference_response': 'ok'},      # valid
+            {'id': 'dp2', 'reference_response': ''},         # invalid
+            {'id': 'dp3', 'reference_response': None},       # invalid
+            {'id': 'dp4', 'status': 'failed', 'reference_response': 'ok'},  # invalid
+            {'id': 'dp5', 'reference_response': 'good'},     # valid
+        ])
+        bd = scan_file_breakdown(run_path, self._empty_gaps())
+        row = bd['phase3'][0]
+        assert row['valid'] == 2
+        assert row['invalid'] == 3
+
+    def test_gap_counts_attributed_from_gaps_dict(self, tmp_path):
+        run_path, _ = _make_exp(tmp_path)
+        fname = 'task.tch.jud.evaluations.jsonl'
+        _write_jsonl(run_path / 'phase5_evaluations' / fname, [
+            {'id': 'e1', 'response_id': 'r1', 'scores': {'q': 'High'}},
+        ])
+        gaps = {
+            'phase4_gaps': [],
+            'phase5_gaps': [{'file': str(run_path / 'phase5_evaluations' / fname), 'missing': 4}],
+            'phases_to_reopen': {'evaluation'},
+        }
+        bd = scan_file_breakdown(run_path, gaps)
+        row = bd['phase5'][0]
+        assert row['file'] == fname
+        assert row['valid'] == 1
+        assert row['invalid'] == 0
+        assert row['gaps'] == 4
+
+    def test_multiple_files_listed(self, tmp_path):
+        run_path, _ = _make_exp(tmp_path)
+        for i in range(3):
+            fname = f'task{i}.tch.datapoints.jsonl'
+            _write_jsonl(run_path / 'phase3_datapoints' / fname, [
+                {'id': f'dp{i}', 'reference_response': f'ref {i}'},
+            ])
+        bd = scan_file_breakdown(run_path, self._empty_gaps())
+        assert len(bd['phase3']) == 3
+        # Returned in sorted order
+        files = [row['file'] for row in bd['phase3']]
+        assert files == sorted(files)
+
+    def test_empty_dirs_return_empty_lists(self, tmp_path):
+        run_path, _ = _make_exp(tmp_path)
+        bd = scan_file_breakdown(run_path, self._empty_gaps())
+        assert bd == {'phase3': [], 'phase4': [], 'phase5': []}
+
+    def test_non_dict_json_line_counted_as_invalid(self, tmp_path):
+        run_path, _ = _make_exp(tmp_path)
+        fname = 'task.tch.datapoints.jsonl'
+        f = run_path / 'phase3_datapoints' / fname
+        f.parent.mkdir(parents=True, exist_ok=True)
+        # Write one valid dict and one JSON string (non-dict)
+        f.write_text(
+            '{"id": "dp1", "reference_response": "ok"}\n'
+            '"this is a plain JSON string, not a dict"\n',
+            encoding='utf-8',
+        )
+        bd = scan_file_breakdown(run_path, self._empty_gaps())
+        row = bd['phase3'][0]
+        assert row['valid'] == 1
+        assert row['invalid'] == 1
+
+    def test_phase4_and_phase5_files_included(self, tmp_path):
+        run_path, _ = _make_exp(tmp_path)
+        _write_jsonl(run_path / 'phase4_responses' / 'task.tch.stu.responses.jsonl', [
+            {'id': 'r1', 'response': 'answer'},
+            {'id': 'r2', 'response': ''},  # invalid
+        ])
+        _write_jsonl(run_path / 'phase5_evaluations' / 'task.tch.jud.evaluations.jsonl', [
+            {'id': 'e1', 'response_id': 'r1', 'scores': {'q': 'High'}},
+        ])
+        bd = scan_file_breakdown(run_path, self._empty_gaps())
+        assert len(bd['phase4']) == 1
+        assert bd['phase4'][0]['valid'] == 1
+        assert bd['phase4'][0]['invalid'] == 1
+        assert len(bd['phase5']) == 1
+        assert bd['phase5'][0]['valid'] == 1
+        assert bd['phase5'][0]['invalid'] == 0

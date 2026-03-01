@@ -271,6 +271,20 @@ def _build_parser() -> argparse.ArgumentParser:
         '--phase', type=int, choices=[3, 4, 5], metavar='PHASE',
         help='Restrict the scan and report to a single phase (3, 4, or 5).',
     )
+    repair_p.add_argument(
+        '--breakdown', action='store_true',
+        help=(
+            'Show a per-file breakdown table with valid/invalid/gap counts '
+            'for every JSONL file. Can be combined with --stats.'
+        ),
+    )
+    repair_p.add_argument(
+        '--show-valid', type=int, default=0, metavar='N', dest='show_valid',
+        help=(
+            'Show N example valid records per phase for spot-checking data '
+            'quality and format (default: 0 = disabled).'
+        ),
+    )
 
     # ---- coeval generate ----
     gen_p = sub.add_parser(
