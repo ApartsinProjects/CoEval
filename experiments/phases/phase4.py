@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from ..config import CoEvalConfig, TaskConfig, ModelConfig
 from ..exceptions import PartialPhaseFailure
 from ..interfaces import ModelPool, create_batch_runner
+from ..interfaces.cost_estimator import count_tokens_approx
 from ..logger import RunLogger
 from ..prompts import get_prompt
 from ..storage import ExperimentStorage
@@ -272,6 +273,7 @@ def _collect_batch_responses(
             'student_model_id': student_id,
             'input': dp['prompt'],
             'response': response_text,
+            'token_count': count_tokens_approx(response_text),
             'generated_at': _now_iso(),
         }
         if not response_text:
@@ -381,6 +383,7 @@ def _collect_responses(
             'student_model_id': student_id,
             'input': dp['prompt'],
             'response': response_text,
+            'token_count': count_tokens_approx(response_text),
             'generated_at': _now_iso(),
         }
         storage.append_response(task_id, teacher_id, student_id, record)

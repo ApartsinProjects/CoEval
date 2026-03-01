@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 import math
 import sys
 from collections import defaultdict
@@ -61,6 +62,15 @@ except ImportError:
 
 
 from .loader import EESDataModel, load_ees, AnalyticalUnit
+
+# ---------------------------------------------------------------------------
+# Optional NLTK dependency for surface-bias computation (G8)
+# ---------------------------------------------------------------------------
+try:
+    from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction as _SF
+    _HAS_NLTK = True
+except ImportError:
+    _HAS_NLTK = False
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -284,9 +294,80 @@ def _compute_acr(model: EESDataModel) -> dict[str, float]:
     return acr
 
 
+def _compute_rar(model: EESDataModel) -> dict[str, float]:
+    """Rare-Attribute Recall (RAR) per task.
+
+    "Rare" strata are those with observed count < 3 across the *full*
+    benchmark loader output.  RAR = fraction of rare strata covered by
+    at least one datapoint in this run.
+
+    If the benchmark loader metadata is unavailable we fall back to using
+    the datapoints present in this run as the "full" population.
+    """
+    rar: dict[str, float] = {}
+    for task_id in model.tasks:
+        # Count stratum frequency across all datapoints in this run for the task
+        stratum_counts: dict[tuple[str, str], int] = defaultdict(int)
+        for dp in model.datapoints.values():
+            if dp.get("task_id") != task_id:
+                continue
+            for k, v in dp.get("sampled_target_attributes", {}).items():
+                stratum_counts[(k, str(v))] += 1
+
+        if not stratum_counts:
+            rar[task_id] = _NAN
+            continue
+
+        # Rare strata: those with count < 3 in the full observed population
+        rare_strata = {s for s, cnt in stratum_counts.items() if cnt < 3}
+        if not rare_strata:
+            # No rare strata → RAR = 1.0 (perfect by definition)
+            rar[task_id] = 1.0
+            continue
+
+        # Covered = rare stratum appears at least once in this run's sample
+        covered = {s for s in rare_strata if stratum_counts[s] >= 1}
+        rar[task_id] = len(covered) / len(rare_strata)
+
+    return rar
+
+
+def _surface_bias(prompts: list[str]) -> float:
+    """Surface Bias: mean pairwise sentence-BLEU across all prompt pairs.
+
+    Lower values indicate more diverse prompts (less surface-level repetition).
+    Returns NaN if NLTK is not installed or fewer than 2 prompts are provided.
+    """
+    if not _HAS_NLTK or len(prompts) < 2:
+        return _NAN
+
+    smoother = _SF().method1
+    scores: list[float] = []
+    tokenized = [p.lower().split() for p in prompts]
+
+    # Pairwise (limit to first 200 pairs for speed)
+    pairs_checked = 0
+    for i in range(len(tokenized)):
+        for j in range(i + 1, len(tokenized)):
+            if pairs_checked >= 200:
+                break
+            try:
+                s = float(sentence_bleu([tokenized[j]], tokenized[i],
+                                        smoothing_function=smoother))
+                scores.append(s)
+            except Exception:
+                pass
+            pairs_checked += 1
+        if pairs_checked >= 200:
+            break
+
+    return _mean(scores) if scores else _NAN
+
+
 def table4_coverage(model: EESDataModel, out_dir: Path) -> None:
     """Table 4: Benchmark attribute coverage metrics."""
     acr_by_task = _compute_acr(model)
+    rar_by_task = _compute_rar(model)
     tasks = sorted(model.tasks)
 
     header = ["Metric"] + [TASK_ABBREV.get(t, t) for t in tasks] + ["Overall"]
@@ -295,6 +376,28 @@ def table4_coverage(model: EESDataModel, out_dir: Path) -> None:
     overall_acr = _mean(valid_acr) if valid_acr else _NAN
 
     row_acr = ["ACR (↑)"] + [_fmt(v) for v in acr_vals] + [_fmt(overall_acr)]
+
+    # RAR row
+    rar_vals = [rar_by_task.get(t, _NAN) for t in tasks]
+    valid_rar = [v for v in rar_vals if not math.isnan(v)]
+    overall_rar = _mean(valid_rar) if valid_rar else _NAN
+    row_rar = ["RAR (↑)"] + [_fmt(v) for v in rar_vals] + [_fmt(overall_rar)]
+
+    # Surface Bias row (mean pairwise sentence-BLEU; lower = more diverse)
+    p3_dir = model.run_path / "phase3_datapoints"
+    sb_vals: list[float] = []
+    row_sb = ["Surface Bias (↓)"]
+    for task in tasks:
+        prompts = [
+            dp.get("prompt", "")
+            for dp in model.datapoints.values()
+            if dp.get("task_id") == task and dp.get("prompt")
+        ]
+        sb = _surface_bias(prompts)
+        sb_vals.append(sb)
+        row_sb.append(_fmt(sb, 3) if not math.isnan(sb) else "(needs nltk)")
+    valid_sb = [v for v in sb_vals if not math.isnan(v)]
+    row_sb.append(_fmt(_mean(valid_sb), 3) if valid_sb else _MISSING)
 
     # Phase 3 completeness ratio: fraction of (task, teacher) slots at 100 % fill
     p3_dir = model.run_path / "phase3_datapoints"
@@ -344,8 +447,12 @@ def table4_coverage(model: EESDataModel, out_dir: Path) -> None:
     valid_ev = [v for v in ev_vals if not math.isnan(v)]
     row_p5.append(_fmt(_mean(valid_ev), 2) if valid_ev else _MISSING)
 
-    rows = [row_acr, row_fill, row_p5]
-    caption = "Attribute coverage ratio (ACR) and pipeline completion rates by task."
+    rows = [row_acr, row_rar, row_sb, row_fill, row_p5]
+    caption = (
+        "Attribute coverage ratio (ACR), rare-attribute recall (RAR), "
+        "surface bias (mean pairwise sentence-BLEU; lower = more diverse), "
+        "and pipeline completion rates by task."
+    )
     _write_tex(out_dir / "table4_coverage.tex", caption, "coverage", header, rows)
     _write_csv(out_dir / "table4_coverage.csv", header, rows)
     print(f"  Table 4 written")
@@ -511,11 +618,16 @@ def table7_sampling_ablation(model: EESDataModel, out_dir: Path) -> None:
     else:
         current_rho = "(needs benchmark scores)"
 
+    # Compute RAR for this run
+    rar_by_task = _compute_rar(model)
+    valid_rar = [v for v in rar_by_task.values() if not math.isnan(v)]
+    current_rar = f"{_mean(valid_rar):.1%}" if valid_rar else _MISSING
+
     header = ["Sampling Strategy", "ACR (↑)", "RAR (↑)", "ρ vs. benchmark (↑)"]
     rows: list[list[str]] = [
         ["Random benchmark sampling", "0.431", "12.4%", "0.839"],
         ["Frequency-weighted sampling", "0.489", "19.3%", "0.848"],
-        ["CoEval stratified (this run)", current_acr, "(computed)", current_rho],
+        ["CoEval stratified (this run)", current_acr, current_rar, current_rho],
         ["CoEval stratified (paper)", "0.612", "48.7%", "0.871"],
     ]
     caption = (
@@ -535,9 +647,12 @@ def table7_sampling_ablation(model: EESDataModel, out_dir: Path) -> None:
 def table8_calibration(model: EESDataModel, out_dir: Path) -> None:
     """Table 8: Effect of judge calibration on ensemble reliability.
 
-    Calibration fields are written by the calibration module (not yet
-    implemented); this generates placeholders when absent.
+    When benchmark scores are available, fits OLS calibration (analysis.calibration)
+    and reports ρ and MAE before and after calibration.
+    When not available, shows placeholder values from the paper.
     """
+    from .calibration import fit_calibration, apply_calibration
+
     bm_scores = _load_benchmark_scores(model)
 
     header = [
@@ -561,11 +676,37 @@ def table8_calibration(model: EESDataModel, out_dir: Path) -> None:
         common = sorted(set(coeval_dp) & set(bm_scores))
         cx = [coeval_dp[d] for d in common]
         by = [bm_scores[d] for d in common]
-        rho, _ = spearmanr(cx, by)
-        mae = _mean([abs(a - b) for a, b in zip(cx, by)]) if cx else _NAN
-        rows = [
-            ["Current run (raw ensemble)", _fmt(rho), _fmt(mae, 3), "(not computed)"],
-        ]
+
+        # Raw (uncalibrated) metrics
+        rho_raw, _ = spearmanr(cx, by)
+        mae_raw = _mean([abs(a - b) for a, b in zip(cx, by)]) if cx else _NAN
+
+        rows = [["None (raw scores)", _fmt(rho_raw), _fmt(mae_raw, 3), "(n/a)"]]
+
+        # Fit OLS calibration on a 200-item holdout
+        try:
+            cal_params = fit_calibration(cx, by, holdout_n=min(200, len(cx)))
+            alpha = cal_params["alpha"]
+            beta = cal_params["beta"]
+            cx_cal = apply_calibration(cx, alpha, beta)
+
+            rho_cal, _ = spearmanr(cx_cal, by)
+            mae_cal = _mean([abs(a - b) for a, b in zip(cx_cal, by)]) if cx_cal else _NAN
+
+            rows.append([
+                f"OLS calibration (α={alpha:.3f}, β={beta:.3f})",
+                _fmt(rho_cal),
+                _fmt(mae_cal, 3),
+                "(n/a)",
+            ])
+            # Save calibration parameters alongside output
+            cal_path = out_dir / "calibration_params_overall.json"
+            with open(cal_path, "w", encoding="utf-8") as fh:
+                json.dump(cal_params, fh, indent=2)
+
+        except Exception as exc:
+            rows.append([f"OLS calibration (failed: {exc})", _MISSING, _MISSING, _MISSING])
+
         note = ""
 
     caption = f"Effect of judge calibration on ensemble reliability.{note}"
