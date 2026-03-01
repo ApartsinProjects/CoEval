@@ -20,11 +20,11 @@ def store(tmp_path):
 
 
 # ---------------------------------------------------------------------------
-# get_evaluated_response_ids — status='failed' filtering
+# get_evaluated_response_ids — all attempted records included (success + failed)
 # ---------------------------------------------------------------------------
 
-def test_get_evaluated_response_ids_excludes_failed(store):
-    """Records with status='failed' must NOT appear in the returned set."""
+def test_get_evaluated_response_ids_includes_failed(store):
+    """Records with status='failed' ARE included — they represent attempted evaluations."""
     good_rec = {
         'id': 'resp1__judge1',
         'response_id': 'resp1',
@@ -48,11 +48,11 @@ def test_get_evaluated_response_ids_excludes_failed(store):
     ids = store.get_evaluated_response_ids('task1', 'teacher1', 'judge1')
 
     assert 'resp1' in ids
-    assert 'resp2' not in ids
+    assert 'resp2' in ids  # failed record is included — prevents infinite retry
 
 
-def test_get_evaluated_response_ids_all_failed_returns_empty(store):
-    """If all evaluation records have status='failed', result is an empty set."""
+def test_get_evaluated_response_ids_all_failed_returns_all_ids(store):
+    """All failed records still appear in the returned set."""
     rec = {
         'id': 'resp1__judge1',
         'response_id': 'resp1',
@@ -65,7 +65,7 @@ def test_get_evaluated_response_ids_all_failed_returns_empty(store):
     store.append_evaluation('task1', 'teacher1', 'judge1', rec)
 
     ids = store.get_evaluated_response_ids('task1', 'teacher1', 'judge1')
-    assert ids == set()
+    assert ids == {'resp1'}  # included even though failed
 
 
 def test_get_evaluated_response_ids_empty_when_file_absent(store):
@@ -74,8 +74,8 @@ def test_get_evaluated_response_ids_empty_when_file_absent(store):
     assert ids == set()
 
 
-def test_get_evaluated_response_ids_includes_all_non_failed(store):
-    """All records without status='failed' (including those with no status key) are included."""
+def test_get_evaluated_response_ids_includes_all_records(store):
+    """All records regardless of status are included."""
     recs = [
         {'id': f'resp{i}__judge1', 'response_id': f'resp{i}', 'task_id': 'task1',
          'judge_model_id': 'judge1', 'scores': {}, 'evaluated_at': '2025-01-01T00:00:00Z'}

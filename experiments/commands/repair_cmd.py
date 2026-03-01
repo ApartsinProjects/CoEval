@@ -274,18 +274,44 @@ def scan_coverage_gaps(run_path: Path) -> dict:
                 })
                 gaps['phases_to_reopen'].add('response_collection')
 
+    # Load active judge IDs from config (if available) — orphaned judge files from
+    # removed models are not counted as gaps.
+    active_judge_ids: set[str] | None = None
+    config_path = run_path / 'config.yaml'
+    if config_path.exists():
+        try:
+            import yaml as _yaml  # noqa: PLC0415
+            cfg_raw = _yaml.safe_load(config_path.read_text(encoding='utf-8'))
+            judge_ids_from_cfg: set[str] = set()
+            for model in (cfg_raw or {}).get('models', []):
+                if 'judge' in (model.get('roles') or []):
+                    judge_ids_from_cfg.add(model.get('name', ''))
+            # Only filter by config judges if the config actually defines any judges.
+            # A config without a 'models' list (e.g. a minimal stub) should not
+            # cause all evaluation files to be skipped.
+            if judge_ids_from_cfg:
+                active_judge_ids = judge_ids_from_cfg
+        except Exception:
+            pass  # if config can't be loaded, check all files
+
     # Check Phase 5: for each evaluation file, are all responses covered?
     if p5_dir.exists():
         for f in sorted(p5_dir.glob('*.jsonl')):
+            # Count ALL records (success and failed) as "covered" — failed records
+            # are recorded attempts, not missing data. Use coeval repair to clear
+            # failed records and retry.
             evaluated: set[str] = set()
             task_id = teacher_id = judge_id = ''
             for _, rec in _iter_jsonl(f):
-                if rec and rec.get('status') != 'failed':
+                if rec:
                     evaluated.add(rec.get('response_id', ''))
                     task_id = rec.get('task_id', task_id)
                     teacher_id = rec.get('teacher_model_id', teacher_id)
                     judge_id = rec.get('judge_model_id', judge_id)
             if not task_id:
+                continue
+            # Skip files for judges no longer in the active config
+            if active_judge_ids is not None and judge_id and judge_id not in active_judge_ids:
                 continue
             # Collect all valid responses for this (task, teacher) across all students
             all_resp_for_pair: set[str] = set()
@@ -346,14 +372,28 @@ def fix_invalid_records(run_path: Path, report: dict) -> dict[str, int]:
         fpath = Path(fpath_str)
         if not fpath.exists() or not rid_set:
             continue
-        n = storage.mark_failed_records(fpath, rid_set)
         fname = fpath.name
-        if 'datapoints' in fname:
-            counts['phase3'] += n
-        elif 'responses' in fname:
-            counts['phase4'] += n
-        elif 'evaluations' in fname:
-            counts['phase5'] += n
+        if 'evaluations' in fname:
+            # Phase 5: mark the invalid records as failed first, then remove ALL
+            # failed evaluation records so that get_evaluated_response_ids no longer
+            # returns those response_ids, allowing --continue to re-attempt them.
+            # Parse the task/teacher/judge from the filename: {task}.{teacher}.{judge}.evaluations.jsonl
+            parts = fname.replace('.evaluations.jsonl', '').split('.')
+            if len(parts) >= 3:
+                task_id = parts[0]
+                teacher_id = parts[1]
+                judge_id = '.'.join(parts[2:])
+                # Step 1: mark the invalid records as failed
+                storage.mark_failed_records(fpath, rid_set)
+                # Step 2: remove ALL failed records (newly marked + any pre-existing)
+                n = storage.remove_failed_evaluations(task_id, teacher_id, judge_id)
+                counts['phase5'] += n
+        else:
+            n = storage.mark_failed_records(fpath, rid_set)
+            if 'datapoints' in fname:
+                counts['phase3'] += n
+            elif 'responses' in fname:
+                counts['phase4'] += n
 
     return counts
 

@@ -260,9 +260,13 @@ class TestFixInvalidRecords:
         report = scan_experiment(run_path)
         fix_invalid_records(run_path, report)
 
+        # Phase 5 behavior: invalid records (e2) are removed entirely so that
+        # get_evaluated_response_ids will not return them, enabling --continue
+        # to re-attempt those evaluations.
         records = _read_jsonl(fpath)
+        assert len(records) == 1                   # only e1 remains
         assert 'status' not in records[0]          # e1 untouched
-        assert records[1]['status'] == 'failed'     # e2 marked
+        # e2 has been removed (not just marked) — coeval repair removes it
 
 
 # ---------------------------------------------------------------------------
@@ -457,6 +461,57 @@ class TestScanCoverageGaps:
         self._setup_p5(run_path, 'task', 'tch', 'stu', 'jud', resp_ids)
         gaps = scan_coverage_gaps(run_path)
         assert gaps['phases_to_reopen'] == set()
+
+    def test_failed_evaluations_not_counted_as_gap(self, tmp_path):
+        """Phase5 file where all records have status='failed' should NOT be a gap.
+
+        Failed records are recorded attempts; gaps only occur when a response has
+        NO evaluation record at all.
+        """
+        run_path, _ = _make_exp(tmp_path)
+        dp_ids = ['dp1', 'dp2', 'dp3']
+        resp_ids = [f'{dp}__stu' for dp in dp_ids]
+        self._setup_p3(run_path, 'task', 'tch', dp_ids)
+        self._setup_p4(run_path, 'task', 'tch', 'stu', dp_ids)
+        # Write evaluation file with all records marked as failed
+        f = run_path / 'phase5_evaluations' / 'task.tch.jud.evaluations.jsonl'
+        _write_jsonl(f, [
+            {'id': f'{r}__jud', 'task_id': 'task',
+             'teacher_model_id': 'tch', 'judge_model_id': 'jud',
+             'response_id': r, 'scores': {}, 'status': 'failed'}
+            for r in resp_ids
+        ])
+        gaps = scan_coverage_gaps(run_path)
+        assert gaps['phase5_gaps'] == [], (
+            "All-failed phase5 records should count as covered, not as a gap"
+        )
+        assert gaps['phases_to_reopen'] == set()
+
+    def test_judge_removed_from_config_not_counted_as_gap(self, tmp_path):
+        """Evaluation file for a judge not in config should be skipped entirely."""
+        import yaml
+        run_path, _ = _make_exp(tmp_path)
+        dp_ids = ['dp1', 'dp2']
+        resp_ids = [f'{dp}__stu' for dp in dp_ids]
+        self._setup_p3(run_path, 'task', 'tch', dp_ids)
+        self._setup_p4(run_path, 'task', 'tch', 'stu', dp_ids)
+        # Write evaluation file with only 1 of 2 responses evaluated — for a
+        # judge that is NOT in the config.
+        self._setup_p5(run_path, 'task', 'tch', 'stu', 'old-judge', resp_ids,
+                       eval_ids=[resp_ids[0]])
+        # Write config with only 'active-judge' as the judge model
+        config_path = run_path / 'config.yaml'
+        config_path.write_text(yaml.dump({
+            'models': [
+                {'name': 'active-judge', 'roles': ['judge']},
+                {'name': 'tch', 'roles': ['teacher']},
+            ]
+        }), encoding='utf-8')
+        gaps = scan_coverage_gaps(run_path)
+        assert gaps['phase5_gaps'] == [], (
+            "Evaluation file for removed judge should not be flagged as a gap"
+        )
+        assert 'evaluation' not in gaps['phases_to_reopen']
 
 
 # ---------------------------------------------------------------------------

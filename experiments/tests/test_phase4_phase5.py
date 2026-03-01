@@ -450,11 +450,11 @@ def test_phase5_extend_new_factors_skips_already_evaluated_responses(tmp_path):
     assert len(iface.calls) == 0   # interface was never called
 
 
-def test_phase5_partial_failure_raised_on_slot_error(tmp_path):
+def test_phase5_partial_failure_recorded_on_scoring_error(tmp_path):
     """
-    When at least one (task, teacher, judge) triple raises an exception,
-    run_phase5 must raise PartialPhaseFailure with correct n_failures and
-    n_successes counts.
+    When _score_response raises for a response, the exception is caught and a
+    status='failed' evaluation record is written.  run_phase5 completes without
+    raising PartialPhaseFailure for individual response-level errors.
     """
     from experiments.phases.phase5 import run_phase5
 
@@ -495,13 +495,19 @@ def test_phase5_partial_failure_raised_on_slot_error(tmp_path):
     logger = _make_logger()
     quota = QuotaTracker({})
 
-    with pytest.raises(PartialPhaseFailure) as exc_info:
-        run_phase5(cfg, store, logger, pool, quota, phase_mode='New')
+    # With per-response error handling, run_phase5 completes without raising.
+    # The failed evaluation is recorded as status='failed' instead of propagating.
+    run_phase5(cfg, store, logger, pool, quota, phase_mode='New')
 
-    ppf = exc_info.value
-    assert ppf.n_failures >= 1
-    assert ppf.n_successes >= 0
-    assert ppf.n_failures + ppf.n_successes <= 2  # two triples total
+    # The good task should have a successful evaluation record
+    good_evals = store.read_evaluations('task_good', 'teacher1', 'judge1')
+    assert len(good_evals) == 1
+    assert good_evals[0].get('status') != 'failed'
+
+    # The bad task should have a failed evaluation record (not missing entirely)
+    bad_evals = store.read_evaluations('task_bad', 'teacher1', 'judge1')
+    assert len(bad_evals) == 1
+    assert bad_evals[0]['status'] == 'failed'
 
 
 def test_phase5_skip_when_no_responses(tmp_path):

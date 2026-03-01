@@ -573,30 +573,46 @@ def _evaluate(
         reference_response = dp['reference_response']
         target_attrs_str = json.dumps(dp.get('sampled_target_attributes', {}))
 
-        scores = _score_response(
-            task=task,
-            rubric=rubric_to_use,
-            response=resp,
-            reference_response=reference_response,
-            target_attrs_str=target_attrs_str,
-            judge_id=judge_id,
-            iface=iface,
-            params=params,
-            pool=pool,
-            quota=quota,
-        )
-
         eval_id = f"{resp['id']}__{judge_id}"
-        record = {
-            'id': eval_id,
-            'response_id': resp['id'],
-            'datapoint_id': dp_id,
-            'task_id': task_id,
-            'teacher_model_id': teacher_id,
-            'judge_model_id': judge_id,
-            'scores': scores,
-            'evaluated_at': _now_iso(),
-        }
+        try:
+            scores = _score_response(
+                task=task,
+                rubric=rubric_to_use,
+                response=resp,
+                reference_response=reference_response,
+                target_attrs_str=target_attrs_str,
+                judge_id=judge_id,
+                iface=iface,
+                params=params,
+                pool=pool,
+                quota=quota,
+            )
+            record: dict = {
+                'id': eval_id,
+                'response_id': resp['id'],
+                'datapoint_id': dp_id,
+                'task_id': task_id,
+                'teacher_model_id': teacher_id,
+                'judge_model_id': judge_id,
+                'scores': scores,
+                'evaluated_at': _now_iso(),
+            }
+        except Exception as exc:
+            logger.error(
+                f"Phase 5: scoring failed for response '{resp['id']}' "
+                f"(judge='{judge_id}'): {exc}"
+            )
+            record = {
+                'id': eval_id,
+                'response_id': resp['id'],
+                'datapoint_id': dp_id,
+                'task_id': task_id,
+                'teacher_model_id': teacher_id,
+                'judge_model_id': judge_id,
+                'scores': {},
+                'status': 'failed',
+                'evaluated_at': _now_iso(),
+            }
         storage.append_evaluation(task_id, teacher_id, judge_id, record)
 
     logger.info(f"Phase 5: {label} — done")

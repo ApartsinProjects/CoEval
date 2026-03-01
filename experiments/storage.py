@@ -240,8 +240,13 @@ class ExperimentStorage:
     def get_evaluated_response_ids(
         self, task_id: str, teacher_id: str, judge_id: str
     ) -> set[str]:
-        return {e['response_id'] for e in self.read_evaluations(task_id, teacher_id, judge_id)
-                if e.get('status') != 'failed'}
+        """Return response_ids for all attempted evaluations (success AND failed).
+
+        Including failed records prevents infinite retry loops when a judge model
+        consistently fails on certain inputs.  To retry failed evaluations, use
+        ``coeval repair`` which removes the failed records before re-running.
+        """
+        return {e['response_id'] for e in self.read_evaluations(task_id, teacher_id, judge_id)}
 
     # ------------------------------------------------------------------
     # Run-level error log
@@ -392,6 +397,35 @@ class ExperimentStorage:
             out_lines.append(json.dumps(rec, ensure_ascii=False))
         path.write_text('\n'.join(out_lines) + ('\n' if out_lines else ''), encoding='utf-8')
         return n_marked
+
+    def remove_failed_evaluations(
+        self, task_id: str, teacher_id: str, judge_id: str
+    ) -> int:
+        """Remove all ``status='failed'`` evaluation records; return count removed.
+
+        After removal, :meth:`get_evaluated_response_ids` will no longer return
+        those response_ids, so ``--continue`` (Extend mode) will re-attempt them.
+        Called by ``coeval repair`` to enable explicit retries of failed evaluations.
+        """
+        path = self.evaluations_path(task_id, teacher_id, judge_id)
+        if not path.exists():
+            return 0
+        kept_lines: list[str] = []
+        removed = 0
+        for line in path.read_text(encoding='utf-8').splitlines():
+            stripped = line.strip()
+            if not stripped:
+                continue
+            try:
+                rec = json.loads(stripped)
+                if rec.get('status') == 'failed':
+                    removed += 1
+                else:
+                    kept_lines.append(stripped)
+            except Exception:
+                kept_lines.append(stripped)  # preserve malformed lines verbatim
+        self.rewrite_jsonl(path, kept_lines)
+        return removed
 
     def _append_jsonl(self, path: Path, record: dict) -> None:
         line = json.dumps(record, ensure_ascii=False)
