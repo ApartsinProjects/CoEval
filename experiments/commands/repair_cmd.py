@@ -34,6 +34,17 @@ that ``--continue`` runs it again (in Extend mode, which skips existing records)
 
 Any unparseable JSONL line is also reported as invalid.
 
+**Diagnostic flags**::
+
+    # Compact per-phase summary table (valid/invalid/gap counts)
+    coeval repair --run benchmark/runs/my-exp --stats
+
+    # Control how many example records are shown per issue group (default 5)
+    coeval repair --run benchmark/runs/my-exp --examples 10 --dry-run
+
+    # Restrict output to a specific phase only
+    coeval repair --run benchmark/runs/my-exp --phase 5 --dry-run
+
 **Workflow**::
 
     # 1. Scan only — print report without modifying anything
@@ -197,6 +208,39 @@ def _iter_jsonl(path: Path):
             yield lineno, None
 
 
+def count_valid_records(run_path: Path) -> dict[str, int]:
+    """Count valid (non-invalid) records per phase in *run_path*.
+
+    Returns a dict with keys ``'phase3'``, ``'phase4'``, ``'phase5'``
+    containing the number of records that pass the per-phase validity check.
+    These are records that are neither failed nor have empty required fields.
+    """
+    counts: dict[str, int] = {'phase3': 0, 'phase4': 0, 'phase5': 0}
+
+    p3_dir = run_path / 'phase3_datapoints'
+    if p3_dir.exists():
+        for f in p3_dir.glob('*.jsonl'):
+            for _, rec in _iter_jsonl(f):
+                if rec and not _is_invalid_p3(rec):
+                    counts['phase3'] += 1
+
+    p4_dir = run_path / 'phase4_responses'
+    if p4_dir.exists():
+        for f in p4_dir.glob('*.jsonl'):
+            for _, rec in _iter_jsonl(f):
+                if rec and not _is_invalid_p4(rec):
+                    counts['phase4'] += 1
+
+    p5_dir = run_path / 'phase5_evaluations'
+    if p5_dir.exists():
+        for f in p5_dir.glob('*.jsonl'):
+            for _, rec in _iter_jsonl(f):
+                if rec and not _is_invalid_p5(rec):
+                    counts['phase5'] += 1
+
+    return counts
+
+
 # ---------------------------------------------------------------------------
 # Scanning — coverage gaps (missing records)
 # ---------------------------------------------------------------------------
@@ -233,7 +277,7 @@ def scan_coverage_gaps(run_path: Path) -> dict:
     if p3_dir.exists():
         for f in p3_dir.glob('*.jsonl'):
             for _, rec in _iter_jsonl(f):
-                if rec and rec.get('status') != 'failed':
+                if isinstance(rec, dict) and rec.get('status') != 'failed':
                     key = (rec.get('task_id', ''), rec.get('teacher_model_id', ''))
                     dp_ids[key].add(rec['id'])
 
@@ -242,7 +286,7 @@ def scan_coverage_gaps(run_path: Path) -> dict:
     if p4_dir.exists():
         for f in p4_dir.glob('*.jsonl'):
             for _, rec in _iter_jsonl(f):
-                if rec and rec.get('status') != 'failed' and rec.get('response'):
+                if isinstance(rec, dict) and rec.get('status') != 'failed' and rec.get('response'):
                     key = (
                         rec.get('task_id', ''),
                         rec.get('teacher_model_id', ''),
@@ -256,7 +300,7 @@ def scan_coverage_gaps(run_path: Path) -> dict:
             responded: set[str] = set()
             task_id = teacher_id = ''
             for _, rec in _iter_jsonl(f):
-                if rec and rec.get('status') != 'failed' and rec.get('response'):
+                if isinstance(rec, dict) and rec.get('status') != 'failed' and rec.get('response'):
                     responded.add(rec.get('datapoint_id', ''))
                     task_id = rec.get('task_id', task_id)
                     teacher_id = rec.get('teacher_model_id', teacher_id)
@@ -297,19 +341,33 @@ def scan_coverage_gaps(run_path: Path) -> dict:
     # Check Phase 5: for each evaluation file, are all responses covered?
     if p5_dir.exists():
         for f in sorted(p5_dir.glob('*.jsonl')):
+            # Parse task/teacher/judge from the filename as primary key source.
+            # This is needed when the file is empty (e.g. after repair removed all
+            # failed records) — the records can't supply the IDs in that case.
+            stem = f.name.replace('.evaluations.jsonl', '')
+            stem_parts = stem.split('.')
+            if len(stem_parts) < 3:
+                continue  # malformed filename — skip
+            fname_task_id = stem_parts[0]
+            fname_teacher_id = stem_parts[1]
+            fname_judge_id = '.'.join(stem_parts[2:])
+
             # Count ALL records (success and failed) as "covered" — failed records
             # are recorded attempts, not missing data. Use coeval repair to clear
             # failed records and retry.
             evaluated: set[str] = set()
-            task_id = teacher_id = judge_id = ''
+            task_id = fname_task_id
+            teacher_id = fname_teacher_id
+            judge_id = fname_judge_id
             for _, rec in _iter_jsonl(f):
-                if rec:
+                if isinstance(rec, dict):
                     evaluated.add(rec.get('response_id', ''))
+                    # Prefer record-sourced IDs (more authoritative), but fall back
+                    # to filename-derived ones when the file is empty.
                     task_id = rec.get('task_id', task_id)
                     teacher_id = rec.get('teacher_model_id', teacher_id)
                     judge_id = rec.get('judge_model_id', judge_id)
-            if not task_id:
-                continue
+
             # Skip files for judges no longer in the active config
             if active_judge_ids is not None and judge_id and judge_id not in active_judge_ids:
                 continue
@@ -433,54 +491,132 @@ def reopen_phases(run_path: Path, phases_to_reopen: set[str]) -> list[str]:
 # Report printing
 # ---------------------------------------------------------------------------
 
-def _print_report(report: dict, gaps: dict, run_path: Path) -> None:
+def _print_stats(report: dict, gaps: dict, valid_counts: dict, run_path: Path) -> None:
+    """Print a compact per-phase summary table of valid/invalid/gap counts."""
+    invalid_total = sum(len(v) for v in report.values())
+    gap_total = sum(g['missing'] for g in gaps['phase4_gaps'] + gaps['phase5_gaps'])
+    valid_total = sum(valid_counts.values())
+
+    print(f"\nDiagnostic summary: {run_path.name}")
+    print('=' * 70)
+    header = f"{'Phase':<26} {'Valid':>8} {'Invalid':>8} {'Gaps':>8} {'Total':>8}"
+    print(header)
+    print('-' * 70)
+
+    phase_labels = [
+        ('phase3', 'Phase 3 (datapoints)'),
+        ('phase4', 'Phase 4 (responses)'),
+        ('phase5', 'Phase 5 (evaluations)'),
+    ]
+    phase_gap_counts = {
+        'phase3': 0,  # no phase3 gap detection
+        'phase4': sum(g['missing'] for g in gaps['phase4_gaps']),
+        'phase5': sum(g['missing'] for g in gaps['phase5_gaps']),
+    }
+    for key, label in phase_labels:
+        v = valid_counts.get(key, 0)
+        i = len(report.get(key, []))
+        g = phase_gap_counts.get(key, 0)
+        t = v + i + g
+        flag = '' if (i == 0 and g == 0) else ' !'
+        print(f"{label:<26} {v:>8,} {i:>8,} {g:>8,} {t:>8,}{flag}")
+
+    print('-' * 70)
+    total_total = valid_total + invalid_total + gap_total
+    print(f"{'Total':<26} {valid_total:>8,} {invalid_total:>8,} {gap_total:>8,} {total_total:>8,}")
+    print('=' * 70)
+
+    if invalid_total == 0 and gap_total == 0:
+        print("✓ All records valid — no repair needed.")
+    else:
+        if invalid_total:
+            print(f"  {invalid_total} invalid record(s) — run repair to mark as failed.")
+        if gap_total:
+            print(f"  {gap_total} missing record(s) — repair will re-open phase(s) for retry.")
+        print("\nRun without --stats to see detailed report.")
+
+
+def _print_report(
+    report: dict,
+    gaps: dict,
+    run_path: Path,
+    valid_counts: dict | None = None,
+    examples: int = 5,
+    phase_filter: int | None = None,
+) -> None:
     invalid_total = sum(len(v) for v in report.values())
     gap_total = sum(g['missing'] for g in gaps['phase4_gaps'] + gaps['phase5_gaps'])
 
     print(f"\nRepair scan: {run_path}")
     print('=' * 70)
 
-    # Invalid records
-    phase_labels = [('phase3', '3', 'datapoints'), ('phase4', '4', 'responses'),
-                    ('phase5', '5', 'evaluations')]
+    # Determine which phases to include in the report
+    all_phases = [('phase3', '3', 'datapoints'), ('phase4', '4', 'responses'),
+                  ('phase5', '5', 'evaluations')]
+    if phase_filter is not None:
+        phase_labels = [(k, n, knd) for k, n, knd in all_phases if n == str(phase_filter)]
+    else:
+        phase_labels = all_phases
+
+    # Invalid records section
     print("\n--- Invalid records (exist but have empty/null required fields) ---")
     for key, num, kind in phase_labels:
         issues = report[key]
+        valid = (valid_counts or {}).get(key, 0)
+        valid_str = f" | {valid:,} valid" if valid_counts else ""
         if issues:
-            print(f"\nPhase {num} ({kind}) — {len(issues)} invalid record(s):")
+            print(f"\nPhase {num} ({kind}) — {len(issues)} invalid record(s){valid_str}:")
             by_file: dict[str, list] = defaultdict(list)
             for iss in issues:
                 by_file[Path(iss['file']).name].append(iss)
             for fname, file_issues in sorted(by_file.items()):
                 print(f"  {fname}: {len(file_issues)} invalid")
-                for iss in file_issues[:5]:
+                show = file_issues[:examples] if examples > 0 else []
+                for iss in show:
                     rid = iss.get('record_id') or f"<line {iss.get('line', '?')}>"
                     print(f"    * id={rid}: {iss['reason']}")
-                if len(file_issues) > 5:
-                    print(f"    * ... and {len(file_issues) - 5} more")
+                remaining = len(file_issues) - len(show)
+                if remaining > 0:
+                    print(f"    * ... and {remaining} more (use --examples N for more)")
         else:
-            print(f"\nPhase {num} ({kind}) — OK (no invalid records)")
+            valid_note = f" ({valid:,} valid)" if valid_counts else ""
+            print(f"\nPhase {num} ({kind}) — OK (no invalid records){valid_note}")
 
-    # Coverage gaps
-    print("\n--- Coverage gaps (records expected but entirely missing) ---")
-    if gaps['phase4_gaps']:
-        print(f"\nPhase 4 (responses) — {len(gaps['phase4_gaps'])} file(s) incomplete:")
-        for g in gaps['phase4_gaps']:
-            fname = Path(g['file']).name
-            print(f"  {fname}: {g['have']}/{g['expected']} records ({g['missing']} missing)")
-    else:
-        print("\nPhase 4 (responses) — OK (full coverage)")
+    # Coverage gaps section (skip if phase_filter set to phase 3)
+    if phase_filter != 3:
+        print("\n--- Coverage gaps (records expected but entirely missing) ---")
+        if phase_filter in (None, 4):
+            if gaps['phase4_gaps']:
+                print(f"\nPhase 4 (responses) — {len(gaps['phase4_gaps'])} file(s) incomplete:")
+                for g in gaps['phase4_gaps']:
+                    fname = Path(g['file']).name
+                    print(f"  {fname}: {g['have']:,}/{g['expected']:,} records ({g['missing']:,} missing)")
+                    sample_ids = g.get('datapoint_ids', [])[:examples] if examples > 0 else []
+                    for dp_id in sample_ids:
+                        print(f"    - missing datapoint: {dp_id}")
+                    remaining = len(g.get('datapoint_ids', [])) - len(sample_ids)
+                    if remaining > 0:
+                        print(f"    - ... and {remaining} more")
+            else:
+                print("\nPhase 4 (responses) — OK (full coverage)")
 
-    if gaps['phase5_gaps']:
-        print(f"\nPhase 5 (evaluations) — {len(gaps['phase5_gaps'])} file(s) incomplete:")
-        for g in gaps['phase5_gaps']:
-            fname = Path(g['file']).name
-            print(f"  {fname}: {g['have']}/{g['expected']} records ({g['missing']} missing)")
-    else:
-        print("\nPhase 5 (evaluations) — OK (full coverage)")
+        if phase_filter in (None, 5):
+            if gaps['phase5_gaps']:
+                print(f"\nPhase 5 (evaluations) — {len(gaps['phase5_gaps'])} file(s) incomplete:")
+                for g in gaps['phase5_gaps']:
+                    fname = Path(g['file']).name
+                    print(f"  {fname}: {g['have']:,}/{g['expected']:,} records ({g['missing']:,} missing)")
+                    sample_ids = g.get('response_ids', [])[:examples] if examples > 0 else []
+                    for rid in sample_ids:
+                        print(f"    - missing response: {rid}")
+                    remaining = g['missing'] - len(sample_ids)
+                    if remaining > 0:
+                        print(f"    - ... and {remaining} more")
+            else:
+                print("\nPhase 5 (evaluations) — OK (full coverage)")
 
     print(f"\n{'=' * 70}")
-    print(f"Invalid records: {invalid_total}  |  Missing records: {gap_total}")
+    print(f"Invalid records: {invalid_total:,}  |  Missing records: {gap_total:,}")
     if gaps['phases_to_reopen']:
         print(
             f"Phases with coverage gaps: {sorted(gaps['phases_to_reopen'])} "
@@ -495,6 +631,9 @@ def _print_report(report: dict, gaps: dict, run_path: Path) -> None:
 def cmd_repair(args: argparse.Namespace) -> None:
     """Entry point for ``coeval repair``."""
     run_path = Path(args.run).resolve()
+    examples: int = getattr(args, 'examples', 5)
+    phase_filter: int | None = getattr(args, 'phase', None)
+    stats_mode: bool = getattr(args, 'stats', False)
 
     if not run_path.exists():
         print(f"ERROR: Experiment folder not found: {run_path}", file=sys.stderr)
@@ -510,7 +649,17 @@ def cmd_repair(args: argparse.Namespace) -> None:
     print(f"Scanning experiment: {run_path.name}")
     report = scan_experiment(run_path)
     gaps = scan_coverage_gaps(run_path)
-    _print_report(report, gaps, run_path)
+
+    if stats_mode:
+        valid_counts = count_valid_records(run_path)
+        _print_stats(report, gaps, valid_counts, run_path)
+        sys.exit(0)
+
+    valid_counts = count_valid_records(run_path) if examples >= 0 else None
+    _print_report(report, gaps, run_path,
+                  valid_counts=valid_counts,
+                  examples=examples,
+                  phase_filter=phase_filter)
 
     invalid_total = sum(len(v) for v in report.values())
     gap_total = sum(g['missing'] for g in gaps['phase4_gaps'] + gaps['phase5_gaps'])
@@ -535,17 +684,33 @@ def cmd_repair(args: argparse.Namespace) -> None:
         print("\nRe-run without --dry-run to apply repairs.")
         sys.exit(0)
 
-    # Fix 1: mark invalid records as failed
+    # Fix 1: mark invalid records as failed (and for phase 5: remove failed records)
     if invalid_total:
         print(f"\nMarking {invalid_total} invalid record(s) as status='failed' ...")
         counts = fix_invalid_records(run_path, report)
-        print(f"  Phase 3 datapoints : {counts['phase3']} newly marked")
-        print(f"  Phase 4 responses  : {counts['phase4']} newly marked")
-        print(f"  Phase 5 evaluations: {counts['phase5']} newly marked")
+        print(f"  Phase 3 datapoints : {counts['phase3']:,} newly marked")
+        print(f"  Phase 4 responses  : {counts['phase4']:,} newly marked")
+        print(f"  Phase 5 evaluations: {counts['phase5']:,} removed (failed records cleared)")
         total_marked = sum(counts.values())
         already_failed = invalid_total - total_marked
         if already_failed:
-            print(f"  ({already_failed} already had status='failed' — unchanged)")
+            print(f"  ({already_failed} already had status='failed' — removed from p5 files)")
+
+        # Re-scan coverage gaps after fixing invalids: removing phase 5 failed records
+        # creates new coverage gaps that must be detected so the phase can be reopened.
+        if counts.get('phase5', 0) > 0:
+            print("\n  Re-scanning coverage gaps after removing failed phase 5 records ...")
+            updated_gaps = scan_coverage_gaps(run_path)
+            new_phases = updated_gaps['phases_to_reopen'] - gaps['phases_to_reopen']
+            if new_phases:
+                print(f"  Newly detected gap phase(s): {sorted(new_phases)}")
+                gaps['phases_to_reopen'] |= new_phases
+                gaps['phase5_gaps'].extend(updated_gaps['phase5_gaps'])
+            updated_gap_total = sum(
+                g['missing'] for g in updated_gaps['phase4_gaps'] + updated_gaps['phase5_gaps']
+            )
+            if updated_gap_total:
+                print(f"  Total coverage gaps after fix: {updated_gap_total:,} missing record(s)")
 
     # Fix 2: reopen phases with coverage gaps so --continue fills them in
     if gaps['phases_to_reopen']:

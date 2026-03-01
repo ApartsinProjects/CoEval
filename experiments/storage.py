@@ -418,13 +418,19 @@ class ExperimentStorage:
                 continue
             try:
                 rec = json.loads(stripped)
-                if rec.get('status') == 'failed':
+                if not isinstance(rec, dict):
+                    kept_lines.append(stripped)   # non-dict — preserve verbatim
+                elif rec.get('status') == 'failed':
                     removed += 1
                 else:
                     kept_lines.append(stripped)
             except Exception:
                 kept_lines.append(stripped)  # preserve malformed lines verbatim
-        self.rewrite_jsonl(path, kept_lines)
+        # Write raw JSONL lines directly — do NOT pass strings through rewrite_jsonl()
+        # because that method serialises each element as JSON, which would
+        # double-encode strings to produce `"\"...\""` instead of `{...}`.
+        content = '\n'.join(kept_lines) + ('\n' if kept_lines else '')
+        path.write_text(content, encoding='utf-8')
         return removed
 
     def _append_jsonl(self, path: Path, record: dict) -> None:

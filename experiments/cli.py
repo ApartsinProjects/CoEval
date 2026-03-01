@@ -253,6 +253,24 @@ def _build_parser() -> argparse.ArgumentParser:
             'Useful for auditing an experiment before committing to repair.'
         ),
     )
+    repair_p.add_argument(
+        '--stats', action='store_true',
+        help=(
+            'Print a compact per-phase summary table showing valid, invalid, '
+            'and gap record counts. Exits without modifying any files.'
+        ),
+    )
+    repair_p.add_argument(
+        '--examples', type=int, default=5, metavar='N',
+        help=(
+            'Number of example records to show per issue group in the detailed '
+            'report (default: 5; use 0 to suppress examples, -1 to show all).'
+        ),
+    )
+    repair_p.add_argument(
+        '--phase', type=int, choices=[3, 4, 5], metavar='PHASE',
+        help='Restrict the scan and report to a single phase (3, 4, or 5).',
+    )
 
     # ---- coeval generate ----
     gen_p = sub.add_parser(

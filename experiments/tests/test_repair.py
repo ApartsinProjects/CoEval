@@ -17,6 +17,7 @@ from experiments.storage import ExperimentStorage
 from experiments.commands.repair_cmd import (
     scan_experiment,
     scan_coverage_gaps,
+    count_valid_records,
     fix_invalid_records,
     reopen_phases,
     _is_invalid_p3,
@@ -550,3 +551,127 @@ class TestReopenPhases:
         assert 'attribute_mapping' in meta['phases_completed']
         assert 'rubric_mapping' in meta['phases_completed']
         assert 'evaluation' not in meta['phases_completed']
+
+
+# ---------------------------------------------------------------------------
+# count_valid_records
+# ---------------------------------------------------------------------------
+
+class TestCountValidRecords:
+    """count_valid_records() returns per-phase counts of non-invalid records."""
+
+    def _write_p3(self, run_path, task, teacher, records):
+        f = run_path / 'phase3_datapoints' / f'{task}.{teacher}.datapoints.jsonl'
+        _write_jsonl(f, records)
+
+    def _write_p4(self, run_path, task, teacher, student, records):
+        f = run_path / 'phase4_responses' / f'{task}.{teacher}.{student}.responses.jsonl'
+        _write_jsonl(f, records)
+
+    def _write_p5(self, run_path, task, teacher, judge, records):
+        f = run_path / 'phase5_evaluations' / f'{task}.{teacher}.{judge}.evaluations.jsonl'
+        _write_jsonl(f, records)
+
+    def test_counts_valid_p3(self, tmp_path):
+        run_path, _ = _make_exp(tmp_path)
+        self._write_p3(run_path, 't', 'tch', [
+            {'id': 'a', 'reference_response': 'ok'},
+            {'id': 'b', 'reference_response': ''},     # invalid
+            {'id': 'c', 'reference_response': 'good'},
+            {'id': 'd', 'status': 'failed', 'reference_response': 'ok'},  # invalid
+        ])
+        counts = count_valid_records(run_path)
+        assert counts['phase3'] == 2   # a and c
+        assert counts['phase4'] == 0
+        assert counts['phase5'] == 0
+
+    def test_counts_valid_p4(self, tmp_path):
+        run_path, _ = _make_exp(tmp_path)
+        self._write_p4(run_path, 't', 'tch', 'stu', [
+            {'id': 'r1', 'response': 'answer'},
+            {'id': 'r2', 'response': None},            # invalid
+            {'id': 'r3', 'response': 'another answer'},
+        ])
+        counts = count_valid_records(run_path)
+        assert counts['phase4'] == 2   # r1, r3
+
+    def test_counts_valid_p5(self, tmp_path):
+        run_path, _ = _make_exp(tmp_path)
+        self._write_p5(run_path, 't', 'tch', 'jud', [
+            {'id': 'e1', 'response_id': 'r1', 'scores': {'quality': 'High'}},
+            {'id': 'e2', 'response_id': 'r2', 'scores': {}, 'status': 'failed'},  # invalid
+            {'id': 'e3', 'response_id': 'r3', 'scores': {'quality': 'Medium'}},
+        ])
+        counts = count_valid_records(run_path)
+        assert counts['phase5'] == 2   # e1, e3
+
+    def test_empty_dirs_return_zeros(self, tmp_path):
+        run_path, _ = _make_exp(tmp_path)
+        counts = count_valid_records(run_path)
+        assert counts == {'phase3': 0, 'phase4': 0, 'phase5': 0}
+
+    def test_all_invalid_returns_zeros(self, tmp_path):
+        run_path, _ = _make_exp(tmp_path)
+        self._write_p3(run_path, 't', 'tch', [
+            {'id': 'a', 'reference_response': ''},
+            {'id': 'b', 'status': 'failed', 'reference_response': 'ok'},
+        ])
+        counts = count_valid_records(run_path)
+        assert counts['phase3'] == 0
+
+
+# ---------------------------------------------------------------------------
+# Diagnostic re-scan behaviour
+# ---------------------------------------------------------------------------
+
+class TestRescanAfterFixInvalids:
+    """After fix_invalid_records removes phase5 failed records, the caller must
+    re-scan coverage gaps to detect that those response slots are now empty.
+    This mimics the cmd_repair logic of re-scanning when counts['phase5'] > 0.
+    """
+
+    def _setup(self, run_path, dp_ids, resp_ids):
+        # Phase 3: valid datapoints
+        f3 = run_path / 'phase3_datapoints' / 'task.tch.datapoints.jsonl'
+        _write_jsonl(f3, [
+            {'id': dp, 'task_id': 'task', 'teacher_model_id': 'tch',
+             'reference_response': 'ref'} for dp in dp_ids
+        ])
+        # Phase 4: valid responses
+        f4 = run_path / 'phase4_responses' / 'task.tch.stu.responses.jsonl'
+        _write_jsonl(f4, [
+            {'id': rid, 'task_id': 'task', 'teacher_model_id': 'tch',
+             'student_model_id': 'stu', 'datapoint_id': dp, 'response': 'ans'}
+            for rid, dp in zip(resp_ids, dp_ids)
+        ])
+
+    def test_removing_failed_p5_records_creates_new_gap(self, tmp_path):
+        """After fix removes failed p5 records, a second scan detects them as gaps."""
+        run_path, _ = _make_exp(tmp_path)
+        dp_ids = ['dp1', 'dp2', 'dp3']
+        resp_ids = ['r1', 'r2', 'r3']
+        self._setup(run_path, dp_ids, resp_ids)
+
+        # Phase 5: all records are status='failed'
+        f5 = run_path / 'phase5_evaluations' / 'task.tch.jud.evaluations.jsonl'
+        _write_jsonl(f5, [
+            {'id': f'{rid}__jud', 'task_id': 'task', 'teacher_model_id': 'tch',
+             'judge_model_id': 'jud', 'response_id': rid,
+             'scores': {}, 'status': 'failed'}
+            for rid in resp_ids
+        ])
+
+        # First scan: no gaps (failed records count as covered)
+        report = scan_experiment(run_path)
+        gaps_before = scan_coverage_gaps(run_path)
+        assert gaps_before['phase5_gaps'] == [], "Failed records should count as covered"
+
+        # Fix: remove failed records from phase5 file
+        counts = fix_invalid_records(run_path, report)
+        assert counts['phase5'] == 3, "All 3 failed records should be removed"
+
+        # Second scan: now the 3 response slots are truly empty → coverage gap
+        gaps_after = scan_coverage_gaps(run_path)
+        assert len(gaps_after['phase5_gaps']) == 1
+        assert gaps_after['phase5_gaps'][0]['missing'] == 3
+        assert 'evaluation' in gaps_after['phases_to_reopen']
