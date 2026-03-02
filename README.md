@@ -277,6 +277,16 @@ YAML Config  →  Phase 1: Attribute Mapping   (teachers infer task dimensions)
 | **Virtual teachers** | Pre-ingested public datasets supply zero-cost Phase 3 ground truth |
 | **Label accuracy** | Judge-free exact-match for classification tasks (`label_attributes`) |
 
+### Project Statistics
+
+| Component | Files | LoC |
+|-----------|------:|----:|
+| `Code/runner` — pipeline engine | 59 `.py` | 15,087 |
+| `Code/analyzer` — analysis & reports | 21 `.py` | 9,554 |
+| `Public/benchmark` — dataset utilities | 15 `.py` | 3,269 |
+| `Tests` — test suites | 20 `.py` | 13,042 |
+| `docs` — documentation | 34 `.md` | 11,994 |
+
 ---
 
 <div align="center">
