@@ -1,0 +1,520 @@
+# ============================================================
+# CoEval — Education Domain Benchmark
+# ============================================================
+# 3 real benchmark tasks  (ARC-Challenge, RACE-High, SciQ)
+# 10 synthetic tasks       (rich attribute space, LLM-generated)
+# 5 models: 3 benchmark teachers + gpt-4o-mini (teacher/student/judge)
+#           + gpt-4o + claude-3-5-haiku (student/judge)
+# Batch API enabled for Phases 4 & 5 (50% discount)
+# ============================================================
+
+models:
+
+  # ── Benchmark teachers (real data, Phase 3 pre-ingested, no API calls) ──
+
+  - name: arc-challenge
+    interface: benchmark
+    parameters: {}
+    roles: [teacher]
+
+  - name: race-high
+    interface: benchmark
+    parameters: {}
+    roles: [teacher]
+
+  - name: sciq
+    interface: benchmark
+    parameters: {}
+    roles: [teacher]
+
+  # ── LLM teacher (generates synthetic tasks) + student + judge ──
+
+  - name: gpt-4o-mini
+    interface: openai
+    parameters:
+      model: gpt-4o-mini
+      temperature: 0.9
+      max_tokens: 1500
+    roles: [teacher, student, judge]
+    role_parameters:
+      student:
+        temperature: 0.7
+        max_tokens: 1024
+      judge:
+        temperature: 0.1
+        max_tokens: 512
+
+  # ── Additional students + judges ──
+
+  - name: gpt-4o
+    interface: openai
+    parameters:
+      model: gpt-4o
+      temperature: 0.7
+      max_tokens: 1024
+    roles: [student, judge]
+
+  - name: claude-3-5-haiku
+    interface: anthropic
+    parameters:
+      model: claude-3-5-haiku-20241022
+      max_tokens: 1024
+      temperature: 0.7
+    roles: [student, judge]
+
+
+# ============================================================
+# TASKS
+# ============================================================
+
+tasks:
+
+  # ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
+  # REAL BENCHMARK TASKS  (category: benchmark)
+  # Phase 3 data is pre-ingested by benchmark/setup_education.py
+  # ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
+
+  - name: arc_science_reasoning
+    category: benchmark
+    description: >
+      Answer grade-band science questions drawn from the AI2 Reasoning Challenge
+      (ARC-Challenge). Each question is 4-way multiple choice; justify the
+      selected answer with scientific reasoning.
+    output_description: >
+      The letter and text of the selected answer choice, followed by a 1–3
+      sentence scientific explanation.
+    target_attributes:
+      grade_band:     [grade_3_5, grade_6_8, grade_9_10]
+      knowledge_type: [factual, conceptual, procedural]
+    nuanced_attributes:
+      reasoning_required:  [recall, application, multi_step]
+      context_dependency:  [standalone, context_aided]
+    sampling:
+      target: [1, 1]
+      nuance: [0, 1]
+      total: 30
+    rubric:
+      accuracy: >
+        The selected answer matches the correct answer key. Factual claims are
+        scientifically accurate.
+      reasoning: >
+        The explanation demonstrates understanding of the underlying science
+        concept and connects it correctly to the chosen answer.
+      grade_appropriateness: >
+        The vocabulary and depth of explanation are appropriate for the
+        inferred grade band.
+
+  - name: race_reading_comprehension
+    category: benchmark
+    description: >
+      Answer reading comprehension questions based on English passages from
+      the RACE dataset (Chinese high-school English exams). Select the correct
+      answer from four choices and justify using evidence from the passage.
+    output_description: >
+      The letter and text of the selected answer, supported by a direct
+      reference or paraphrase from the reading passage.
+    target_attributes:
+      passage_type:  [narrative, expository, argumentative]
+      question_type: [factual, inferential, vocabulary]
+    nuanced_attributes:
+      difficulty:   [moderate, challenging, advanced]
+      text_length:  [short, medium, long]
+    sampling:
+      target: [1, 1]
+      nuance: [0, 1]
+      total: 30
+    rubric:
+      accuracy: >
+        The selected answer is correct and can be verified against the passage.
+      evidence_use: >
+        The response references relevant evidence or quotes from the passage to
+        support the chosen answer.
+      comprehension_depth: >
+        The response demonstrates genuine understanding of the passage beyond
+        surface-level pattern matching.
+
+  - name: sciq_science_questions
+    category: benchmark
+    description: >
+      Answer science multiple-choice questions from the SciQ dataset.
+      Each question is accompanied by an optional background support text.
+      Select the correct answer and explain the scientific concept involved.
+    output_description: >
+      The text of the correct answer choice, followed by a brief explanation
+      of the relevant scientific concept.
+    target_attributes:
+      science_domain: [biology, chemistry, physics, earth_science]
+      question_type:  [concept_identification, mechanism, classification]
+    nuanced_attributes:
+      complexity:     [basic, intermediate, advanced]
+      support_usage:  [standalone, support_referenced]
+    sampling:
+      target: [1, 1]
+      nuance: [0, 1]
+      total: 30
+    rubric:
+      accuracy: >
+        The answer matches the dataset's correct answer. Scientific facts stated
+        in the explanation are accurate.
+      conceptual_clarity: >
+        The explanation clearly and correctly articulates the underlying
+        scientific concept, not just the answer label.
+      support_integration: >
+        When background support text is provided, the response appropriately
+        references or integrates it.
+
+
+  # ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
+  # SYNTHETIC TASKS  (category: synthetic)
+  # Phase 3 data is generated by gpt-4o-mini (teacher role)
+  # ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ── ──
+
+  - name: math_problem_solving
+    category: synthetic
+    description: >
+      Generate and solve a mathematics problem appropriate for K-12 students.
+      Include the full solution with step-by-step reasoning at the appropriate
+      grade level.
+    output_description: >
+      A clearly posed problem followed by a complete solution with numbered
+      steps and a boxed final answer.
+    target_attributes:
+      difficulty:   [elementary, middle_school, high_school]
+      topic:        [arithmetic, algebra, geometry, statistics, calculus]
+      problem_type: [word_problem, computation, proof, application]
+    nuanced_attributes:
+      context:        [real_world, abstract, visual, narrative]
+      representation: [symbolic, graphical, tabular, verbal]
+      hint_level:     [no_hint, partial_hint, guided_steps]
+    sampling:
+      target: [1, 1]
+      nuance: [0, 1]
+      total: 30
+    rubric:
+      correctness: >
+        The solution arrives at the correct numerical or algebraic answer;
+        all mathematical steps are valid.
+      reasoning: >
+        Each step is clearly motivated and the solution shows how the method
+        leads to the answer.
+      level_appropriateness: >
+        Language, notation, and complexity are calibrated to the specified
+        difficulty level.
+
+  - name: essay_feedback
+    category: synthetic
+    description: >
+      Provide constructive written feedback on a student essay. The feedback
+      must address the specified focus dimension and be appropriate for the
+      grade level.
+    output_description: >
+      Structured feedback with: (1) a 1-sentence overall impression, (2) 2–3
+      specific, actionable suggestions targeting the feedback focus, and
+      (3) one strength to reinforce.
+    target_attributes:
+      essay_type:     [narrative, persuasive, expository, analytical]
+      grade_level:    [elementary, middle_school, high_school, undergraduate]
+      feedback_focus: [structure, argument, evidence, style, grammar]
+    nuanced_attributes:
+      tone:           [encouraging, neutral, critical, developmental]
+      detail_level:   [high_level, specific, line_by_line]
+      feedback_style: [directive, questioning, suggestive]
+    sampling:
+      target: [1, 1]
+      nuance: [0, 1]
+      total: 30
+    rubric:
+      relevance: >
+        Feedback specifically and substantively addresses the stated feedback
+        focus dimension (e.g., argument quality, grammar, structure).
+      actionability: >
+        Suggestions are concrete enough that the student knows exactly what
+        to revise; vague praise or generic criticism scores low.
+      tone_appropriateness: >
+        The tone matches both the specified grade level and the feedback_style
+        nuanced attribute.
+
+  - name: concept_explanation
+    category: synthetic
+    description: >
+      Explain an academic concept clearly for a specified audience level and
+      subject area. The explanation should match the requested complexity and
+      make use of appropriate analogies.
+    output_description: >
+      A 2–4 paragraph explanation that defines the concept, provides an
+      example or analogy, and connects it to what the audience already knows.
+    target_attributes:
+      subject:       [science, mathematics, history, literature, economics]
+      complexity:    [foundational, intermediate, advanced]
+      concept_type:  [definition, process, cause_effect, comparison]
+    nuanced_attributes:
+      audience_level:    [primary, secondary, undergraduate, adult_learner]
+      analogy_use:       [no_analogy, simple_analogy, extended_analogy]
+      visual_description: [none, described, diagram_referenced]
+    sampling:
+      target: [1, 1]
+      nuance: [0, 1]
+      total: 30
+    rubric:
+      accuracy: >
+        All factual claims and definitions are correct; no scientific or
+        historical inaccuracies.
+      clarity: >
+        The concept is explained clearly at the requested complexity level;
+        a reader at the target audience_level could understand it without
+        external resources.
+      engagement: >
+        Analogies, examples, or visual descriptions are used as specified and
+        genuinely illuminate the concept rather than distract.
+
+  - name: quiz_question_generation
+    category: synthetic
+    description: >
+      Generate a quiz question that assesses a specified cognitive level and
+      subject area. For multiple-choice questions include distractors;
+      for open-ended questions include a model answer.
+    output_description: >
+      The question stem, answer options (if multiple-choice), the correct
+      answer, and a brief rationale for why it is correct.
+    target_attributes:
+      question_type:   [multiple_choice, true_false, short_answer, fill_in_blank]
+      cognitive_level: [recall, comprehension, application, analysis]
+      subject_area:    [stem, humanities, social_sciences, arts]
+    nuanced_attributes:
+      difficulty_cues:    [explicit, implicit, none]
+      distractors_quality: [plausible, implausible, partially_plausible]
+      context_grounding:  [abstract, passage_based, real_world_scenario]
+    sampling:
+      target: [1, 1]
+      nuance: [0, 1]
+      total: 30
+    rubric:
+      bloom_alignment: >
+        The question genuinely targets the specified cognitive level; a recall
+        question should not require analysis, and vice versa.
+      question_clarity: >
+        The question stem is unambiguous; a knowledgeable student would not
+        misinterpret what is being asked.
+      answer_quality: >
+        For MC, the correct answer is unambiguously right and distractors are
+        appropriately plausible; for open questions, the model answer is complete.
+
+  - name: reading_comprehension_qa
+    category: synthetic
+    description: >
+      Answer a reading comprehension question about a provided passage.
+      The response should match the specified question depth and draw
+      explicitly on the text.
+    output_description: >
+      A direct answer to the question (1–3 sentences) with at least one
+      specific reference to evidence in the passage.
+    target_attributes:
+      text_type:      [literary, informational, persuasive, technical]
+      question_depth: [literal, inferential, evaluative, synthesis]
+      passage_length: [short, medium, long]
+    nuanced_attributes:
+      text_domain:    [fiction, nonfiction, academic, news]
+      student_level:  [grade_3_5, grade_6_8, grade_9_12, college]
+      question_focus: [main_idea, detail, vocabulary, author_purpose]
+    sampling:
+      target: [1, 1]
+      nuance: [0, 1]
+      total: 30
+    rubric:
+      accuracy: >
+        The answer correctly addresses the question based solely on the passage;
+        no contradictions with the text.
+      evidence_use: >
+        The response references relevant passage evidence (quote, paraphrase,
+        or line reference) to support the answer.
+      depth_match: >
+        The response demonstrates the depth of reasoning specified by
+        question_depth; a literal question should not require synthesis.
+
+  - name: vocabulary_instruction
+    category: synthetic
+    description: >
+      Design a vocabulary instruction activity for a target word or set of
+      words. The activity must align with the specified instruction type,
+      word tier, and learning approach.
+    output_description: >
+      A complete activity description including: target word(s), learning
+      objective, step-by-step instructions, and example student output.
+    target_attributes:
+      instruction_type: [definition, contextual_use, etymology, morphology]
+      word_level:       [tier_1, tier_2, tier_3]
+      subject_context:  [general, academic, domain_specific]
+    nuanced_attributes:
+      learning_approach:   [direct_instruction, discovery, game_based]
+      example_style:       [sentence_examples, visual_cues, comparison_contrast]
+      memorability_strategy: [mnemonic, spaced_repetition, semantic_mapping]
+    sampling:
+      target: [1, 1]
+      nuance: [0, 1]
+      total: 30
+    rubric:
+      depth_of_processing: >
+        The activity requires meaningful cognitive engagement with word meaning;
+        rote copying or simple look-up does not suffice.
+      context_richness: >
+        Examples and contexts genuinely illuminate word meaning in context,
+        not just as isolated definitions.
+      pedagogical_soundness: >
+        The approach is consistent with evidence-based vocabulary instruction
+        principles (e.g., multiple exposures, meaningful use).
+
+  - name: historical_event_analysis
+    category: synthetic
+    description: >
+      Analyze a historical event from the specified period and scope,
+      focusing on the requested analysis type (causes, consequences,
+      significance, or comparison with another event).
+    output_description: >
+      A structured analytical response of 3–5 paragraphs covering: context,
+      core analysis, and significance or comparison as appropriate.
+    target_attributes:
+      analysis_type: [causes, consequences, significance, comparison]
+      time_period:   [ancient, medieval, early_modern, modern, contemporary]
+      scope:         [local, national, regional, global]
+    nuanced_attributes:
+      perspective:         [political, economic, social, cultural]
+      depth:               [surface, contextual, critical, historiographical]
+      connection_to_present: [none, implicit, explicit]
+    sampling:
+      target: [1, 1]
+      nuance: [0, 1]
+      total: 30
+    rubric:
+      factual_accuracy: >
+        Historical claims are accurate; dates, names, and causation are
+        correctly stated and no significant facts are omitted.
+      analytical_depth: >
+        The response moves beyond description to interpret why the event
+        matters or how factors interacted — commensurate with the depth nuance.
+      perspective_integration: >
+        The response integrates the specified perspective (political, economic,
+        etc.) substantively, not just in passing.
+
+  - name: science_experiment_design
+    category: synthetic
+    description: >
+      Design a science experiment suitable for a classroom setting at the
+      specified grade level and science domain. Focus on the requested
+      design component (hypothesis, procedure, variables, or data analysis).
+    output_description: >
+      A complete experiment design document including: title, objective,
+      materials list, step-by-step procedure, and the specified design
+      component in detail.
+    target_attributes:
+      grade_level:      [elementary, middle_school, high_school]
+      science_domain:   [biology, chemistry, physics, earth_science]
+      design_component: [hypothesis, procedure, variables, data_analysis]
+    nuanced_attributes:
+      constraint:            [time_limited, materials_limited, safety_focused]
+      complexity:            [simple_observation, controlled_experiment, inquiry_based]
+      real_world_application: [none, career, environmental, health]
+    sampling:
+      target: [1, 1]
+      nuance: [0, 1]
+      total: 30
+    rubric:
+      scientific_rigor: >
+        The experiment design follows the scientific method; variables are
+        clearly identified and the procedure is reproducible.
+      feasibility: >
+        The experiment can realistically be conducted within the stated
+        constraint (time, materials, safety) at the specified grade level.
+      educational_alignment: >
+        The design teaches the target science concept at a level appropriate
+        for the grade band; learning objectives are clear.
+
+  - name: personalized_study_guide
+    category: synthetic
+    description: >
+      Create a personalized study guide for exam preparation tailored to the
+      specified study goal, subject, time frame, and learner profile.
+    output_description: >
+      A structured study guide with: (1) a day-by-day or week-by-week
+      schedule, (2) key topics and resources, and (3) practice activities
+      calibrated to the learner's prior knowledge and learning style.
+    target_attributes:
+      study_goal: [concept_review, practice_problems, exam_strategy, retention]
+      subject:    [mathematics, science, language_arts, social_studies]
+      time_frame: [one_day, one_week, two_weeks, one_month]
+    nuanced_attributes:
+      learning_style:   [visual, auditory, kinesthetic, reading_writing]
+      prior_knowledge:  [beginner, developing, proficient]
+      motivation_level: [low, moderate, high]
+    sampling:
+      target: [1, 1]
+      nuance: [0, 1]
+      total: 30
+    rubric:
+      personalization: >
+        The guide is specifically tailored to the stated learning_style and
+        prior_knowledge; a generic guide that ignores these scores low.
+      comprehensiveness: >
+        All major topics relevant to the study_goal and subject are covered
+        within the time_frame; nothing critical is omitted.
+      actionability: >
+        The study plan includes concrete, time-bound tasks; vague advice like
+        "review chapter 3" without specifics scores low.
+
+  - name: learning_objective_writing
+    category: synthetic
+    description: >
+      Write clear, measurable learning objectives for a lesson targeting the
+      specified Bloom's Taxonomy level, subject area, and specificity. Each
+      objective must be assessable via the stated assessment alignment.
+    output_description: >
+      2–4 learning objectives in the format: "Students will be able to
+      [observable verb] [content] [condition/criterion]." Each followed by a
+      brief explanation of the Bloom's level alignment.
+    target_attributes:
+      bloom_level:  [remember, understand, apply, analyze, evaluate, create]
+      subject_area: [mathematics, science, language_arts, social_studies, arts]
+      specificity:  [broad, specific, granular]
+    nuanced_attributes:
+      measurability:       [observable, partially_observable, inferential]
+      student_focus:       [knowledge, skill, disposition, attitude]
+      assessment_alignment: [formative, summative, portfolio, project_based]
+    sampling:
+      target: [1, 1]
+      nuance: [0, 1]
+      total: 30
+    rubric:
+      measurability: >
+        Each objective uses an observable action verb aligned with the
+        specified Bloom's level; passive verbs like "understand" without
+        context score low.
+      clarity: >
+        The objective clearly states what students will know or be able to do;
+        no ambiguity about the expected outcome.
+      assessment_alignment: >
+        The objective is appropriately aligned with the specified assessment
+        type; a portfolio objective differs from a summative one.
+
+
+# ============================================================
+# EXPERIMENT
+# ============================================================
+
+experiment:
+  id: education-benchmark-v1
+  storage_folder: ./Runs
+
+  log_level: INFO
+  generation_retries: 2
+  probe_mode: full
+  probe_on_fail: abort
+  estimate_cost: true
+  estimate_samples: 0    # heuristic-only estimation (no sample API calls during plan)
+
+  # Batch API — 50% discount on response collection and evaluation
+  batch:
+    openai:
+      response_collection: true
+      evaluation: true
+    anthropic:
+      response_collection: true
+      evaluation: true

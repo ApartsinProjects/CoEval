@@ -1,0 +1,296 @@
+{
+  "is_remaining_estimate": false,
+  "completed_phases": [],
+  "total_cost_usd": 5.8914,
+  "total_calls": 18400,
+  "total_time_min": 767.22,
+  "per_phase": {
+    "attribute_mapping": {
+      "calls_per_model": {},
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "cost_usd": 0.0,
+      "time_s": 0.0,
+      "time_min": 0.0
+    },
+    "rubric_mapping": {
+      "calls_per_model": {},
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "cost_usd": 0.0,
+      "time_s": 0.0,
+      "time_min": 0.0
+    },
+    "data_generation": {
+      "calls_per_model": {
+        "gpt-4o-mini": 80,
+        "gpt-3.5-turbo": 80,
+        "qwen2p5-0b5": 80,
+        "qwen2p5-1b5": 80,
+        "smollm2-1b7": 80
+      },
+      "total_input_tokens": 140000,
+      "total_output_tokens": 100000,
+      "cost_usd": 0.3242,
+      "time_s": 4500.0,
+      "time_min": 75.0
+    },
+    "response_collection": {
+      "calls_per_model": {
+        "gpt-4o-mini": 2000,
+        "gpt-3.5-turbo": 2000,
+        "qwen2p5-0b5": 2000,
+        "qwen2p5-1b5": 2000,
+        "smollm2-1b7": 2000
+      },
+      "total_input_tokens": 400000,
+      "total_output_tokens": 360000,
+      "cost_usd": 1.0912,
+      "time_s": 16200.0,
+      "time_min": 270.0
+    },
+    "evaluation": {
+      "calls_per_model": {
+        "gpt-4o-mini": 2000,
+        "gpt-3.5-turbo": 2000,
+        "qwen2p5-1b5": 2000,
+        "smollm2-1b7": 2000
+      },
+      "total_input_tokens": 4800000,
+      "total_output_tokens": 640000,
+      "cost_usd": 4.476,
+      "time_s": 25333.333333333387,
+      "time_min": 422.22
+    }
+  },
+  "per_provider": {
+    "huggingface": {
+      "calls": 10240,
+      "cost_usd": 4.512,
+      "time_min": 662.22,
+      "models": [
+        "qwen2p5-0b5",
+        "qwen2p5-1b5",
+        "smollm2-1b7"
+      ]
+    },
+    "openai": {
+      "calls": 8160,
+      "cost_usd": 1.3794,
+      "time_min": 105.0,
+      "models": [
+        "gpt-4o-mini",
+        "gpt-3.5-turbo"
+      ]
+    }
+  },
+  "per_model": {
+    "gpt-4o-mini": {
+      "interface": "openai",
+      "roles": [
+        "teacher",
+        "student",
+        "judge"
+      ],
+      "latency_s": 1.5,
+      "tokens_per_second": 80.0,
+      "price_input_per_m": 0.15,
+      "price_output_per_m": 0.6,
+      "estimated_calls": 4080,
+      "sample_error": null
+    },
+    "gpt-3.5-turbo": {
+      "interface": "openai",
+      "roles": [
+        "teacher",
+        "student",
+        "judge"
+      ],
+      "latency_s": 1.5,
+      "tokens_per_second": 80.0,
+      "price_input_per_m": 0.5,
+      "price_output_per_m": 1.5,
+      "estimated_calls": 4080,
+      "sample_error": null
+    },
+    "qwen2p5-0b5": {
+      "interface": "huggingface",
+      "roles": [
+        "teacher",
+        "student"
+      ],
+      "latency_s": 10.0,
+      "tokens_per_second": 15.0,
+      "price_input_per_m": 1.0,
+      "price_output_per_m": 3.0,
+      "estimated_calls": 2080,
+      "sample_error": null
+    },
+    "qwen2p5-1b5": {
+      "interface": "huggingface",
+      "roles": [
+        "teacher",
+        "student",
+        "judge"
+      ],
+      "latency_s": 10.0,
+      "tokens_per_second": 15.0,
+      "price_input_per_m": 1.0,
+      "price_output_per_m": 3.0,
+      "estimated_calls": 4080,
+      "sample_error": null
+    },
+    "smollm2-1b7": {
+      "interface": "huggingface",
+      "roles": [
+        "teacher",
+        "student",
+        "judge"
+      ],
+      "latency_s": 10.0,
+      "tokens_per_second": 15.0,
+      "price_input_per_m": 1.0,
+      "price_output_per_m": 3.0,
+      "estimated_calls": 4080,
+      "sample_error": null
+    }
+  },
+  "assumptions": {
+    "token_counts": {
+      "teacher_prompt": 350,
+      "teacher_output": 250,
+      "student_input": 200,
+      "student_output": 180,
+      "judge_prompt": 600,
+      "judge_output": 80,
+      "rubric_prompt": 300,
+      "rubric_output": 200,
+      "attr_prompt": 250,
+      "attr_output": 200
+    },
+    "price_table": {
+      "gpt-4o-mini": [
+        0.15,
+        0.6
+      ],
+      "gpt-4o": [
+        2.5,
+        10.0
+      ],
+      "gpt-4-turbo": [
+        10.0,
+        30.0
+      ],
+      "gpt-4": [
+        30.0,
+        60.0
+      ],
+      "gpt-3.5-turbo": [
+        0.5,
+        1.5
+      ],
+      "o1-mini": [
+        3.0,
+        12.0
+      ],
+      "o1": [
+        15.0,
+        60.0
+      ],
+      "o3-mini": [
+        1.1,
+        4.4
+      ],
+      "o4-mini": [
+        1.1,
+        4.4
+      ],
+      "gpt-4.1-mini": [
+        0.4,
+        1.6
+      ],
+      "gpt-4.1-nano": [
+        0.1,
+        0.4
+      ],
+      "gpt-4.1": [
+        2.0,
+        8.0
+      ],
+      "claude-3-5-sonnet": [
+        3.0,
+        15.0
+      ],
+      "claude-3-5-haiku": [
+        0.8,
+        4.0
+      ],
+      "claude-3-opus": [
+        15.0,
+        75.0
+      ],
+      "claude-3-sonnet": [
+        3.0,
+        15.0
+      ],
+      "claude-3-haiku": [
+        0.25,
+        1.25
+      ],
+      "claude-opus-4": [
+        15.0,
+        75.0
+      ],
+      "claude-sonnet-4": [
+        3.0,
+        15.0
+      ],
+      "claude-haiku-4": [
+        0.8,
+        4.0
+      ],
+      "gemini-2.5-pro": [
+        1.25,
+        10.0
+      ],
+      "gemini-2.5-flash": [
+        0.15,
+        0.6
+      ],
+      "gemini-2.5-flash-lite": [
+        0.075,
+        0.3
+      ],
+      "gemini-2.0-flash": [
+        0.1,
+        0.4
+      ],
+      "gemini-2.0-flash-lite": [
+        0.075,
+        0.3
+      ],
+      "gemini-1.5-flash": [
+        0.075,
+        0.3
+      ],
+      "gemini-1.5-pro": [
+        1.25,
+        5.0
+      ],
+      "gemini-1.0-pro": [
+        0.5,
+        1.5
+      ],
+      "openrouter": [
+        1.0,
+        3.0
+      ]
+    },
+    "batch_discount": {
+      "openai": 0.5,
+      "anthropic": 0.5,
+      "gemini": 1.0
+    },
+    "n_samples_per_model": 0
+  }
+}

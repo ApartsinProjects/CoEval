@@ -6,7 +6,7 @@
 
 ## Interface Overview
 
-CoEval supports **15 model interfaces** spanning every major cloud provider, OpenAI-compatible APIs, local GPU inference, and virtual benchmark teachers.
+CoEval supports **18 model interfaces** spanning every major cloud provider, OpenAI-compatible APIs, local GPU inference, and virtual benchmark teachers.
 
 | Interface | Provider / Runtime | Batch API | 50% Discount | Auth |
 |-----------|-------------------|:---------:|:------------:|------|
@@ -15,19 +15,23 @@ CoEval supports **15 model interfaces** spanning every major cloud provider, Ope
 | `gemini` | Google Gemini 2.0 Flash, 1.5 Pro/Flash | ⚡ Concurrent¹ | — | `GEMINI_API_KEY` or `GOOGLE_API_KEY` |
 | `azure_openai` | Azure OpenAI deployments (any GPT model) | ✅ Azure Batch API | ✅ | `AZURE_OPENAI_API_KEY` + `AZURE_OPENAI_ENDPOINT` |
 | `azure_ai` | Azure AI Foundry / GitHub Models | — | — | `AZURE_AI_API_KEY` or `GITHUB_TOKEN` |
-| `bedrock` | AWS Bedrock — all foundation models | — | — | Native API key **or** IAM |
-| `vertex` | Google Vertex AI (Gemini on GCP) | — | — | `GOOGLE_CLOUD_PROJECT` + ADC |
+| `bedrock` | AWS Bedrock — all foundation models | ✅ Model Invocation Jobs² | ✅ | Native API key **or** IAM |
+| `vertex` | Google Vertex AI (Gemini on GCP) | ✅ Batch Prediction Jobs² | ✅ | `GOOGLE_CLOUD_PROJECT` + ADC |
 | `openrouter` | OpenRouter — 300+ models | — | — | `OPENROUTER_API_KEY` |
 | `groq` | Groq Cloud (ultra-fast inference) | — | — | `GROQ_API_KEY` |
 | `deepseek` | DeepSeek API | — | — | `DEEPSEEK_API_KEY` |
-| `mistral` | Mistral AI | — | — | `MISTRAL_API_KEY` |
+| `mistral` | Mistral AI | ✅ Mistral Batch API | ✅ | `MISTRAL_API_KEY` |
 | `deepinfra` | DeepInfra | — | — | `DEEPINFRA_API_KEY` |
 | `cerebras` | Cerebras (ultra-fast inference) | — | — | `CEREBRAS_API_KEY` |
+| `cohere` | Cohere (Command R/R+/A family) | — | — | `COHERE_API_KEY` |
+| `huggingface_api` | HuggingFace Inference API (50k+ Hub models) | — | — | `HF_TOKEN` or `HUGGINGFACE_HUB_TOKEN` |
 | `ollama` | Ollama — local model server | — | — | none (no key needed) |
 | `huggingface` | Any HuggingFace model (local GPU) | — | — | `HF_TOKEN` or `HUGGINGFACE_HUB_TOKEN` |
 | `benchmark` | Virtual — pre-ingested dataset responses | N/A | N/A | none |
 
 > ¹ **Gemini concurrent mode**: Google's Generative AI API does not offer a native asynchronous batch endpoint. CoEval submits all Gemini requests concurrently via a thread pool (`GeminiBatchRunner`). This is faster than sequential calls but does **not** provide a 50% batch discount — you pay standard per-token rates.
+>
+> ² **Bedrock and Vertex batch** use cloud storage (S3/GCS) as the job transport. Additional setup is required: an S3 bucket + IAM service role for Bedrock; a GCS bucket + ADC for Vertex. See the [Batch API](#batch-api) section below.
 
 ---
 
@@ -127,6 +131,71 @@ Ultra-fast inference providers — 500–1000 tokens/second throughput. Best for
     model: llama-3.1-70b-versatile
   roles: [student]
 ```
+
+### `cohere`
+
+Cohere's Command R/R+/A family via their OpenAI-compatible endpoint (`https://api.cohere.com/compatibility/v1`). Best-in-class for retrieval-augmented generation (RAG) and long-context tasks. No batch discount — real-time only.
+
+```yaml
+- name: command-r-plus
+  interface: cohere
+  parameters:
+    model: command-r-plus-08-2024
+    temperature: 0.7
+    max_tokens: 512
+  roles: [teacher, student, judge]
+```
+
+**Pricing (Command family):**
+
+| Model | Input ($/1M) | Output ($/1M) |
+|-------|-------------|--------------|
+| command-a-03-2025 | $2.50 | $10.00 |
+| command-r-plus-08-2024 | $2.50 | $10.00 |
+| command-r-08-2024 | $0.15 | $0.60 |
+| command-r7b-12-2024 | $0.04 | $0.15 |
+
+**Key file:**
+```yaml
+providers:
+  cohere: co-...
+```
+
+---
+
+### `huggingface_api` — HuggingFace Inference API
+
+Access any of the 50,000+ hosted models on HuggingFace Hub via their serverless Inference API (`https://api-inference.huggingface.co/v1`). No GPU required — inference runs on HuggingFace's infrastructure. Model IDs must be full Hub paths (e.g. `mistralai/Mistral-7B-Instruct-v0.3`).
+
+```yaml
+- name: mistral-7b-hf
+  interface: huggingface_api
+  parameters:
+    model: mistralai/Mistral-7B-Instruct-v0.3
+    temperature: 0.7
+    max_tokens: 512
+  roles: [student]
+```
+
+**Pricing:** Pay-per-token for serverless inference. Rates depend on model size; popular models cost $0.04–$0.23/M tokens. HuggingFace PRO subscribers get free monthly quota on many models.
+
+| Model | Input & Output ($/1M) |
+|-------|----------------------|
+| meta-llama/Llama-3.1-8B-Instruct | $0.06 |
+| meta-llama/Llama-3.3-70B-Instruct | $0.23 |
+| mistralai/Mistral-7B-Instruct-v0.3 | $0.04 |
+| Qwen/Qwen2.5-72B-Instruct | $0.23 |
+| google/gemma-2-9b-it | $0.06 |
+
+> **Note:** `huggingface_api` (cloud inference, this section) is distinct from `huggingface` (local GPU inference, below). Use `huggingface_api` when you don't have a GPU; use `huggingface` for private or quantized models that must run locally.
+
+**Key file:**
+```yaml
+providers:
+  huggingface_api: hf_...   # same token as huggingface; accepts HF_TOKEN or HUGGINGFACE_HUB_TOKEN
+```
+
+---
 
 ### `huggingface`
 
@@ -232,14 +301,17 @@ phase3_datapoints/{task_id}.{model_name}.datapoints.jsonl
 
 ## Batch API
 
-Three interfaces support **true asynchronous batch processing** with a 50% cost discount. Gemini uses a concurrent runner (faster than sequential, no discount):
+**Six interfaces** support **true asynchronous batch processing** with a ~50% cost discount. Gemini uses a concurrent runner (faster than sequential but no discount). See the per-interface sections for setup details.
 
-| Interface | Batch Mode | Discount |
-|-----------|-----------|---------|
-| `openai` | OpenAI Batch API — async, 24h window | ✅ 50% |
-| `anthropic` | Message Batches API — async, 24h window | ✅ 50% |
-| `azure_openai` | Azure Global Batch API — async | ✅ 50% |
-| `gemini` | Concurrent thread pool (pseudo-batch) | ❌ none |
+| Interface | Batch Mode | Discount | Extra Requirements |
+|-----------|-----------|---------|-------------------|
+| `openai` | OpenAI Batch API — async, 24h window | ✅ 50% | None |
+| `anthropic` | Message Batches API — async, 24h window | ✅ 50% | None |
+| `azure_openai` | Azure Global Batch API — async | ✅ 50% | Azure endpoint |
+| `mistral` | Mistral Batch API — async (OpenAI-compat format) | ✅ ~50% | None |
+| `bedrock` | AWS Model Invocation Jobs — async | ✅ ~50% | S3 bucket + IAM role |
+| `vertex` | Vertex AI Batch Prediction — async | ✅ 50% | GCS bucket + ADC |
+| `gemini` | Concurrent thread pool (pseudo-batch) | ❌ none | None |
 
 Enable per provider and per phase in the experiment config:
 
@@ -255,14 +327,23 @@ experiment:
     azure_openai:
       response_collection: true
       evaluation: true
-    gemini:          # concurrent mode — no discount, but faster than sequential
+    mistral:                # Mistral Batch API — async, ~50% off; no extra requirements
+      response_collection: true
+      evaluation: true
+    bedrock:                # requires batch_s3_bucket + batch_role_arn in model params
+      response_collection: true
+      evaluation: true
+    vertex:                 # requires batch_gcs_bucket in model params
+      response_collection: true
+      evaluation: true
+    gemini:                 # concurrent mode — no discount, but faster than sequential
       response_collection: true
       evaluation: true
 ```
 
 Batch jobs are submitted at the start of each phase and polled automatically. Use `coeval status --fetch-batches` to check completion status manually.
 
-**How async batch works (OpenAI / Anthropic / Azure):**
+**How async batch works (OpenAI / Anthropic / Azure / Bedrock / Vertex):**
 1. At the start of a batch-enabled phase, CoEval submits all requests as a batch job
 2. The process polls the provider API at intervals until the job completes
 3. Results are downloaded and processed identically to real-time responses
@@ -270,15 +351,18 @@ Batch jobs are submitted at the start of each phase and polled automatically. Us
 
 **Full batch status:**
 
-| Interface | Batch Mode | CoEval Status | Discount |
-|-----------|-----------|--------------|---------|
-| `openai` | OpenAI Batch API (async) | ✅ Implemented (`OpenAIBatchRunner`) | 50% |
-| `anthropic` | Message Batches API (async) | ✅ Implemented (`AnthropicBatchRunner`) | 50% |
-| `azure_openai` | Azure Global Batch (async) | ✅ Implemented (`AzureBatchRunner`) | 50% |
-| `gemini` | Concurrent thread pool | ✅ Implemented (`GeminiBatchRunner`) | ❌ none |
-| `bedrock` | AWS Bedrock Batch Inference | ❌ Not yet (native API exists) | ~50% when added |
+| Interface | Batch Mode | CoEval Implementation | Discount |
+|-----------|-----------|----------------------|---------|
+| `openai` | OpenAI Batch API (async) | ✅ `OpenAIBatchRunner` | 50% |
+| `anthropic` | Message Batches API (async) | ✅ `AnthropicBatchRunner` | 50% |
+| `azure_openai` | Azure Global Batch (async) | ✅ `AzureBatchRunner` | 50% |
+| `mistral` | Mistral Batch API (async, OpenAI-compat) | ✅ `MistralBatchRunner` | ~50% |
+| `bedrock` | AWS Model Invocation Jobs (async) | ✅ `BedrockBatchRunner` | ~50% |
+| `vertex` | Vertex AI Batch Prediction (async) | ✅ `VertexBatchRunner` | 50% |
+| `gemini` | Concurrent thread pool (pseudo-batch) | ✅ `GeminiBatchRunner` | ❌ none |
 | `openrouter` | None (real-time) | N/A | — |
-| `vertex` | None (real-time via Gemini API) | N/A | — |
+| `cohere` | None (real-time) | N/A | — |
+| `huggingface_api` | None (real-time) | N/A | — |
 | `huggingface` | None (local GPU) | N/A | — |
 
 ---
@@ -373,11 +457,88 @@ providers:
   openrouter: sk-or-v1-...
 ```
 
+### Mistral AI (Direct)
+
+Direct access to Mistral models with **native Batch API support (~50% off)**. `MistralBatchRunner` is a thin wrapper over `OpenAIBatchRunner` that points the OpenAI SDK at `https://api.mistral.ai/v1` — the batch API format is identical to OpenAI's (same `/v1/files` + `/v1/batches` endpoints).
+
+| Model | Input ($/1M) | Output ($/1M) | Batch (~50% off) |
+|-------|-------------|--------------|-----------------|
+| mistral-small-latest | $0.10 | $0.30 | ✅ $0.05 / $0.15 |
+| mistral-large-latest | $2.00 | $6.00 | ✅ $1.00 / $3.00 |
+| codestral-latest | $0.20 | $0.60 | ✅ $0.10 / $0.30 |
+| ministral-8b-latest | $0.10 | $0.10 | ✅ $0.05 / $0.05 |
+| open-mistral-nemo | $0.15 | $0.15 | ✅ $0.075 / $0.075 |
+| pixtral-12b-2409 | $0.15 | $0.15 | ✅ $0.075 / $0.075 |
+
+**Enable batch in config:**
+```yaml
+experiment:
+  batch:
+    mistral:
+      response_collection: true
+      evaluation: true
+```
+
+#### Async Batch (✅ `MistralBatchRunner`)
+
+Mistral's Batch API follows the same OpenAI-compatible format: upload a JSONL file to `/v1/files`, create a batch job via `/v1/batches`, poll until complete, download results. CoEval's `MistralBatchRunner` automates the full workflow — no additional setup beyond a valid API key.
+
+**Supported models for batch:** All models listed above. See [Mistral Batch docs](https://docs.mistral.ai/api/#tag/batch) for updates.
+
+**Configuration:**
+```yaml
+providers:
+  mistral: ...   # MISTRAL_API_KEY
+```
+
+---
+
+### Cohere
+
+Command R/R+/A family via OpenAI-compatible endpoint. Best for RAG-oriented tasks and long-context reasoning. No batch discount — real-time only.
+
+| Model | Input ($/1M) | Output ($/1M) |
+|-------|-------------|--------------|
+| command-a-03-2025 | $2.50 | $10.00 |
+| command-r-plus-08-2024 | $2.50 | $10.00 |
+| command-r-08-2024 | $0.15 | $0.60 |
+| command-r7b-12-2024 | $0.04 | $0.15 |
+
+**Configuration:**
+```yaml
+providers:
+  cohere: co-...   # COHERE_API_KEY
+```
+
+---
+
+### HuggingFace Inference API
+
+Serverless pay-per-token inference for 50k+ Hub models. Rates depend on model size.
+
+| Model | Input & Output ($/1M) |
+|-------|----------------------|
+| meta-llama/Llama-3.1-8B-Instruct | $0.06 |
+| meta-llama/Llama-3.3-70B-Instruct | $0.23 |
+| mistralai/Mistral-7B-Instruct-v0.3 | $0.04 |
+| Qwen/Qwen2.5-72B-Instruct | $0.23 |
+| google/gemma-2-9b-it | $0.06 |
+
+HuggingFace PRO subscribers receive free monthly quota on many popular models. See [HuggingFace pricing](https://huggingface.co/pricing#serverless) for the full model list and rates.
+
+**Configuration:**
+```yaml
+providers:
+  huggingface_api: hf_...   # HF_TOKEN (same token as huggingface interface)
+```
+
+---
+
 ### AWS Bedrock
 
-CoEval supports two Bedrock authentication modes:
+CoEval supports two Bedrock authentication modes for real-time inference:
 
-**Native API key (recommended):**
+**Native API key (for real-time inference):**
 ```yaml
 providers:
   bedrock:
@@ -385,27 +546,72 @@ providers:
     region: us-east-1
 ```
 
-**IAM credentials:**
+**IAM credentials (also required for batch inference):**
 ```yaml
 providers:
   bedrock:
     access_key_id: AKIA...
     secret_access_key: ...
     region: us-east-1
+    batch_role_arn: arn:aws:iam::123456789012:role/BedrockBatchRole  # for batch
 ```
 
-AWS Bedrock has a native Batch Inference API supporting Claude, Amazon Nova, Llama, and Mistral models with ~50% discount. CoEval does not yet have a `BedrockBatchRunner`, so batch mode is not available for Bedrock in CoEval — it runs real-time only.
+> **Note:** The native API key is only for the real-time Converse API. Batch inference
+> (Model Invocation Jobs) requires IAM auth and an IAM service role. Both can coexist —
+> CoEval uses the native key for real-time calls and IAM creds for batch.
+
+#### Async Batch Inference (✅ `BedrockBatchRunner`)
+
+AWS Bedrock's **Model Invocation Jobs API** provides ~50% off for supported models. CoEval's `BedrockBatchRunner` automates the full workflow — upload JSONL to S3, submit the job, poll, download results.
+
+**Additional model parameters required:**
+```yaml
+- name: claude-bedrock
+  interface: bedrock
+  batch_enabled: true
+  parameters:
+    model: anthropic.claude-3-5-haiku-20241022-v1:0
+    region: us-east-1
+    batch_s3_bucket: my-coeval-batch-bucket   # required: S3 bucket in same region
+    batch_s3_prefix: coeval-jobs              # optional (default: "coeval")
+    batch_role_arn: arn:aws:iam::123456789012:role/BedrockBatchRole  # required
+  roles: [student, judge]
+```
+
+**IAM service role setup (one-time):**
+
+1. Create an S3 bucket in the same region as your Bedrock endpoint.
+2. Create an IAM role with trust policy for `bedrock.amazonaws.com`:
+   ```json
+   {
+     "Effect": "Allow",
+     "Principal": {"Service": "bedrock.amazonaws.com"},
+     "Action": "sts:AssumeRole",
+     "Condition": {"StringEquals": {"aws:SourceAccount": "<ACCOUNT_ID>"}}
+   }
+   ```
+3. Attach an inline policy granting S3 access to the bucket:
+   ```json
+   {"Effect": "Allow",
+    "Action": ["s3:GetObject", "s3:PutObject", "s3:ListBucket"],
+    "Resource": ["arn:aws:s3:::my-coeval-batch-bucket",
+                 "arn:aws:s3:::my-coeval-batch-bucket/*"]}
+   ```
+4. Copy the role ARN (`arn:aws:iam::<account>:role/<name>`) into `batch_role_arn`.
+
+**Supported models:** Anthropic Claude, Amazon Nova, Meta Llama 3.x, Mistral Large, AI21 Jamba.
+Not all models are available in all regions — see [AWS Batch Inference docs](https://docs.aws.amazon.com/bedrock/latest/userguide/batch-inference-supported.html).
 
 Selected Bedrock model prices:
 
-| Model | Input ($/1M) | Output ($/1M) | CoEval Batch? |
-|-------|-------------|--------------|---------------|
-| anthropic.claude-3-5-haiku-20241022-v1 | $0.80 | $4.00 | ❌ not yet |
-| anthropic.claude-3-5-sonnet-20241022-v2 | $3.00 | $15.00 | ❌ not yet |
-| amazon.nova-micro-v1 | $0.035 | $0.14 | ❌ not yet |
-| amazon.nova-lite-v1 | $0.06 | $0.24 | ❌ not yet |
-| amazon.nova-pro-v1 | $0.80 | $3.20 | ❌ not yet |
-| meta.llama3-70b-instruct-v1 | $0.99 | $0.99 | ❌ not yet |
+| Model | Input ($/1M) | Output ($/1M) | Batch (~50% off) |
+|-------|-------------|--------------|-----------------|
+| anthropic.claude-3-5-haiku-20241022-v1 | $0.80 | $4.00 | ✅ ~$0.40 / $2.00 |
+| anthropic.claude-3-5-sonnet-20241022-v2 | $3.00 | $15.00 | ✅ ~$1.50 / $7.50 |
+| amazon.nova-micro-v1 | $0.035 | $0.14 | ✅ ~$0.018 / $0.07 |
+| amazon.nova-lite-v1 | $0.06 | $0.24 | ✅ ~$0.03 / $0.12 |
+| amazon.nova-pro-v1 | $0.80 | $3.20 | ✅ ~$0.40 / $1.60 |
+| meta.llama3-70b-instruct-v1 | $0.99 | $0.99 | ✅ ~$0.50 / $0.50 |
 
 ### Azure OpenAI
 
@@ -445,23 +651,64 @@ providers:
   vertex:
     project: my-gcp-project
     location: us-central1
+    # Optional: service account key file path (default: ADC)
+    # service_account_key: /path/to/sa-key.json
 ```
 
-Requires Application Default Credentials (`gcloud auth application-default login`). Supports same Gemini models as the Gemini AI Studio interface.
+Requires Application Default Credentials (run `gcloud auth application-default login`). Supports the same Gemini models as the Gemini AI Studio interface with enterprise-grade SLAs.
+
+#### Async Batch Prediction (✅ `VertexBatchRunner`)
+
+Vertex AI **Batch Prediction Jobs** offer 50% off for Gemini models. CoEval's `VertexBatchRunner` uploads a JSONL file to GCS, submits the batch job, polls until completion, and downloads results.
+
+**Additional model parameters required:**
+```yaml
+- name: gemini-vertex
+  interface: vertex
+  batch_enabled: true
+  parameters:
+    model: gemini-2.0-flash-001
+    project: my-gcp-project
+    location: us-central1
+    batch_gcs_bucket: gs://my-coeval-batch-bucket   # required for batch
+    batch_gcs_prefix: coeval-jobs                   # optional (default: "coeval")
+  roles: [student, judge]
+```
+
+**Prerequisites:**
+- A GCS bucket in the same region as the Vertex AI endpoint
+- IAM permissions on the service account: `aiplatform.batchPredictionJobs.create`, `aiplatform.batchPredictionJobs.get`, `storage.objects.create/get`, `storage.buckets.get`
+- `pip install google-cloud-aiplatform google-cloud-storage`
+
+**Supported Gemini models for batch:** Gemini 2.5 Pro/Flash, Gemini 2.0 Flash, Gemini 1.5 Pro/Flash. See [Vertex Batch docs](https://cloud.google.com/vertex-ai/docs/generative-ai/batch-requests) for updates.
+
+Selected Vertex AI (Gemini) model prices:
+
+| Model | Input ($/1M) | Output ($/1M) | Batch (50% off) |
+|-------|-------------|--------------|-----------------|
+| gemini-2.0-flash-001 | $0.10 | $0.40 | ✅ $0.05 / $0.20 |
+| gemini-2.5-flash | $0.15 | $0.60 | ✅ $0.075 / $0.30 |
+| gemini-1.5-flash | $0.075 | $0.30 | ✅ $0.038 / $0.15 |
+| gemini-1.5-pro | $1.25 | $5.00 | ✅ $0.63 / $2.50 |
 
 ### Why Open Models Use OpenRouter (Not a Batch Provider)
 
-The 50% batch discounts are **exclusive to each provider's own proprietary models**:
+The async batch discounts are **exclusive to each provider's own proprietary models**:
 
 | Batch discount | Applies to |
 |----------------|-----------|
 | OpenAI Batch API (50%) | GPT-4o, GPT-4o-mini, GPT-4.1, o-series only |
 | Anthropic Message Batches (50%) | Claude 3.x / Claude 4.x only |
-| Gemini Batch API (50%) | Gemini 1.5 / 2.0 / 2.5 only |
 | Azure Global Batch (50%) | GPT-4o, GPT-4o-mini (Azure deployments) |
-| **Open-weight models (Llama, Mistral, Qwen, DeepSeek)** | **No batch discount anywhere** |
+| Mistral Batch API (~50%) | All Mistral-hosted models via `interface: mistral` |
+| AWS Bedrock Batch (~50%) | Claude, Amazon Nova, Llama, Mistral on Bedrock |
+| Vertex AI Batch Prediction (50%) | Gemini 1.5 / 2.0 / 2.5 models on GCP |
+| **Gemini AI Studio** (concurrent, no discount) | Gemini models — thread pool only |
+| **Open-weight models via OpenRouter / DeepInfra / Cerebras** | **No batch discount** |
 
-For `interface: auto`, frontier models are automatically routed to their native batch-enabled provider. Open-weight models go to OpenRouter because no third-party inference provider offers a batch discount for them. OpenRouter at $0.04–$0.12/M is already the cheapest option for these models.
+For `interface: auto`, frontier models are automatically routed to their native batch-enabled provider. Open-weight models go to OpenRouter because no third-party hosting provider offers a batch discount for them. OpenRouter at $0.04–$0.12/M is already the cheapest option for these models.
+
+> **Mistral exception:** Unlike other open-weight model providers, Mistral AI offers ~50% off on its own hosted models via `interface: mistral`. If you are using Mistral Small, Mistral Large, or Codestral, prefer `interface: mistral` with batch enabled over `interface: openrouter`.
 
 ---
 
@@ -524,6 +771,8 @@ providers:
   mistral:     ...
   deepinfra:   di-...
   cerebras:    csk-...
+  cohere:      co-...
+  huggingface_api: hf_...   # same token as huggingface; accepts HF_TOKEN or HUGGINGFACE_HUB_TOKEN
 
   # Ollama — no key needed; only set if using a non-default host
   ollama:
@@ -535,13 +784,14 @@ providers:
     api_version: 2024-08-01-preview
 
   bedrock:
-    api_key: BedrockAPIKey-...:...    # native API key (no boto3 needed)
+    api_key: BedrockAPIKey-...:...    # native API key (no boto3 needed; real-time only)
     region:  us-east-1
-  # — OR — IAM credentials:
+  # — OR — IAM credentials (supports both real-time and batch):
   # bedrock:
   #   access_key_id:     AKIA...
   #   secret_access_key: ...
   #   region:            us-east-1
+  #   batch_role_arn:    arn:aws:iam::123456789012:role/BedrockBatchRole  # for batch
 
   vertex:
     project:  my-gcp-project
@@ -561,19 +811,24 @@ model.access_key (in YAML)  →  provider entry in keys.yaml  →  environment v
 ## Frequently Asked Questions
 
 **Q: Does Gemini get a 50% batch discount like OpenAI and Anthropic?**
-A: No. Google's Generative AI API does not expose a native asynchronous batch endpoint comparable to OpenAI's Batch API or Anthropic's Message Batches API. CoEval's `GeminiBatchRunner` submits all Gemini requests concurrently via a thread pool — this is faster than sequential calls but you pay standard per-token rates. There is no batch discount for Gemini.
+A: It depends on the interface. When you use `interface: gemini` (Google AI Studio), CoEval's `GeminiBatchRunner` submits requests concurrently via a thread pool — faster than sequential calls but at standard per-token rates with **no batch discount**. However, if you access Gemini models via `interface: vertex` (Google Cloud Vertex AI), Vertex AI Batch Prediction Jobs **do** provide a ~50% cost reduction. See the [Vertex AI section](#google-vertex-ai) for setup details.
 
 **Q: How do I use Ollama for local models without any API key?**
 A: Install Ollama from https://ollama.com, pull a model (e.g., `ollama pull llama3.2`), and set `interface: ollama` in your config with `model: llama3.2`. No API key is required. If your Ollama server is on a different host or port, set `base_url: http://<host>:11434/v1` either in the model parameters or in `keys.yaml` under `providers.ollama.base_url`.
 
 **Q: Which providers support the 50% batch discount?**
-A: Four interfaces support true asynchronous batch processing with a 50% cost discount: `openai` (OpenAI Batch API), `anthropic` (Message Batches API), `azure_openai` (Azure Global Batch API), and `gemini` (concurrent thread pool — faster but no discount). Enable batch per-phase in the `experiment.batch` config block.
+A: Six interfaces support true asynchronous batch processing with a ~50% cost discount: `openai` (OpenAI Batch API), `anthropic` (Message Batches API), `azure_openai` (Azure Global Batch API), `mistral` (Mistral Batch API — same OpenAI-compatible format, no extra setup), `bedrock` (AWS Model Invocation Jobs), and `vertex` (Vertex AI Batch Prediction Jobs). `gemini` uses a concurrent thread pool (faster than sequential, but no discount). Enable batch per-phase in the `experiment.batch` config block.
 
 **Q: What is `interface: auto` and how does it pick a provider?**
 A: `interface: auto` tells CoEval to select the cheapest available provider for the given model at config load time. It scans the `auto_routing` table in `benchmark/provider_pricing.yaml` top-to-bottom and picks the first interface for which credentials exist in your key file. The resolved interface is logged at DEBUG level, and `coeval plan` shows the selected provider before any calls are made.
 
 **Q: What is the difference between using Bedrock with a native API key vs. IAM credentials?**
-A: Bedrock's native API key mode (`api_key: BedrockAPIKey-...:...`) uses direct HTTP with an `x-amzn-bedrock-key` header and requires no extra library — it works with CoEval's core install. IAM credentials (`access_key_id` + `secret_access_key`) use the `boto3` SDK, which must be installed separately with `pip install boto3`. Native API key takes priority if both are present.
+A: Bedrock's native API key mode (`api_key: BedrockAPIKey-...:...`) uses direct HTTP with an `x-amzn-bedrock-key` header and requires no extra library — it works with CoEval's core install. IAM credentials (`access_key_id` + `secret_access_key`) use the `boto3` SDK, which must be installed separately with `pip install boto3`. Native API key takes priority if both are present. **Note:** For Bedrock batch jobs, IAM credentials are always required — the native API key cannot be used to manage Model Invocation Jobs.
+
+**Q: How do I set up Bedrock or Vertex batch jobs?**
+A: Both require cloud storage for job I/O and a service identity with write access:
+- **Bedrock:** Create an S3 bucket and an IAM role that trusts `bedrock.amazonaws.com` with `s3:GetObject`/`s3:PutObject`/`s3:ListBucket`. Add `batch_s3_bucket` and `batch_role_arn` to the model's `parameters` block (see [AWS Bedrock](#aws-bedrock)).
+- **Vertex:** Create a GCS bucket and enable Vertex AI in your project. Add `batch_gcs_bucket` and `project` to the model's `parameters` block. Authentication uses Application Default Credentials (`gcloud auth application-default login`) or a service account key file (see [Google Vertex AI](#google-vertex-ai)).
 
 **Q: Can I access open-weight models like Llama or Mistral without managing individual provider accounts?**
 A: Yes — use `interface: openrouter`. OpenRouter provides a single OpenAI-compatible API and a single key covering 300+ models including Llama, Mistral, Qwen, DeepSeek, Cohere, and Gemma. It is the recommended interface for open-weight models when you want broad model access without juggling multiple API keys.

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "coeval"
-version = "0.2.0"
+version = "0.3.0"
 description = "CoEval: Self-evaluating LLM ensemble benchmarking system (EER + EEA)"
 requires-python = ">=3.10"
 dependencies = [
@@ -24,11 +24,13 @@ parquet = [
 ]
 
 [project.scripts]
-coeval = "experiments.cli:main"
+coeval = "runner.cli:main"
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["experiments*", "analysis*"]
+where = ["Code", "Public"]
+include = ["runner*", "analyzer*", "benchmark*"]
+exclude = ["runner.tests*", "analyzer.tests*", "benchmark.tests*"]
 
 [tool.pytest.ini_options]
-testpaths = ["experiments/tests", "analysis/tests"]
+testpaths = ["Tests"]
+addopts = "--import-mode=importlib --ignore=Tests/analyzer/test_reports_playwright.py"

@@ -35,7 +35,7 @@ The two modes are fully compatible: Phases 4 and 5 behave identically regardless
 | Dataset | Task | Split | Items | Ground-Truth Metric |
 |---------|------|-------|-------|---------------------|
 | `xsum` | `text_summarization` | validation | 11,332 | BERTScore-F1 vs. gold summary |
-| `codesearchnet` | `code_explanation` | validation | ~10K (Python) | BERTScore-F1 vs. docstring |
+| `codesearchnet` | `code_explanation` | validation | ~10K (Python) | BLEU-4 vs. reference docstring |
 | `aeslc` | `email_composition` | validation | ~1K | BERTScore-F1 vs. reference email |
 | `wikitablequestions` | `data_interpretation` | validation | 2,831 | Exact-match accuracy |
 
@@ -52,6 +52,144 @@ Loader files:
 | `benchmark/loaders/arc_challenge.py` | ARC-Challenge | Science reasoning (MCQ) |
 | `benchmark/loaders/race.py` | RACE | Reading comprehension (MCQ) |
 | `benchmark/loaders/sciq.py` | SciQ | Science questions (MCQ) |
+
+---
+
+## Public LLM Benchmark Reference
+
+This section catalogues widely-used public benchmarks by domain. CoEval can supply these as virtual teachers via `interface: benchmark` once ingested with `coeval ingest`. The ✅ / ❌ column reflects current support status.
+
+### Top 10 Generic / Cross-Domain Benchmarks
+
+| Benchmark | Task Type | Size | Primary Metric | CoEval | Link |
+|-----------|-----------|------|----------------|--------|------|
+| **MMLU** | 57-subject MCQ (STEM, humanities, social science) | 14K | Accuracy | ✅ `mmlu` | [arxiv](https://arxiv.org/abs/2009.03300) |
+| **HumanEval** | Python function completion from docstring | 164 | Pass@1 | ✅ `humaneval` | [arxiv](https://arxiv.org/abs/2107.03374) |
+| **GSM8K** | Grade-school math word problems | 8.5K | Accuracy | ✅ `gsm8k` | [arxiv](https://arxiv.org/abs/2110.14168) |
+| **HellaSwag** | Sentence completion / commonsense NLI | 70K | Accuracy | ✅ `hellaswag` | [arxiv](https://arxiv.org/abs/1905.07830) |
+| **TruthfulQA** | Truthfulness — MC + generation | 817 | Accuracy / BLEURT | ✅ `truthfulqa` | [arxiv](https://arxiv.org/abs/2109.07958) |
+| **BIG-Bench Hard** | 23 challenging multi-step reasoning tasks | ~6K | Accuracy / EM | ❌ planned | [arxiv](https://arxiv.org/abs/2206.04615) |
+| **MATH** | Competition math (algebra → calculus) | 12.5K | Accuracy (symbolic) | ❌ planned | [arxiv](https://arxiv.org/abs/2103.03874) |
+| **ARC-Challenge** | Science MCQ — hard subset | 1.17K | Accuracy | ✅ `arc-challenge` | [arxiv](https://arxiv.org/abs/1803.05457) |
+| **GPQA** | Graduate-level science MCQ (Diamond set) | 448 | Accuracy | ❌ planned | [arxiv](https://arxiv.org/abs/2311.12022) |
+| **MBPP** | Python beginner coding problems | 374 | Pass@1 | ❌ planned | [arxiv](https://arxiv.org/abs/2108.07732) |
+
+> **Reading the table:** CoEval ✅ means the dataset can be used as a virtual teacher via `coeval ingest <name>` or is already pre-ingested. ❌ planned means the loader is not yet implemented but ingestion via custom JSONL is possible.
+
+---
+
+### Top Benchmarks by Domain
+
+#### 1. Reasoning & Logic
+
+| Benchmark | Description | CoEval |
+|-----------|-------------|--------|
+| **BIG-Bench Hard** | 23 tasks requiring chain-of-thought reasoning | ❌ planned |
+| **ARC-Challenge** | AI2 science reasoning — harder subset | ✅ `arc-challenge` |
+| **LogiQA** | Reading comprehension with formal logic | ❌ |
+| **ReClor** | Logical reasoning from law-school exams | ❌ |
+| **AGIEval** | Human-centric reasoning: SAT, GRE, LSAT, etc. | ❌ |
+
+#### 2. Mathematics
+
+| Benchmark | Description | CoEval |
+|-----------|-------------|--------|
+| **GSM8K** | 8.5K grade-school word problems | ✅ `gsm8k` |
+| **MATH** | 12.5K competition problems (Hendrycks et al.) | ❌ planned |
+| **MGSM** | Multilingual grade-school math (11 languages) | ❌ |
+| **MathQA** | Multiple-choice math word problems | ❌ |
+| **NumGLUE** | Numerical reasoning across 8 NLU tasks | ❌ |
+
+#### 3. Code Generation
+
+| Benchmark | Description | CoEval |
+|-----------|-------------|--------|
+| **HumanEval** | 164 Python function completions | ✅ `humaneval` |
+| **MBPP** | 374 Python beginner problems | ❌ planned |
+| **CodeSearchNet** | Code-to-docstring generation (Python) | ✅ pre-ingested |
+| **SWE-bench** | Real GitHub issue resolution | ❌ |
+| **DS-1000** | 1 000 data-science code completions | ❌ |
+
+#### 4. Language Understanding
+
+| Benchmark | Description | CoEval |
+|-----------|-------------|--------|
+| **HellaSwag** | 70K sentence-completion / commonsense NLI items | ✅ `hellaswag` |
+| **WinoGrande** | Large-scale Winograd schema challenge | ❌ |
+| **SuperGLUE** | 8-task NLU suite (NLI, QA, coreference) | ❌ |
+| **MultiNLI** | Multi-genre natural language inference | ❌ |
+| **COPA** | Cause-and-effect commonsense reasoning | ❌ |
+
+#### 5. Open-Domain Question Answering
+
+| Benchmark | Description | CoEval |
+|-----------|-------------|--------|
+| **TriviaQA** | 95K trivia questions with evidence passages | ❌ |
+| **Natural Questions** | 307K Google search queries + Wikipedia answers | ❌ |
+| **WikiTableQuestions** | Table-grounded free-form QA | ✅ pre-ingested |
+| **SQuAD 2.0** | Extractive + unanswerable span QA | ❌ |
+| **WebQuestions** | 3K Freebase entity questions | ❌ |
+
+#### 6. Reading Comprehension
+
+| Benchmark | Description | CoEval |
+|-----------|-------------|--------|
+| **RACE** | 100K MCQ from English exams (middle + high school) | ✅ `race` |
+| **SciQ** | 14K elementary/middle school science MCQ | ✅ `sciq` |
+| **QuALITY** | Long-document multiple-choice QA | ❌ |
+| **CosmosQA** | Narrative-based commonsense comprehension | ❌ |
+| **NarrativeQA** | Full-story comprehension with free-form answers | ❌ |
+
+#### 7. Knowledge & Factual Recall
+
+| Benchmark | Description | CoEval |
+|-----------|-------------|--------|
+| **MMLU** | 57-subject academic knowledge across domains | ✅ `mmlu` |
+| **MedQA (USMLE)** | USMLE medical licensing exam questions | ✅ `medqa` |
+| **KOLA** | Knowledge-oriented LLM assessment | ❌ |
+| **FActScore** | Factual precision metric for open-ended generation | ❌ |
+| **FEVER** | Fact verification against Wikipedia | ❌ |
+
+#### 8. Summarization & Generation
+
+| Benchmark | Description | CoEval |
+|-----------|-------------|--------|
+| **XSum** | 11K BBC articles → 1-sentence summaries | ✅ pre-ingested |
+| **AESLC** | Email subject-line composition | ✅ pre-ingested |
+| **CNN/DailyMail** | News summarization with bullet highlights | ❌ |
+| **SAMSum** | Dialogue summarization | ❌ |
+| **MeetingBank** | Meeting transcript summarization | ❌ |
+
+#### 9. Truthfulness & Safety
+
+| Benchmark | Description | CoEval |
+|-----------|-------------|--------|
+| **TruthfulQA** | 817 questions probing hallucination tendencies | ✅ `truthfulqa` |
+| **BOLD** | Bias in open-ended language generation | ❌ |
+| **BBQ** | Bias benchmark for question answering | ❌ |
+| **WinoBias** | Gender bias in coreference resolution | ❌ |
+| **RealToxicityPrompts** | Toxicity measurement in generation | ❌ |
+
+#### 10. Medical & Scientific Reasoning
+
+| Benchmark | Description | CoEval |
+|-----------|-------------|--------|
+| **MedQA (USMLE)** | 4-option MCQ from USMLE Steps 1–3 | ✅ `medqa` |
+| **SciQ** | Science MCQ with supporting passages | ✅ `sciq` |
+| **ARC-Challenge** | AI2 science exam MCQ (harder 1.17K items) | ✅ `arc-challenge` |
+| **GPQA** | PhD-level science MCQ (chemistry, biology, physics) | ❌ planned |
+| **SciFact** | Scientific claim verification against abstracts | ❌ |
+
+---
+
+### CoEval Support Summary
+
+| Status | Datasets |
+|--------|----------|
+| ✅ **Pre-ingested** (ready to use, no setup needed after `setup_mixed`/`setup_education`) | XSum, CodeSearchNet, AESLC, WikiTableQuestions, ARC-Challenge, RACE, SciQ |
+| ✅ **Available via `coeval ingest`** | MMLU, HellaSwag, TruthfulQA, HumanEval, MedQA, GSM8K |
+| ❌ **Planned** (loader not yet implemented; custom JSONL ingestion possible) | MATH, BIG-Bench Hard, MBPP, GPQA |
+| ❌ **Not yet supported** | All others — contribute a loader! See [Writing a Loader](#writing-a-loader-for-a-new-dataset) |
 
 ---
 
@@ -411,30 +549,45 @@ coeval run --config benchmark/education.yaml --continue
 
 ## Benchmark-Native Scores
 
-After Phase 5 completes, compute the benchmark-native ground-truth score for each datapoint:
+After Phase 3 datapoints are emitted, populate the `benchmark_native_score` field in each JSONL record by computing the task's ground-truth metric. These scores are used for **calibration** and **Spearman ρ** correlation analysis — they are *not* incorporated into the EES ranking score.
 
 ```bash
-# Requires: pip install bert-score datasets
+# Requires: pip install bert-score nltk
 python -m benchmark.compute_scores \
-    --run-id paper-eval-v1 \
-    --dataset xsum \
+    --run benchmark/runs/paper-eval-v1
+
+# Single dataset
+python -m benchmark.compute_scores \
+    --run benchmark/runs/paper-eval-v1 \
+    --datasets xsum
+
+# Override default metric
+python -m benchmark.compute_scores \
+    --run benchmark/runs/paper-eval-v1 \
     --metric bertscore
 
+# Idempotent: already-scored records are skipped unless --force
 python -m benchmark.compute_scores \
-    --run-id paper-eval-v1 \
-    --dataset wikitablequestions \
-    --metric exact_match
+    --run benchmark/runs/paper-eval-v1 \
+    --force --dry-run
 ```
 
 Available metrics:
 
 | Metric flag | Used for | Library |
 |-------------|----------|---------|
-| `bertscore` | XSum, AESLC, CodeSearchNet | `bert-score` |
+| `bertscore` | XSum, AESLC | `bert-score` |
+| `bleu` | CodeSearchNet | `nltk` |
 | `exact_match` | WikiTableQuestions | built-in |
 | `rouge_l` | XSum (alternative) | `rouge-score` |
 
-This fills `benchmark_native_score` in the Phase 3 JSONL files and is required for Spearman ρ computation.
+Each benchmark has a default metric defined in `benchmark/compute_scores.py`'s `BENCHMARK_METRIC` dict. You can override with `--metric` if you want to compare alternatives.
+
+This fills `benchmark_native_score` in the Phase 3 JSONL files. These scores are used for two purposes:
+1. **Calibration** (`analysis/calibration.py`): Fits an OLS linear mapping from judge ensemble scores to benchmark-native ground truth — useful for detecting judge bias or drift.
+2. **Spearman ρ tables** (`analysis/paper_tables.py`): Computes rank correlation between judge scores and ground-truth metric — validates how well the ensemble captures model quality.
+
+> **Note:** `benchmark_native_score` is **not** incorporated into the EES (Evaluation Ensemble Score) that drives model rankings. It is a separate validation signal used for calibration and correlation analysis only.
 
 ### Label Evaluation (Classification Tasks)
 

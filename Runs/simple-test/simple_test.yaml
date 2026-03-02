@@ -1,0 +1,143 @@
+# CoEval -- Simple Benchmark Test
+# =============================================================================
+# Purpose : Minimal end-to-end smoke test for the benchmark/ workflow.
+#           Validates the full EER + EEA pipeline (all 5 phases + reports)
+#           as cheaply and quickly as possible.
+#
+# Models  : 2 smallest HuggingFace models (student-only: 135M, 360M) +
+#           gpt-4o-mini (cheapest OpenAI model: teacher + judge)
+#
+# Task    : Single task (text summarization), 2 data points
+#
+# Rubric  : Static (2 criteria) -- phases 1 and 2 make 0 LLM calls
+#
+# Call budget (static attrs + rubric => phases 1-2 make 0 LLM calls):
+#   Phase 3 (data generation):     1 teacher x 2 items x 1 task  =  2  [OpenAI]
+#   Phase 4 (response collection): 1 teacher x 2 students x 2    =  4  [HuggingFace]
+#   Phase 5 (evaluation, single):  1 teacher x 1 judge x 2 stu x 2 = 4 [OpenAI]
+#   -----------------------------------------------------------------------
+#   Total: ~10 calls  (6 OpenAI, 4 HuggingFace)
+#
+# API key: set OPENAI_API_KEY environment variable before running.
+# =============================================================================
+
+
+# ─── MODELS ──────────────────────────────────────────────────────────────────
+
+models:
+
+  # --------------------------------------------------------------------------
+  # gpt-4o-mini: cheapest capable OpenAI model — teacher + judge
+  # API key: set OPENAI_API_KEY env var, or add access_key: sk-... below
+  # --------------------------------------------------------------------------
+  - name: gpt-4o-mini
+    interface: openai
+    parameters:
+      model: gpt-4o-mini
+      temperature: 0.7
+      max_tokens: 512
+    roles: [teacher, judge]
+    # access_key: sk-...
+    role_parameters:
+      teacher:
+        temperature: 0.8
+        max_tokens: 512
+      judge:
+        temperature: 0.0
+        max_tokens: 128
+
+  # --------------------------------------------------------------------------
+  # SmolLM2-135M: smallest HuggingFace model — student only
+  # (Cannot reliably follow structured JSON instructions)
+  # --------------------------------------------------------------------------
+  - name: smollm2-135m
+    interface: huggingface
+    parameters:
+      model: HuggingFaceTB/SmolLM2-135M-Instruct
+      temperature: 0.7
+      max_new_tokens: 128
+      device: auto
+    roles: [student]
+    role_parameters:
+      student:
+        temperature: 0.5
+        max_new_tokens: 64
+
+  # --------------------------------------------------------------------------
+  # SmolLM2-360M: second smallest HuggingFace model — student only
+  # --------------------------------------------------------------------------
+  - name: smollm2-360m
+    interface: huggingface
+    parameters:
+      model: HuggingFaceTB/SmolLM2-360M-Instruct
+      temperature: 0.7
+      max_new_tokens: 128
+      device: auto
+    roles: [student]
+    role_parameters:
+      student:
+        temperature: 0.5
+        max_new_tokens: 64
+
+
+# ─── TASKS ───────────────────────────────────────────────────────────────────
+
+tasks:
+
+  - name: text_summary
+    description: >
+      Summarise a short passage of text in a single sentence that captures
+      the key point. The summary must match the specified tone and domain.
+    output_description: >
+      A single sentence (10-25 words) that accurately summarises the main
+      point of the passage. No lists, no headers, plain prose only.
+
+    target_attributes:
+      tone: [formal, casual]
+
+    nuanced_attributes:
+      domain: [technology, cooking]
+
+    sampling:
+      target: [1, 1]   # exactly 1 target attribute per data point
+      nuance: [1, 1]   # exactly 1 nuanced attribute per data point
+      total: 2         # 2 data points total
+
+    rubric:
+      accuracy:    "The summary faithfully captures the main point of the passage without adding or omitting key information."
+      conciseness: "The summary is a single, well-formed sentence within the 10-25 word limit."
+
+    evaluation_mode: single
+
+    prompt_library:
+      # few_shot template: helps gpt-4o-mini produce reliable JSON output
+      sample: |
+        Generate a benchmark data point for: {task_description}
+        Response format: {output_description}
+        Required attributes: {target_attributes}. Nuance: {nuanced_attributes}.
+
+        Follow this example format exactly:
+        {{"prompt": "Photosynthesis is the process by which plants convert sunlight, water, and carbon dioxide into glucose and oxygen. The process occurs in the chloroplasts and is essential for life on Earth.",
+          "response": "Photosynthesis is how plants use sunlight, water, and CO2 to produce glucose and oxygen in their chloroplasts."}}
+
+        Now generate a NEW, different data point that fits the required attributes.
+        Return only a JSON object with keys "prompt" and "response". No explanation.
+
+
+# ─── EXPERIMENT ──────────────────────────────────────────────────────────────
+
+experiment:
+  id: simple-test-v1
+  storage_folder: ./Runs
+  log_level: INFO
+
+  phases:
+    attribute_mapping:   New
+    rubric_mapping:      New
+    data_generation:     New
+    response_collection: New
+    evaluation:          New
+
+  quota:
+    gpt-4o-mini:
+      max_calls: 20

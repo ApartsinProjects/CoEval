@@ -1,0 +1,17 @@
+# Attribute map for XSum (text_summarization task)
+# Used for stratified sampling of benchmark items.
+# Values are inferred from article content by the XSumLoader.
+
+complexity:
+  - simple
+  - moderate
+  - complex
+  - technical
+
+domain:
+  - science
+  - business
+  - politics
+  - technology
+  - health
+  - other

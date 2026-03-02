@@ -1,0 +1,18 @@
+{
+  "mode": "full",
+  "on_fail": "abort",
+  "results": {
+    "gpt-4o-mini": "ok",
+    "gpt-3.5-turbo": "ok",
+    "qwen2p5-0b5": "ok",
+    "qwen2p5-1b5": "ok",
+    "smollm2-1b7": "ok"
+  },
+  "probed_models": [
+    "gpt-3.5-turbo",
+    "gpt-4o-mini",
+    "qwen2p5-0b5",
+    "qwen2p5-1b5",
+    "smollm2-1b7"
+  ]
+}

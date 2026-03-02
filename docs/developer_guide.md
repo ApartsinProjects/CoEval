@@ -11,11 +11,11 @@ enough to fix bugs, add new phases, or add a new model backend.
 1. [Repository Layout](#1-repository-layout)
 2. [Architecture Overview](#2-architecture-overview)
 3. [Module Reference](#3-module-reference)
-   - 3.1 [`experiments/config.py`](#31-experimentsconfigpy)
+   - 3.1 [`Code/runner/config.py`](#31-experimentsconfigpy)
    - 3.2 [`experiments/storage.py`](#32-experimentsstoragepy)
    - 3.3 [`experiments/prompts.py`](#33-experimentspromptspy)
    - 3.4 [`experiments/logger.py`](#34-experimentsloggerpy)
-   - 3.5 [`experiments/runner.py`](#35-experimentsrunnerpy)
+   - 3.5 [`Code/runner/runner.py`](#35-experimentsrunnerpy)
    - 3.6 [`experiments/cli.py`](#36-experimentsclipy)
    - 3.7 [`experiments/commands/`](#37-experimentscommands)
    - 3.8 [`experiments/label_eval.py`](#38-experimentslabel_evalpy)
@@ -26,9 +26,9 @@ enough to fix bugs, add new phases, or add a new model backend.
    - 3.13 [`experiments/interfaces/huggingface_iface.py`](#313-experimentsinterfaceshuggingface_ifacepy)
    - 3.14 [`experiments/interfaces/openai_batch.py`](#314-experimentsinterfacesopenai_batchpy)
    - 3.15 [`experiments/interfaces/anthropic_batch.py`](#315-experimentsinterfacesanthropic_batchpy)
-   - 3.16 [`experiments/interfaces/probe.py`](#316-experimentsinterfacesprobepy)
+   - 3.16 [`Code/runner/interfaces/probe.py`](#316-experimentsinterfacesprobepy)
    - 3.17 [`experiments/interfaces/cost_estimator.py`](#317-experimentsinterfacescost_estimatorpy)
-   - 3.18 [`experiments/interfaces/pool.py`](#318-experimentsinterfacespoolpy)
+   - 3.18 [`Code/runner/interfaces/pool.py`](#318-experimentsinterfacespoolpy)
    - 3.19 [`experiments/phases/utils.py`](#319-experimentsphasesutispy)
    - 3.20–3.24 `experiments/phases/phase{1–5}.py`
 4. [Data Flow Walkthrough](#4-data-flow-walkthrough)
@@ -45,7 +45,7 @@ enough to fix bugs, add new phases, or add a new model backend.
 ## 1. Repository Layout
 
 ```
-experiments/                     ← main pipeline package (experiments.* namespace)
+Code/runner/                     ← main pipeline package (runner.* namespace)
 ├── __init__.py
 ├── cli.py                       # CLI entry point (coeval run/probe/plan/status/analyze)
 ├── config.py                    # Config dataclasses, YAML loading, validation V-01..V-17
@@ -93,7 +93,7 @@ experiments/                     ← main pipeline package (experiments.* namesp
     ├── test_probe_and_estimator.py
     └── test_commands.py
 
-analysis/                        ← analysis & reporting package (analysis.* namespace)
+Code/analyzer/                   ← analysis & reporting package (analyzer.* namespace)
 ├── main.py                      # run_analyze() entry point for coeval analyze
 ├── reports/                     # HTML report generators
 ├── paper_tables.py              # LaTeX/CSV table generators for paper
@@ -171,7 +171,7 @@ new phases without changing the orchestrator.
 
 ## 3. Module Reference
 
-### 3.1 `experiments/config.py`
+### 3.1 `Code/runner/config.py`
 
 **Purpose:** Parse the YAML config into typed dataclasses and enforce all 17 validation rules.
 
@@ -378,7 +378,7 @@ re-emitted with `errors='replace'` to prevent crashes from non-ASCII characters.
 
 ---
 
-### 3.5 `experiments/runner.py`
+### 3.5 `Code/runner/runner.py`
 
 **Purpose:** Top-level experiment orchestrator.
 
@@ -642,7 +642,7 @@ Mirrors `openai_batch.py` in structure:
 
 ---
 
-### 3.16 `experiments/interfaces/probe.py`
+### 3.16 `Code/runner/interfaces/probe.py`
 
 **Purpose:** Model availability probe — tests each model with a lightweight API call
 before the pipeline starts.
@@ -699,7 +699,7 @@ HuggingFace (free / compute cost only).
 
 ---
 
-### 3.18 `experiments/interfaces/pool.py`
+### 3.18 `Code/runner/interfaces/pool.py`
 
 **Purpose:** Lazy-load factory + cache for `ModelInterface` instances.
 
@@ -975,7 +975,7 @@ combination.
 
 ## 7. Adding a New Model Backend
 
-1. Create `experiments/interfaces/my_backend_iface.py` implementing `ModelInterface`:
+1. Create `Code/runner/interfaces/my_backend_iface.py` implementing `ModelInterface`:
 
 ```python
 from .base import ModelInterface
@@ -988,16 +988,16 @@ class MyBackendInterface(ModelInterface):
         ...  # call your backend, return the text response
 ```
 
-2. Register the new interface name in `ModelPool.get()` (`experiments/interfaces/pool.py`):
+2. Register the new interface name in `ModelPool.get()` (`Code/runner/interfaces/pool.py`):
 
 ```python
 elif model_cfg.interface == 'my_backend':
     self._cache[model_cfg.name] = MyBackendInterface(...)
 ```
 
-3. Add `'my_backend'` to `VALID_INTERFACES` in `experiments/config.py`.
+3. Add `'my_backend'` to `VALID_INTERFACES` in `Code/runner/config.py`.
 
-4. Add a probe method to `experiments/interfaces/probe.py` for the new interface.
+4. Add a probe method to `Code/runner/interfaces/probe.py` for the new interface.
 
 5. Write tests for the new class (mock the underlying client).
 
@@ -1005,20 +1005,20 @@ elif model_cfg.interface == 'my_backend':
 
 ## 8. Adding a New Phase
 
-1. Create `experiments/phases/phaseN.py` with the standard signature:
+1. Create `Code/runner/phases/phaseN.py` with the standard signature:
 
 ```python
 def run_phaseN(cfg, storage, logger, pool, quota, phase_mode):
     ...
 ```
 
-2. Add `'new_phase_id'` to `PHASE_IDS` in `experiments/config.py` (in the correct
+2. Add `'new_phase_id'` to `PHASE_IDS` in `Code/runner/config.py` (in the correct
    execution order).
 
 3. Add the corresponding storage methods to `ExperimentStorage` if the phase
    needs new file types.
 
-4. Register the runner in `_PHASE_RUNNERS` in `experiments/runner.py`:
+4. Register the runner in `_PHASE_RUNNERS` in `Code/runner/runner.py`:
 
 ```python
 _PHASE_RUNNERS = {
@@ -1033,12 +1033,12 @@ _PHASE_RUNNERS = {
 
 ## 9. Testing
 
-Tests live in `experiments/tests/` and `analysis/tests/`.  All tests require only
+Tests live in `Tests/runner/  Tests/analyzer/`.  All tests require only
 `pytest` — no network, no LLM calls, no GPU.
 
 ```bash
 pip install pytest
-python -m pytest experiments/tests/ analysis/tests/ -v
+python -m pytest Tests/runner/  Tests/analyzer/ -v
 ```
 
 Run from the project root (`E:\Projects\CoEval\main\`).
@@ -1061,7 +1061,7 @@ All tests run without network, GPU, or real LLM calls.
 
 ```python
 from unittest.mock import MagicMock
-from experiments.interfaces.base import ModelInterface
+from runner.interfaces.base import ModelInterface
 
 class FakeInterface(ModelInterface):
     def __init__(self, responses):

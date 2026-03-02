@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Coverage Summary — medium-benchmark-v1</title>
+  <script src="../plotly.min.js"></script>
+  <script>
+const DATA = {"teachers": ["gpt-3.5-turbo", "gpt-4o-mini", "qwen2p5-0b5", "qwen2p5-1b5", "smollm2-1b7"], "students": ["gpt-3.5-turbo", "gpt-4o-mini", "qwen2p5-0b5", "qwen2p5-1b5", "smollm2-1b7"], "judges": ["gpt-3.5-turbo", "gpt-4o-mini", "qwen2p5-0b5", "qwen2p5-1b5", "smollm2-1b7"], "teacher_stacks": {"task": {"gpt-3.5-turbo": {"code_explanation": 20, "data_interpretation": 20, "email_composition": 20, "text_summarization": 20}, "gpt-4o-mini": {"code_explanation": 20, "data_interpretation": 20, "email_composition": 20, "text_summarization": 20}, "qwen2p5-0b5": {"code_explanation": 20, "data_interpretation": 20, "email_composition": 20, "text_summarization": 20}, "qwen2p5-1b5": {"code_explanation": 20, "data_interpretation": 20, "email_composition": 20, "text_summarization": 20}, "smollm2-1b7": {"code_explanation": 19, "data_interpretation": 18, "email_composition": 20, "text_summarization": 20}}, "depth": {"gpt-3.5-turbo": {"deep_dive": 3, "(none)": 77}, "gpt-4o-mini": {"(none)": 76, "surface": 2, "deep_dive": 2}, "qwen2p5-0b5": {"(none)": 75, "surface": 2, "standard": 2, "deep_dive": 1}, "qwen2p5-1b5": {"(none)": 77, "standard": 2, "deep_dive": 1}, "smollm2-1b7": {"standard": 3, "(none)": 72, "surface": 2}}, "explanation_style": {"gpt-3.5-turbo": {"conceptual_overview": 3, "annotated_walkthrough": 3, "(none)": 72, "example_driven": 1, "step_by_step": 1}, "gpt-4o-mini": {"(none)": 73, "annotated_walkthrough": 2, "step_by_step": 1, "conceptual_overview": 4}, "qwen2p5-0b5": {"step_by_step": 1, "(none)": 75, "annotated_walkthrough": 2, "conceptual_overview": 2}, "qwen2p5-1b5": {"conceptual_overview": 3, "annotated_walkthrough": 4, "(none)": 71, "example_driven": 1, "step_by_step": 1}, "smollm2-1b7": {"(none)": 75, "conceptual_overview": 1, "annotated_walkthrough": 1}}, "complexity": {"gpt-3.5-turbo": {"(none)": 67, "advanced": 2, "beginner": 3, "multivariate_statistical": 1, "simple": 2, "technical": 3, "complex": 1, "moderate": 1}, "gpt-4o-mini": {"(none)": 66, "intermediate": 3, "beginner": 1, "single_variable": 4, "complex": 2, "simple": 3, "moderate": 1}, "qwen2p5-0b5": {"(none)": 59, "beginner": 3, "intermediate": 2, "multivariate_statistical": 5, "single_variable": 2, "moderate": 2, "simple": 2, "complex": 2, "technical": 3}, "qwen2p5-1b5": {"(none)": 62, "beginner": 4, "advanced": 2, "single_variable": 1, "multivariate_statistical": 2, "bivariate_comparison": 2, "technical": 2, "complex": 2, "moderate": 1, "simple": 2}, "smollm2-1b7": {"(none)": 55, "intermediate": 2, "beginner": 2, "advanced": 2, "multivariate_statistical": 3, "single_variable": 2, "moderate": 2, "complex": 3, "simple": 3, "technical": 3}}, "audience": {"gpt-3.5-turbo": {"(none)": 62, "junior_developer": 2, "non_technical": 1, "technical_specialist": 1, "data_analyst": 1, "general_public": 3, "executive": 2, "student": 3, "expert": 3, "professional": 2}, "gpt-4o-mini": {"(none)": 67, "junior_developer": 3, "senior_engineer": 2, "general_public": 3, "executive": 1, "data_analyst": 1, "technical_specialist": 1, "expert": 1, "professional": 1}, "qwen2p5-0b5": {"(none)": 59, "non_technical": 1, "junior_developer": 2, "senior_engineer": 4, "data_analyst": 2, "technical_specialist": 2, "executive": 1, "general_public": 3, "professional": 3, "expert": 1, "student": 2}, "qwen2p5-1b5": {"(none)": 63, "senior_engineer": 2, "novice_programmer": 2, "executive": 3, "technical_specialist": 2, "data_analyst": 1, "expert": 3, "general_public": 3, "student": 1}, "smollm2-1b7": {"(none)": 58, "non_technical": 2, "senior_engineer": 1, "novice_programmer": 1, "technical_specialist": 4, "executive": 1, "data_analyst": 1, "general_public": 4, "professional": 3, "student": 1, "expert": 1}}, "language": {"gpt-3.5-turbo": {"(none)": 75, "python": 2, "bash": 2, "java": 1}, "gpt-4o-mini": {"javascript": 1, "(none)": 76, "java": 1, "bash": 1, "python": 1}, "qwen2p5-0b5": {"(none)": 75, "python": 3, "bash": 1, "java": 1}, "qwen2p5-1b5": {"(none)": 76, "javascript": 1, "java": 1, "python": 1, "sql": 1}, "smollm2-1b7": {"(none)": 69, "sql": 3, "javascript": 1, "python": 1, "java": 1, "bash": 2}}, "snippet_type": {"gpt-3.5-turbo": {"(none)": 77, "function": 1, "shell_script": 1, "class_definition": 1}, "gpt-4o-mini": {"(none)": 73, "shell_script": 3, "database_query": 1, "function": 2, "class_definition": 1}, "qwen2p5-0b5": {"(none)": 75, "database_query": 1, "class_definition": 1, "algorithm": 1, "function": 1, "shell_script": 1}, "qwen2p5-1b5": {"function": 3, "algorithm": 4, "(none)": 72, "shell_script": 1}, "smollm2-1b7": {"function": 1, "(none)": 70, "database_query": 2, "algorithm": 1, "shell_script": 2, "class_definition": 1}}, "domain": {"gpt-3.5-turbo": {"(none)": 74, "sales_revenue": 2, "demographics": 2, "financial_markets": 2}, "gpt-4o-mini": {"(none)": 73, "financial_markets": 3, "sales_revenue": 2, "demographics": 1, "climate": 1}, "qwen2p5-0b5": {"(none)": 76, "financial_markets": 1, "public_health": 1, "climate": 2}, "qwen2p5-1b5": {"(none)": 75, "climate": 4, "public_health": 1}, "smollm2-1b7": {"(none)": 71, "public_health": 3, "demographics": 2, "sales_revenue": 1}}, "trend_type": {"gpt-3.5-turbo": {"(none)": 72, "seasonal_cycle": 1, "upward_growth": 2, "flat_stable": 3, "anomalous_spike": 2}, "gpt-4o-mini": {"(none)": 76, "downward_decline": 3, "seasonal_cycle": 1}, "qwen2p5-0b5": {"(none)": 75, "downward_decline": 1, "anomalous_spike": 1, "upward_growth": 2, "seasonal_cycle": 1}, "qwen2p5-1b5": {"(none)": 75, "downward_decline": 1, "anomalous_spike": 2, "seasonal_cycle": 1, "upward_growth": 1}, "smollm2-1b7": {"(none)": 75, "anomalous_spike": 1, "flat_stable": 1}}, "data_type": {"gpt-3.5-turbo": {"(none)": 77, "bar_chart": 1, "scatter_plot": 1, "heatmap": 1}, "gpt-4o-mini": {"(none)": 75, "histogram": 2, "bar_chart": 1, "line_graph": 2}, "qwen2p5-0b5": {"(none)": 76, "pivot_table": 1, "heatmap": 2, "line_graph": 1}, "qwen2p5-1b5": {"(none)": 77, "scatter_plot": 1, "heatmap": 2}, "smollm2-1b7": {"(none)": 70, "pivot_table": 1, "scatter_plot": 1, "histogram": 3, "bar_chart": 2}}, "insight_depth": {"gpt-3.5-turbo": {"(none)": 76, "predictive_inference": 1, "analytical_interpretation": 1, "surface_observation": 2}, "gpt-4o-mini": {"(none)": 77, "analytical_interpretation": 2, "predictive_inference": 1}, "qwen2p5-0b5": {"(none)": 74, "analytical_interpretation": 2, "surface_observation": 3, "predictive_inference": 1}, "qwen2p5-1b5": {"(none)": 77, "analytical_interpretation": 2, "predictive_inference": 1}, "smollm2-1b7": {"(none)": 74, "surface_observation": 2, "predictive_inference": 1}}, "urgency": {"gpt-3.5-turbo": {"(none)": 74, "low": 1, "high": 2, "critical": 1, "medium": 2}, "gpt-4o-mini": {"(none)": 74, "low": 2, "medium": 4}, "qwen2p5-0b5": {"(none)": 72, "low": 2, "medium": 2, "critical": 3, "high": 1}, "qwen2p5-1b5": {"(none)": 75, "low": 2, "critical": 2, "high": 1}, "smollm2-1b7": {"(none)": 70, "low": 3, "medium": 2, "high": 2}}, "formality": {"gpt-3.5-turbo": {"(none)": 72, "executive": 2, "manager_to_report": 2, "report_to_manager": 1, "peer_to_peer": 3}, "gpt-4o-mini": {"(none)": 79, "executive": 1}, "qwen2p5-0b5": {"(none)": 76, "report_to_manager": 2, "executive": 2}, "qwen2p5-1b5": {"(none)": 71, "executive": 1, "external_client": 4, "peer_to_peer": 1, "manager_to_report": 2, "report_to_manager": 1}, "smollm2-1b7": {"(none)": 72, "report_to_manager": 1, "external_client": 2, "peer_to_peer": 2}}, "tone": {"gpt-3.5-turbo": {"(none)": 71, "casual": 2, "formal": 3, "empathetic": 1, "critical": 1, "neutral": 1, "conversational": 1}, "gpt-4o-mini": {"(none)": 67, "formal": 7, "assertive": 1, "neutral": 2, "critical": 2, "conversational": 1}, "qwen2p5-0b5": {"(none)": 68, "assertive": 1, "formal": 5, "casual": 1, "empathetic": 1, "semi_formal": 1, "critical": 1, "conversational": 2}, "qwen2p5-1b5": {"(none)": 63, "assertive": 2, "empathetic": 2, "casual": 2, "semi_formal": 1, "neutral": 2, "conversational": 4, "critical": 2, "formal": 2}, "smollm2-1b7": {"(none)": 61, "empathetic": 2, "assertive": 3, "casual": 3, "formal": 4, "semi_formal": 1, "critical": 3}}, "length": {"gpt-3.5-turbo": {"(none)": 69, "standard": 3, "detailed": 4, "moderate": 1, "brief": 3}, "gpt-4o-mini": {"(none)": 67, "brief": 5, "standard": 2, "detailed": 4, "moderate": 2}, "qwen2p5-0b5": {"(none)": 72, "brief": 6, "detailed": 2}, "qwen2p5-1b5": {"(none)": 70, "detailed": 2, "brief": 4, "standard": 1, "moderate": 3}, "smollm2-1b7": {"(none)": 73, "detailed": 2, "brief": 2}}, "purpose": {"gpt-3.5-turbo": {"(none)": 72, "information_request": 1, "proposal": 2, "complaint_resolution": 2, "project_update": 2, "follow_up": 1}, "gpt-4o-mini": {"(none)": 75, "complaint_resolution": 2, "information_request": 2, "project_update": 1}, "qwen2p5-0b5": {"(none)": 73, "information_request": 2, "follow_up": 1, "proposal": 2, "complaint_resolution": 1, "project_update": 1}, "qwen2p5-1b5": {"(none)": 76, "complaint_resolution": 2, "information_request": 2}, "smollm2-1b7": {"(none)": 71, "follow_up": 2, "project_update": 1, "proposal": 1, "complaint_resolution": 2}}, "format": {"gpt-3.5-turbo": {"(none)": 74, "bullet_points": 2, "paragraph": 4}, "gpt-4o-mini": {"(none)": 75, "paragraph": 3, "headline_and_body": 1, "bullet_points": 1}, "qwen2p5-0b5": {"(none)": 77, "headline_and_body": 2, "paragraph": 1}, "qwen2p5-1b5": {"(none)": 74, "paragraph": 1, "bullet_points": 1, "headline_and_body": 4}, "smollm2-1b7": {"(none)": 74, "bullet_points": 2, "headline_and_body": 1}}}, "student_stacks": {"task": {"gpt-3.5-turbo": {"code_explanation": 99, "data_interpretation": 98, "email_composition": 100, "text_summarization": 100}, "gpt-4o-mini": {"code_explanation": 99, "data_interpretation": 98, "email_composition": 100, "text_summarization": 100}, "qwen2p5-0b5": {"code_explanation": 99, "data_interpretation": 98, "email_composition": 100, "text_summarization": 100}, "qwen2p5-1b5": {"code_explanation": 99, "data_interpretation": 98, "email_composition": 100, "text_summarization": 100}, "smollm2-1b7": {"code_explanation": 99, "data_interpretation": 98, "email_composition": 100, "text_summarization": 100}}, "depth": {"gpt-3.5-turbo": {"deep_dive": 7, "(none)": 377, "surface": 6, "standard": 7}, "gpt-4o-mini": {"deep_dive": 7, "(none)": 377, "surface": 6, "standard": 7}, "qwen2p5-0b5": {"deep_dive": 7, "(none)": 377, "surface": 6, "standard": 7}, "qwen2p5-1b5": {"deep_dive": 7, "(none)": 377, "surface": 6, "standard": 7}, "smollm2-1b7": {"deep_dive": 7, "(none)": 377, "surface": 6, "standard": 7}}, "explanation_style": {"gpt-3.5-turbo": {"conceptual_overview": 13, "annotated_walkthrough": 12, "(none)": 366, "example_driven": 2, "step_by_step": 4}, "gpt-4o-mini": {"conceptual_overview": 13, "annotated_walkthrough": 12, "(none)": 366, "example_driven": 2, "step_by_step": 4}, "qwen2p5-0b5": {"conceptual_overview": 13, "annotated_walkthrough": 12, "(none)": 366, "example_driven": 2, "step_by_step": 4}, "qwen2p5-1b5": {"conceptual_overview": 13, "annotated_walkthrough": 12, "(none)": 366, "example_driven": 2, "step_by_step": 4}, "smollm2-1b7": {"conceptual_overview": 13, "annotated_walkthrough": 12, "(none)": 366, "example_driven": 2, "step_by_step": 4}}, "complexity": {"gpt-3.5-turbo": {"(none)": 309, "advanced": 6, "beginner": 13, "intermediate": 7, "multivariate_statistical": 11, "single_variable": 9, "bivariate_comparison": 2, "simple": 12, "technical": 11, "complex": 10, "moderate": 7}, "gpt-4o-mini": {"(none)": 309, "advanced": 6, "beginner": 13, "intermediate": 7, "multivariate_statistical": 11, "single_variable": 9, "bivariate_comparison": 2, "simple": 12, "technical": 11, "complex": 10, "moderate": 7}, "qwen2p5-0b5": {"(none)": 309, "advanced": 6, "beginner": 13, "intermediate": 7, "multivariate_statistical": 11, "single_variable": 9, "bivariate_comparison": 2, "simple": 12, "technical": 11, "complex": 10, "moderate": 7}, "qwen2p5-1b5": {"(none)": 309, "advanced": 6, "beginner": 13, "intermediate": 7, "multivariate_statistical": 11, "single_variable": 9, "bivariate_comparison": 2, "simple": 12, "technical": 11, "complex": 10, "moderate": 7}, "smollm2-1b7": {"(none)": 309, "advanced": 6, "beginner": 13, "intermediate": 7, "multivariate_statistical": 11, "single_variable": 9, "bivariate_comparison": 2, "simple": 12, "technical": 11, "complex": 10, "moderate": 7}}, "audience": {"gpt-3.5-turbo": {"(none)": 309, "junior_developer": 7, "non_technical": 4, "senior_engineer": 9, "novice_programmer": 3, "technical_specialist": 10, "data_analyst": 6, "general_public": 16, "executive": 8, "student": 7, "expert": 9, "professional": 9}, "gpt-4o-mini": {"(none)": 309, "junior_developer": 7, "non_technical": 4, "senior_engineer": 9, "novice_programmer": 3, "technical_specialist": 10, "data_analyst": 6, "general_public": 16, "executive": 8, "student": 7, "expert": 9, "professional": 9}, "qwen2p5-0b5": {"(none)": 309, "junior_developer": 7, "non_technical": 4, "senior_engineer": 9, "novice_programmer": 3, "technical_specialist": 10, "data_analyst": 6, "general_public": 16, "executive": 8, "student": 7, "expert": 9, "professional": 9}, "qwen2p5-1b5": {"(none)": 309, "junior_developer": 7, "non_technical": 4, "senior_engineer": 9, "novice_programmer": 3, "technical_specialist": 10, "data_analyst": 6, "general_public": 16, "executive": 8, "student": 7, "expert": 9, "professional": 9}, "smollm2-1b7": {"(none)": 309, "junior_developer": 7, "non_technical": 4, "senior_engineer": 9, "novice_programmer": 3, "technical_specialist": 10, "data_analyst": 6, "general_public": 16, "executive": 8, "student": 7, "expert": 9, "professional": 9}}, "language": {"gpt-3.5-turbo": {"(none)": 371, "python": 8, "bash": 6, "java": 5, "javascript": 3, "sql": 4}, "gpt-4o-mini": {"(none)": 371, "python": 8, "bash": 6, "java": 5, "javascript": 3, "sql": 4}, "qwen2p5-0b5": {"(none)": 371, "python": 8, "bash": 6, "java": 5, "javascript": 3, "sql": 4}, "qwen2p5-1b5": {"(none)": 371, "python": 8, "bash": 6, "java": 5, "javascript": 3, "sql": 4}, "smollm2-1b7": {"(none)": 371, "python": 8, "bash": 6, "java": 5, "javascript": 3, "sql": 4}}, "snippet_type": {"gpt-3.5-turbo": {"(none)": 367, "function": 8, "shell_script": 8, "class_definition": 4, "database_query": 4, "algorithm": 6}, "gpt-4o-mini": {"(none)": 367, "function": 8, "shell_script": 8, "class_definition": 4, "database_query": 4, "algorithm": 6}, "qwen2p5-0b5": {"(none)": 367, "function": 8, "shell_script": 8, "class_definition": 4, "database_query": 4, "algorithm": 6}, "qwen2p5-1b5": {"(none)": 367, "function": 8, "shell_script": 8, "class_definition": 4, "database_query": 4, "algorithm": 6}, "smollm2-1b7": {"(none)": 367, "function": 8, "shell_script": 8, "class_definition": 4, "database_query": 4, "algorithm": 6}}, "domain": {"gpt-3.5-turbo": {"(none)": 369, "sales_revenue": 5, "demographics": 5, "financial_markets": 6, "climate": 7, "public_health": 5}, "gpt-4o-mini": {"(none)": 369, "sales_revenue": 5, "demographics": 5, "financial_markets": 6, "climate": 7, "public_health": 5}, "qwen2p5-0b5": {"(none)": 369, "sales_revenue": 5, "demographics": 5, "financial_markets": 6, "climate": 7, "public_health": 5}, "qwen2p5-1b5": {"(none)": 369, "sales_revenue": 5, "demographics": 5, "financial_markets": 6, "climate": 7, "public_health": 5}, "smollm2-1b7": {"(none)": 369, "sales_revenue": 5, "demographics": 5, "financial_markets": 6, "climate": 7, "public_health": 5}}, "trend_type": {"gpt-3.5-turbo": {"(none)": 373, "seasonal_cycle": 4, "upward_growth": 5, "flat_stable": 4, "anomalous_spike": 6, "downward_decline": 5}, "gpt-4o-mini": {"(none)": 373, "seasonal_cycle": 4, "upward_growth": 5, "flat_stable": 4, "anomalous_spike": 6, "downward_decline": 5}, "qwen2p5-0b5": {"(none)": 373, "seasonal_cycle": 4, "upward_growth": 5, "flat_stable": 4, "anomalous_spike": 6, "downward_decline": 5}, "qwen2p5-1b5": {"(none)": 373, "seasonal_cycle": 4, "upward_growth": 5, "flat_stable": 4, "anomalous_spike": 6, "downward_decline": 5}, "smollm2-1b7": {"(none)": 373, "seasonal_cycle": 4, "upward_growth": 5, "flat_stable": 4, "anomalous_spike": 6, "downward_decline": 5}}, "data_type": {"gpt-3.5-turbo": {"(none)": 375, "bar_chart": 4, "scatter_plot": 3, "heatmap": 5, "histogram": 5, "line_graph": 3, "pivot_table": 2}, "gpt-4o-mini": {"(none)": 375, "bar_chart": 4, "scatter_plot": 3, "heatmap": 5, "histogram": 5, "line_graph": 3, "pivot_table": 2}, "qwen2p5-0b5": {"(none)": 375, "bar_chart": 4, "scatter_plot": 3, "heatmap": 5, "histogram": 5, "line_graph": 3, "pivot_table": 2}, "qwen2p5-1b5": {"(none)": 375, "bar_chart": 4, "scatter_plot": 3, "heatmap": 5, "histogram": 5, "line_graph": 3, "pivot_table": 2}, "smollm2-1b7": {"(none)": 375, "bar_chart": 4, "scatter_plot": 3, "heatmap": 5, "histogram": 5, "line_graph": 3, "pivot_table": 2}}, "insight_depth": {"gpt-3.5-turbo": {"(none)": 378, "predictive_inference": 5, "analytical_interpretation": 7, "surface_observation": 7}, "gpt-4o-mini": {"(none)": 378, "predictive_inference": 5, "analytical_interpretation": 7, "surface_observation": 7}, "qwen2p5-0b5": {"(none)": 378, "predictive_inference": 5, "analytical_interpretation": 7, "surface_observation": 7}, "qwen2p5-1b5": {"(none)": 378, "predictive_inference": 5, "analytical_interpretation": 7, "surface_observation": 7}, "smollm2-1b7": {"(none)": 378, "predictive_inference": 5, "analytical_interpretation": 7, "surface_observation": 7}}, "urgency": {"gpt-3.5-turbo": {"(none)": 365, "low": 10, "high": 6, "critical": 6, "medium": 10}, "gpt-4o-mini": {"(none)": 365, "low": 10, "high": 6, "critical": 6, "medium": 10}, "qwen2p5-0b5": {"(none)": 365, "low": 10, "high": 6, "critical": 6, "medium": 10}, "qwen2p5-1b5": {"(none)": 365, "low": 10, "high": 6, "critical": 6, "medium": 10}, "smollm2-1b7": {"(none)": 365, "low": 10, "high": 6, "critical": 6, "medium": 10}}, "formality": {"gpt-3.5-turbo": {"(none)": 370, "executive": 6, "manager_to_report": 4, "report_to_manager": 5, "peer_to_peer": 6, "external_client": 6}, "gpt-4o-mini": {"(none)": 370, "executive": 6, "manager_to_report": 4, "report_to_manager": 5, "peer_to_peer": 6, "external_client": 6}, "qwen2p5-0b5": {"(none)": 370, "executive": 6, "manager_to_report": 4, "report_to_manager": 5, "peer_to_peer": 6, "external_client": 6}, "qwen2p5-1b5": {"(none)": 370, "executive": 6, "manager_to_report": 4, "report_to_manager": 5, "peer_to_peer": 6, "external_client": 6}, "smollm2-1b7": {"(none)": 370, "executive": 6, "manager_to_report": 4, "report_to_manager": 5, "peer_to_peer": 6, "external_client": 6}}, "tone": {"gpt-3.5-turbo": {"(none)": 330, "casual": 8, "formal": 21, "empathetic": 6, "assertive": 7, "semi_formal": 3, "critical": 9, "neutral": 5, "conversational": 8}, "gpt-4o-mini": {"(none)": 330, "casual": 8, "formal": 21, "empathetic": 6, "assertive": 7, "semi_formal": 3, "critical": 9, "neutral": 5, "conversational": 8}, "qwen2p5-0b5": {"(none)": 330, "casual": 8, "formal": 21, "empathetic": 6, "assertive": 7, "semi_formal": 3, "critical": 9, "neutral": 5, "conversational": 8}, "qwen2p5-1b5": {"(none)": 330, "casual": 8, "formal": 21, "empathetic": 6, "assertive": 7, "semi_formal": 3, "critical": 9, "neutral": 5, "conversational": 8}, "smollm2-1b7": {"(none)": 330, "casual": 8, "formal": 21, "empathetic": 6, "assertive": 7, "semi_formal": 3, "critical": 9, "neutral": 5, "conversational": 8}}, "length": {"gpt-3.5-turbo": {"(none)": 351, "standard": 6, "detailed": 14, "brief": 20, "moderate": 6}, "gpt-4o-mini": {"(none)": 351, "standard": 6, "detailed": 14, "brief": 20, "moderate": 6}, "qwen2p5-0b5": {"(none)": 351, "standard": 6, "detailed": 14, "brief": 20, "moderate": 6}, "qwen2p5-1b5": {"(none)": 351, "standard": 6, "detailed": 14, "brief": 20, "moderate": 6}, "smollm2-1b7": {"(none)": 351, "standard": 6, "detailed": 14, "brief": 20, "moderate": 6}}, "purpose": {"gpt-3.5-turbo": {"(none)": 367, "information_request": 7, "proposal": 5, "complaint_resolution": 9, "project_update": 5, "follow_up": 4}, "gpt-4o-mini": {"(none)": 367, "information_request": 7, "proposal": 5, "complaint_resolution": 9, "project_update": 5, "follow_up": 4}, "qwen2p5-0b5": {"(none)": 367, "information_request": 7, "proposal": 5, "complaint_resolution": 9, "project_update": 5, "follow_up": 4}, "qwen2p5-1b5": {"(none)": 367, "information_request": 7, "proposal": 5, "complaint_resolution": 9, "project_update": 5, "follow_up": 4}, "smollm2-1b7": {"(none)": 367, "information_request": 7, "proposal": 5, "complaint_resolution": 9, "project_update": 5, "follow_up": 4}}, "format": {"gpt-3.5-turbo": {"(none)": 374, "bullet_points": 6, "paragraph": 9, "headline_and_body": 8}, "gpt-4o-mini": {"(none)": 374, "bullet_points": 6, "paragraph": 9, "headline_and_body": 8}, "qwen2p5-0b5": {"(none)": 374, "bullet_points": 6, "paragraph": 9, "headline_and_body": 8}, "qwen2p5-1b5": {"(none)": 374, "bullet_points": 6, "paragraph": 9, "headline_and_body": 8}, "smollm2-1b7": {"(none)": 374, "bullet_points": 6, "paragraph": 9, "headline_and_body": 8}}}, "judge_stacks": {"task": {"gpt-3.5-turbo": {"code_explanation": 505, "data_interpretation": 496, "email_composition": 500, "text_summarization": 500}, "gpt-4o-mini": {"code_explanation": 505, "data_interpretation": 496, "email_composition": 500, "text_summarization": 500}, "qwen2p5-0b5": {"text_summarization": 3}, "qwen2p5-1b5": {"code_explanation": 495, "data_interpretation": 496, "email_composition": 500, "text_summarization": 500}, "smollm2-1b7": {"code_explanation": 491, "data_interpretation": 491, "email_composition": 500, "text_summarization": 500}}, "depth": {"gpt-3.5-turbo": {"deep_dive": 37, "(none)": 1898, "surface": 31, "standard": 35}, "gpt-4o-mini": {"deep_dive": 37, "(none)": 1898, "surface": 31, "standard": 35}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"deep_dive": 35, "(none)": 1891, "surface": 30, "standard": 35}, "smollm2-1b7": {"deep_dive": 35, "(none)": 1882, "surface": 30, "standard": 35}}, "explanation_style": {"gpt-3.5-turbo": {"conceptual_overview": 67, "annotated_walkthrough": 62, "(none)": 1841, "example_driven": 10, "step_by_step": 21}, "gpt-4o-mini": {"conceptual_overview": 67, "annotated_walkthrough": 62, "(none)": 1841, "example_driven": 10, "step_by_step": 21}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"conceptual_overview": 65, "annotated_walkthrough": 60, "(none)": 1836, "example_driven": 10, "step_by_step": 20}, "smollm2-1b7": {"conceptual_overview": 65, "annotated_walkthrough": 57, "(none)": 1830, "example_driven": 10, "step_by_step": 20}}, "complexity": {"gpt-3.5-turbo": {"(none)": 1554, "advanced": 30, "beginner": 65, "intermediate": 36, "multivariate_statistical": 61, "single_variable": 45, "bivariate_comparison": 10, "simple": 60, "technical": 55, "complex": 50, "moderate": 35}, "gpt-4o-mini": {"(none)": 1554, "advanced": 30, "beginner": 65, "intermediate": 36, "multivariate_statistical": 61, "single_variable": 45, "bivariate_comparison": 10, "simple": 60, "technical": 55, "complex": 50, "moderate": 35}, "qwen2p5-0b5": {"(none)": 1, "simple": 1, "technical": 1}, "qwen2p5-1b5": {"(none)": 1545, "advanced": 30, "beginner": 65, "intermediate": 35, "multivariate_statistical": 61, "single_variable": 45, "bivariate_comparison": 10, "simple": 60, "technical": 55, "complex": 50, "moderate": 35}, "smollm2-1b7": {"(none)": 1536, "advanced": 30, "beginner": 65, "intermediate": 35, "multivariate_statistical": 61, "single_variable": 45, "bivariate_comparison": 10, "simple": 60, "technical": 55, "complex": 50, "moderate": 35}}, "audience": {"gpt-3.5-turbo": {"(none)": 1556, "junior_developer": 36, "non_technical": 20, "senior_engineer": 46, "novice_programmer": 15, "technical_specialist": 50, "data_analyst": 33, "general_public": 80, "executive": 40, "student": 35, "expert": 45, "professional": 45}, "gpt-4o-mini": {"(none)": 1556, "junior_developer": 36, "non_technical": 20, "senior_engineer": 46, "novice_programmer": 15, "technical_specialist": 50, "data_analyst": 33, "general_public": 80, "executive": 40, "student": 35, "expert": 45, "professional": 45}, "qwen2p5-0b5": {"student": 1, "(none)": 2}, "qwen2p5-1b5": {"(none)": 1548, "junior_developer": 35, "non_technical": 20, "senior_engineer": 45, "novice_programmer": 15, "technical_specialist": 50, "data_analyst": 33, "general_public": 80, "executive": 40, "student": 35, "expert": 45, "professional": 45}, "smollm2-1b7": {"(none)": 1542, "junior_developer": 35, "non_technical": 17, "senior_engineer": 45, "novice_programmer": 15, "technical_specialist": 50, "data_analyst": 33, "general_public": 80, "executive": 40, "student": 35, "expert": 45, "professional": 45}}, "language": {"gpt-3.5-turbo": {"(none)": 1869, "python": 40, "bash": 31, "java": 26, "javascript": 15, "sql": 20}, "gpt-4o-mini": {"(none)": 1869, "python": 40, "bash": 31, "java": 26, "javascript": 15, "sql": 20}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"(none)": 1861, "python": 40, "bash": 30, "java": 25, "javascript": 15, "sql": 20}, "smollm2-1b7": {"(none)": 1853, "python": 40, "bash": 30, "java": 25, "javascript": 15, "sql": 19}}, "snippet_type": {"gpt-3.5-turbo": {"(none)": 1848, "function": 40, "shell_script": 42, "class_definition": 20, "database_query": 21, "algorithm": 30}, "gpt-4o-mini": {"(none)": 1848, "function": 40, "shell_script": 42, "class_definition": 20, "database_query": 21, "algorithm": 30}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"(none)": 1841, "function": 40, "shell_script": 40, "class_definition": 20, "database_query": 20, "algorithm": 30}, "smollm2-1b7": {"(none)": 1832, "function": 40, "shell_script": 40, "class_definition": 20, "database_query": 20, "algorithm": 30}}, "domain": {"gpt-3.5-turbo": {"(none)": 1858, "sales_revenue": 25, "demographics": 25, "financial_markets": 30, "climate": 35, "public_health": 28}, "gpt-4o-mini": {"(none)": 1858, "sales_revenue": 25, "demographics": 25, "financial_markets": 30, "climate": 35, "public_health": 28}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"(none)": 1848, "sales_revenue": 25, "demographics": 25, "financial_markets": 30, "climate": 35, "public_health": 28}, "smollm2-1b7": {"(none)": 1844, "sales_revenue": 25, "demographics": 25, "financial_markets": 30, "climate": 35, "public_health": 23}}, "trend_type": {"gpt-3.5-turbo": {"(none)": 1881, "seasonal_cycle": 20, "upward_growth": 25, "flat_stable": 20, "anomalous_spike": 30, "downward_decline": 25}, "gpt-4o-mini": {"(none)": 1881, "seasonal_cycle": 20, "upward_growth": 25, "flat_stable": 20, "anomalous_spike": 30, "downward_decline": 25}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"(none)": 1871, "seasonal_cycle": 20, "upward_growth": 25, "flat_stable": 20, "anomalous_spike": 30, "downward_decline": 25}, "smollm2-1b7": {"(none)": 1862, "seasonal_cycle": 20, "upward_growth": 25, "flat_stable": 20, "anomalous_spike": 30, "downward_decline": 25}}, "data_type": {"gpt-3.5-turbo": {"(none)": 1891, "bar_chart": 20, "scatter_plot": 15, "heatmap": 25, "histogram": 25, "line_graph": 15, "pivot_table": 10}, "gpt-4o-mini": {"(none)": 1891, "bar_chart": 20, "scatter_plot": 15, "heatmap": 25, "histogram": 25, "line_graph": 15, "pivot_table": 10}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"(none)": 1881, "bar_chart": 20, "scatter_plot": 15, "heatmap": 25, "histogram": 25, "line_graph": 15, "pivot_table": 10}, "smollm2-1b7": {"(none)": 1872, "bar_chart": 20, "scatter_plot": 15, "heatmap": 25, "histogram": 25, "line_graph": 15, "pivot_table": 10}}, "insight_depth": {"gpt-3.5-turbo": {"(none)": 1906, "predictive_inference": 25, "analytical_interpretation": 35, "surface_observation": 35}, "gpt-4o-mini": {"(none)": 1906, "predictive_inference": 25, "analytical_interpretation": 35, "surface_observation": 35}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"(none)": 1896, "predictive_inference": 25, "analytical_interpretation": 35, "surface_observation": 35}, "smollm2-1b7": {"(none)": 1892, "predictive_inference": 25, "analytical_interpretation": 35, "surface_observation": 30}}, "urgency": {"gpt-3.5-turbo": {"(none)": 1841, "low": 50, "high": 30, "critical": 30, "medium": 50}, "gpt-4o-mini": {"(none)": 1841, "low": 50, "high": 30, "critical": 30, "medium": 50}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"(none)": 1831, "low": 50, "high": 30, "critical": 30, "medium": 50}, "smollm2-1b7": {"(none)": 1822, "low": 50, "high": 30, "critical": 30, "medium": 50}}, "formality": {"gpt-3.5-turbo": {"(none)": 1866, "executive": 30, "manager_to_report": 20, "report_to_manager": 25, "peer_to_peer": 30, "external_client": 30}, "gpt-4o-mini": {"(none)": 1866, "executive": 30, "manager_to_report": 20, "report_to_manager": 25, "peer_to_peer": 30, "external_client": 30}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"(none)": 1856, "executive": 30, "manager_to_report": 20, "report_to_manager": 25, "peer_to_peer": 30, "external_client": 30}, "smollm2-1b7": {"(none)": 1847, "executive": 30, "manager_to_report": 20, "report_to_manager": 25, "peer_to_peer": 30, "external_client": 30}}, "tone": {"gpt-3.5-turbo": {"(none)": 1666, "casual": 40, "formal": 105, "empathetic": 30, "assertive": 35, "semi_formal": 15, "critical": 45, "neutral": 25, "conversational": 40}, "gpt-4o-mini": {"(none)": 1666, "casual": 40, "formal": 105, "empathetic": 30, "assertive": 35, "semi_formal": 15, "critical": 45, "neutral": 25, "conversational": 40}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"(none)": 1656, "casual": 40, "formal": 105, "empathetic": 30, "assertive": 35, "semi_formal": 15, "critical": 45, "neutral": 25, "conversational": 40}, "smollm2-1b7": {"(none)": 1647, "casual": 40, "formal": 105, "empathetic": 30, "assertive": 35, "semi_formal": 15, "critical": 45, "neutral": 25, "conversational": 40}}, "length": {"gpt-3.5-turbo": {"(none)": 1771, "standard": 30, "detailed": 70, "brief": 100, "moderate": 30}, "gpt-4o-mini": {"(none)": 1771, "standard": 30, "detailed": 70, "brief": 100, "moderate": 30}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"(none)": 1761, "standard": 30, "detailed": 70, "brief": 100, "moderate": 30}, "smollm2-1b7": {"(none)": 1752, "standard": 30, "detailed": 70, "brief": 100, "moderate": 30}}, "purpose": {"gpt-3.5-turbo": {"(none)": 1851, "information_request": 35, "proposal": 25, "complaint_resolution": 45, "project_update": 25, "follow_up": 20}, "gpt-4o-mini": {"(none)": 1851, "information_request": 35, "proposal": 25, "complaint_resolution": 45, "project_update": 25, "follow_up": 20}, "qwen2p5-0b5": {"(none)": 3}, "qwen2p5-1b5": {"(none)": 1841, "information_request": 35, "proposal": 25, "complaint_resolution": 45, "project_update": 25, "follow_up": 20}, "smollm2-1b7": {"(none)": 1832, "information_request": 35, "proposal": 25, "complaint_resolution": 45, "project_update": 25, "follow_up": 20}}, "format": {"gpt-3.5-turbo": {"(none)": 1886, "bullet_points": 30, "paragraph": 45, "headline_and_body": 40}, "gpt-4o-mini": {"(none)": 1886, "bullet_points": 30, "paragraph": 45, "headline_and_body": 40}, "qwen2p5-0b5": {"(none)": 2, "bullet_points": 1}, "qwen2p5-1b5": {"(none)": 1876, "bullet_points": 30, "paragraph": 45, "headline_and_body": 40}, "smollm2-1b7": {"(none)": 1867, "bullet_points": 30, "paragraph": 45, "headline_and_body": 40}}, "teacher": {"gpt-3.5-turbo": {"gpt-3.5-turbo": 400, "gpt-4o-mini": 410, "qwen2p5-0b5": 400, "qwen2p5-1b5": 400, "smollm2-1b7": 391}, "gpt-4o-mini": {"gpt-3.5-turbo": 400, "gpt-4o-mini": 410, "qwen2p5-0b5": 400, "qwen2p5-1b5": 400, "smollm2-1b7": 391}, "qwen2p5-0b5": {"gpt-3.5-turbo": 3}, "qwen2p5-1b5": {"gpt-3.5-turbo": 400, "gpt-4o-mini": 400, "qwen2p5-0b5": 400, "qwen2p5-1b5": 400, "smollm2-1b7": 391}, "smollm2-1b7": {"gpt-3.5-turbo": 400, "gpt-4o-mini": 400, "qwen2p5-0b5": 400, "qwen2p5-1b5": 400, "smollm2-1b7": 382}}}, "teacher_dims": ["task", "depth", "explanation_style", "complexity", "audience", "language", "snippet_type", "domain", "trend_type", "data_type", "insight_depth", "urgency", "formality", "tone", "length", "purpose", "format"], "student_dims": ["task", "depth", "explanation_style", "complexity", "audience", "language", "snippet_type", "domain", "trend_type", "data_type", "insight_depth", "urgency", "formality", "tone", "length", "purpose", "format"], "judge_dims": ["task", "depth", "explanation_style", "complexity", "audience", "language", "snippet_type", "domain", "trend_type", "data_type", "insight_depth", "urgency", "formality", "tone", "length", "purpose", "format", "teacher"], "dim_labels": {"task": "Task", "teacher": "Teacher Model", "depth": "Depth (target attr)", "explanation_style": "Explanation Style (target attr)", "complexity": "Complexity (target attr)", "audience": "Audience (target attr)", "language": "Language (target attr)", "snippet_type": "Snippet Type (target attr)", "domain": "Domain (target attr)", "trend_type": "Trend Type (target attr)", "data_type": "Data Type (target attr)", "insight_depth": "Insight Depth (target attr)", "urgency": "Urgency (target attr)", "formality": "Formality (target attr)", "tone": "Tone (target attr)", "length": "Length (target attr)", "purpose": "Purpose (target attr)", "format": "Format (target attr)"}, "meta_panel": {"experiment_id": "medium-benchmark-v1", "status": "completed", "created_at": "2026-02-24T12:22:23Z", "updated_at": "2026-03-01T07:28:19Z", "phases_completed": ["attribute_mapping", "rubric_mapping", "data_generation", "response_collection", "evaluation"], "phases_in_progress": [], "tasks": 4, "teachers": 5, "students": 5, "judges": 5, "datapoints": 397, "total_evals": 7987, "valid_evals": 7978}, "tips": {"tasks": {"text_summarization": "Summarise a given passage of text. The summary must capture all key information at the specified depth, match the required tone, and be appropriate for the target audience.\n", "code_explanation": "Explain a given code snippet clearly for the specified audience and at the specified depth. The explanation must match the programming language, complexity level, and chosen explanation style.\n", "email_composition": "Write a professional email matching the specified purpose, tone, urgency, and length. The email must be appropriate for the described relationship and organisational context.\n", "data_interpretation": "Interpret a described dataset or visualisation for the specified audience and domain. The interpretation must identify the key trend, explain its significance, and offer appropriate observations at the specified depth.\n"}, "aspects": {"technical_accuracy": "All statements about what the code does are factually correct.", "clarity": "The explanation is clearly written and avoids unnecessary jargon for the audience level.", "appropriate_level": "The depth and vocabulary precisely match the specified audience and depth level.", "completeness": "The explanation covers all significant parts of the snippet without skipping key logic.", "practical_value": "The explanation helps the reader understand when and how to use or avoid this pattern.", "structure": "The explanation is logically ordered; ideas flow naturally from one to the next.", "accuracy": "All numerical claims and trend descriptions accurately reflect the described data.", "insight_quality": "The interpretation goes beyond stating the obvious; it explains why the trend matters.", "statistical_literacy": "Statistical language is used correctly and proportionally to the data complexity.", "appropriate_caveats": "Limitations in the data are acknowledged where relevant; claims are not overstated.", "actionability": "The conclusion or implication is specific and useful for the stated audience.", "appropriate_tone": "The tone and formality precisely match the specified relationship and context.", "professionalism": "The email is free of grammatical errors and follows professional email conventions.", "conciseness": "The summary avoids redundancy and stays within the specified length and format.", "readability": "The summary is grammatically correct, well-structured, and easy to read.", "tone_consistency": "The tone matches the specified requirement throughout the summary."}, "attrs": {"depth=deep_dive": "depth: one of [deep_dive, standard, surface]", "depth=standard": "depth: one of [deep_dive, standard, surface]", "depth=surface": "depth: one of [deep_dive, standard, surface]", "explanation_style=annotated_walkthrough": "explanation_style: one of [annotated_walkthrough, conceptual_overview, example_driven, step_by_step]", "explanation_style=conceptual_overview": "explanation_style: one of [annotated_walkthrough, conceptual_overview, example_driven, step_by_step]", "explanation_style=example_driven": "explanation_style: one of [annotated_walkthrough, conceptual_overview, example_driven, step_by_step]", "explanation_style=step_by_step": "explanation_style: one of [annotated_walkthrough, conceptual_overview, example_driven, step_by_step]", "complexity=advanced": "complexity: one of [advanced, beginner, intermediate]", "complexity=beginner": "complexity: one of [advanced, beginner, intermediate]", "complexity=intermediate": "complexity: one of [advanced, beginner, intermediate]", "audience=junior_developer": "audience: one of [junior_developer, non_technical, novice_programmer, senior_engineer]", "audience=non_technical": "audience: one of [junior_developer, non_technical, novice_programmer, senior_engineer]", "audience=novice_programmer": "audience: one of [junior_developer, non_technical, novice_programmer, senior_engineer]", "audience=senior_engineer": "audience: one of [junior_developer, non_technical, novice_programmer, senior_engineer]", "language=bash": "language: one of [bash, java, javascript, python, sql]", "language=java": "language: one of [bash, java, javascript, python, sql]", "language=javascript": "language: one of [bash, java, javascript, python, sql]", "language=python": "language: one of [bash, java, javascript, python, sql]", "language=sql": "language: one of [bash, java, javascript, python, sql]", "snippet_type=algorithm": "snippet_type: one of [algorithm, class_definition, database_query, function, shell_script]", "snippet_type=class_definition": "snippet_type: one of [algorithm, class_definition, database_query, function, shell_script]", "snippet_type=database_query": "snippet_type: one of [algorithm, class_definition, database_query, function, shell_script]", "snippet_type=function": "snippet_type: one of [algorithm, class_definition, database_query, function, shell_script]", "snippet_type=shell_script": "snippet_type: one of [algorithm, class_definition, database_query, function, shell_script]", "domain=climate": "domain: one of [climate, demographics, financial_markets, public_health, sales_revenue]", "domain=demographics": "domain: one of [climate, demographics, financial_markets, public_health, sales_revenue]", "domain=financial_markets": "domain: one of [climate, demographics, financial_markets, public_health, sales_revenue]", "domain=public_health": "domain: one of [climate, demographics, financial_markets, public_health, sales_revenue]", "domain=sales_revenue": "domain: one of [climate, demographics, financial_markets, public_health, sales_revenue]", "trend_type=anomalous_spike": "trend_type: one of [anomalous_spike, downward_decline, flat_stable, seasonal_cycle, upward_growth]", "trend_type=downward_decline": "trend_type: one of [anomalous_spike, downward_decline, flat_stable, seasonal_cycle, upward_growth]", "trend_type=flat_stable": "trend_type: one of [anomalous_spike, downward_decline, flat_stable, seasonal_cycle, upward_growth]", "trend_type=seasonal_cycle": "trend_type: one of [anomalous_spike, downward_decline, flat_stable, seasonal_cycle, upward_growth]", "trend_type=upward_growth": "trend_type: one of [anomalous_spike, downward_decline, flat_stable, seasonal_cycle, upward_growth]", "audience=data_analyst": "audience: one of [data_analyst, executive, general_public, technical_specialist]", "audience=executive": "audience: one of [data_analyst, executive, general_public, technical_specialist]", "audience=general_public": "audience: one of [data_analyst, executive, general_public, technical_specialist]", "audience=technical_specialist": "audience: one of [data_analyst, executive, general_public, technical_specialist]", "complexity=bivariate_comparison": "complexity: one of [bivariate_comparison, multivariate_statistical, single_variable]", "complexity=multivariate_statistical": "complexity: one of [bivariate_comparison, multivariate_statistical, single_variable]", "complexity=single_variable": "complexity: one of [bivariate_comparison, multivariate_statistical, single_variable]", "data_type=bar_chart": "data_type: one of [bar_chart, heatmap, histogram, line_graph, pivot_table, scatter_plot]", "data_type=heatmap": "data_type: one of [bar_chart, heatmap, histogram, line_graph, pivot_table, scatter_plot]", "data_type=histogram": "data_type: one of [bar_chart, heatmap, histogram, line_graph, pivot_table, scatter_plot]", "data_type=line_graph": "data_type: one of [bar_chart, heatmap, histogram, line_graph, pivot_table, scatter_plot]", "data_type=pivot_table": "data_type: one of [bar_chart, heatmap, histogram, line_graph, pivot_table, scatter_plot]", "data_type=scatter_plot": "data_type: one of [bar_chart, heatmap, histogram, line_graph, pivot_table, scatter_plot]", "insight_depth=analytical_interpretation": "insight_depth: one of [analytical_interpretation, predictive_inference, surface_observation]", "insight_depth=predictive_inference": "insight_depth: one of [analytical_interpretation, predictive_inference, surface_observation]", "insight_depth=surface_observation": "insight_depth: one of [analytical_interpretation, predictive_inference, surface_observation]", "urgency=critical": "urgency: one of [critical, high, low, medium]", "urgency=high": "urgency: one of [critical, high, low, medium]", "urgency=low": "urgency: one of [critical, high, low, medium]", "urgency=medium": "urgency: one of [critical, high, low, medium]", "formality=executive": "formality: one of [executive, external_client, manager_to_report, peer_to_peer, report_to_manager]", "formality=external_client": "formality: one of [executive, external_client, manager_to_report, peer_to_peer, report_to_manager]", "formality=manager_to_report": "formality: one of [executive, external_client, manager_to_report, peer_to_peer, report_to_manager]", "formality=peer_to_peer": "formality: one of [executive, external_client, manager_to_report, peer_to_peer, report_to_manager]", "formality=report_to_manager": "formality: one of [executive, external_client, manager_to_report, peer_to_peer, report_to_manager]", "tone=assertive": "tone: one of [assertive, casual, empathetic, formal, semi_formal]", "tone=casual": "tone: one of [assertive, casual, empathetic, formal, semi_formal]", "tone=empathetic": "tone: one of [assertive, casual, empathetic, formal, semi_formal]", "tone=formal": "tone: one of [assertive, casual, empathetic, formal, semi_formal]", "tone=semi_formal": "tone: one of [assertive, casual, empathetic, formal, semi_formal]", "length=brief": "length: one of [brief, detailed, standard]", "length=detailed": "length: one of [brief, detailed, standard]", "length=standard": "length: one of [brief, detailed, standard]", "purpose=complaint_resolution": "purpose: one of [complaint_resolution, follow_up, information_request, project_update, proposal]", "purpose=follow_up": "purpose: one of [complaint_resolution, follow_up, information_request, project_update, proposal]", "purpose=information_request": "purpose: one of [complaint_resolution, follow_up, information_request, project_update, proposal]", "purpose=project_update": "purpose: one of [complaint_resolution, follow_up, information_request, project_update, proposal]", "purpose=proposal": "purpose: one of [complaint_resolution, follow_up, information_request, project_update, proposal]", "audience=expert": "audience: one of [expert, general_public, professional, student]", "audience=professional": "audience: one of [expert, general_public, professional, student]", "audience=student": "audience: one of [expert, general_public, professional, student]", "complexity=complex": "complexity: one of [complex, moderate, simple, technical]", "complexity=moderate": "complexity: one of [complex, moderate, simple, technical]", "complexity=simple": "complexity: one of [complex, moderate, simple, technical]", "complexity=technical": "complexity: one of [complex, moderate, simple, technical]", "format=bullet_points": "format: one of [bullet_points, headline_and_body, paragraph]", "format=headline_and_body": "format: one of [bullet_points, headline_and_body, paragraph]", "format=paragraph": "format: one of [bullet_points, headline_and_body, paragraph]", "tone=conversational": "tone: one of [conversational, critical, formal, neutral]", "tone=critical": "tone: one of [conversational, critical, formal, neutral]", "tone=neutral": "tone: one of [conversational, critical, formal, neutral]", "length=moderate": "length: one of [brief, detailed, moderate]"}}};
+  </script>
+  <style>
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+  background: #f0f4f8; color: #1e293b; font-size: 14px; line-height: 1.5;
+}
+/* ---- Header ---- */
+#header {
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #1e40af 100%);
+  color: #fff; padding: 14px 24px;
+  display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,.35);
+}
+#header h1 { font-size: 1.05rem; font-weight: 700; letter-spacing: 0.01em; }
+#header h1 .report-type { opacity: 0.75; font-weight: 400; }
+.header-meta { font-size: 0.76rem; opacity: 0.78; }
+.header-badge {
+  background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.25);
+  border-radius: 12px; padding: 2px 10px; font-size: 0.72rem; font-weight: 600;
+}
+.header-badge.tag-completed { background: rgba(34,197,94,.25); border-color: rgba(34,197,94,.4); }
+.header-badge.tag-partial   { background: rgba(245,158,11,.25); border-color: rgba(245,158,11,.4); }
+.partial-notice {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  color: #1c1917; padding: 7px 24px; font-size: 0.82rem; font-weight: 600;
+  border-bottom: 2px solid #d97706;
+}
+/* ---- Filter Panel ---- */
+#filter-panel {
+  background: #fff; border-bottom: 1px solid #dde3ed;
+  padding: 9px 24px; display: flex; flex-wrap: wrap; gap: 14px;
+  align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  position: sticky; top: 0; z-index: 100;
+}
+.filter-group { display: flex; align-items: center; gap: 7px; }
+.filter-group label {
+  font-size: 0.76rem; font-weight: 600; color: #475569;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.filter-group select {
+  font-size: 0.8rem; border: 1px solid #cbd5e1; border-radius: 6px;
+  padding: 4px 8px; background: #f8fafc; cursor: pointer; color: #1e293b;
+  transition: border-color .15s;
+}
+.filter-group select:focus { outline: none; border-color: #3b82f6; }
+/* ---- Stats Bar ---- */
+#stats-bar {
+  background: linear-gradient(90deg, #dbeafe 0%, #e0f2fe 100%);
+  padding: 6px 24px; font-size: 0.77rem; color: #1e40af;
+  border-bottom: 1px solid #bfdbfe; letter-spacing: 0.01em;
+}
+/* ---- Main Content ---- */
+#main { padding: 18px 24px; max-width: 1400px; margin: 0 auto; }
+.view-section {
+  background: #fff; border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(15,23,42,.08), 0 0 0 1px rgba(15,23,42,.04);
+  padding: 20px 22px; margin-bottom: 20px;
+  border-top: 3px solid transparent;
+}
+.view-section:hover { border-top-color: #3b82f6; }
+.view-section h2 {
+  font-size: 1rem; font-weight: 700; margin-bottom: 14px; color: #0f172a;
+  display: flex; align-items: center; gap: 8px;
+}
+.view-section h2::before {
+  content: ''; display: inline-block; width: 4px; height: 18px;
+  background: linear-gradient(180deg, #3b82f6, #6366f1);
+  border-radius: 2px; flex-shrink: 0;
+}
+.view-section p.note {
+  font-size: 0.8rem; color: #78350f; background: #fffbeb;
+  border-left: 4px solid #f59e0b; padding: 8px 12px;
+  margin-bottom: 12px; border-radius: 0 6px 6px 0;
+}
+.chart-container { min-height: 360px; }
+/* ---- Data Tables ---- */
+table.data-table { border-collapse: collapse; width: 100%; font-size: 0.81rem; }
+table.data-table th {
+  background: linear-gradient(180deg, #f1f5f9 0%, #e9eef4 100%);
+  text-align: left; padding: 8px 12px;
+  border-bottom: 2px solid #cbd5e1; border-top: 1px solid #e2e8f0;
+  font-weight: 700; color: #334155; white-space: nowrap;
+  font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em;
+}
+table.data-table td { padding: 6px 12px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+table.data-table tbody tr:nth-child(odd) td  { background: #fafbfc; }
+table.data-table tbody tr:nth-child(even) td { background: #fff; }
+table.data-table tr:hover td { background: #eff6ff !important; }
+/* ---- Utility classes ---- */
+.warn-flag { color: #d97706; font-size: 0.85em; cursor: help; margin-left: 3px; }
+.degenerate-notice {
+  background: linear-gradient(90deg, #fef9c3, #fef3c7);
+  border: 1px solid #fcd34d; border-radius: 8px;
+  padding: 11px 16px; margin-bottom: 14px; font-size: 0.82rem; color: #78350f;
+}
+.na { color: #94a3b8; font-style: italic; }
+.tag { display: inline-block; font-size: 0.7rem; border-radius: 12px;
+       padding: 2px 8px; margin: 0 2px; font-weight: 600; }
+.tag-partial   { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.tag-completed { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+footer {
+  text-align: center; padding: 20px; font-size: 0.74rem; color: #94a3b8;
+  border-top: 1px solid #e2e8f0; margin-top: 8px;
+  background: linear-gradient(180deg, #f8fafc, #f0f4f8);
+}
+/* ---- Collapsible figure explanations ---- */
+details.fig-explain {
+  margin-top: 14px; border-top: 1px dashed #e2e8f0; padding-top: 10px;
+}
+details.fig-explain summary {
+  font-size: 0.75rem; color: #64748b; cursor: pointer; user-select: none;
+  display: inline-flex; align-items: center; gap: 6px; outline: none;
+  list-style: none; padding: 4px 8px; border-radius: 6px;
+  transition: background .12s, color .12s;
+}
+details.fig-explain summary::-webkit-details-marker { display: none; }
+details.fig-explain summary::before {
+  content: "ℹ"; color: #94a3b8; font-size: 0.85rem;
+}
+details.fig-explain summary:hover {
+  background: #f1f5f9; color: #1e40af;
+}
+details.fig-explain[open] summary { color: #1e40af; background: #eff6ff; }
+details.fig-explain[open] summary::before { content: "ℹ"; color: #3b82f6; }
+details.fig-explain .explain-body {
+  font-size: 0.79rem; color: #475569; line-height: 1.7; margin-top: 10px;
+  padding: 12px 16px; background: #f8fafc; border-radius: 8px;
+  border-left: 4px solid #3b82f6;
+}
+details.fig-explain .explain-body b { color: #1e293b; }
+details.fig-explain .explain-body code {
+  background: #e2e8f0; padding: 1px 5px; border-radius: 4px;
+  font-size: 0.84em; font-family: 'SF Mono', 'Fira Code', monospace;
+}
+/* ---- Inline definition tooltips ---- */
+[data-tip] {
+  border-bottom: 1px dashed #93c5fd; cursor: help; position: relative;
+  text-decoration-skip-ink: none;
+}
+[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%);
+  white-space: normal; max-width: 320px; min-width: 160px;
+  background: #0f172a; color: #e2e8f0;
+  font-size: 0.72rem; font-weight: 400; line-height: 1.55;
+  padding: 8px 12px; border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.4), 0 0 0 1px rgba(99,102,241,.3);
+  z-index: 9999; opacity: 0; pointer-events: none;
+  transition: opacity .18s ease;
+}
+[data-tip]:hover::after { opacity: 1; }
+/* ---- Sortable table headers ---- */
+table.data-table th.sortable { cursor: pointer; user-select: none; }
+table.data-table th.sortable:hover { background: linear-gradient(180deg,#e8eef8,#dde5f0); color:#1e40af; }
+table.data-table th .sort-arrow { margin-left: 4px; opacity: 0.5; font-size: 0.7em; }
+table.data-table th.sort-asc  .sort-arrow { opacity: 1; }
+table.data-table th.sort-desc .sort-arrow { opacity: 1; }
+/* ---- CSV export button (shared across reports) ---- */
+.csv-export-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 12px; background: var(--accent); color: #fff;
+  border: none; border-radius: 5px; cursor: pointer;
+  font-size: 0.8rem; font-weight: 600; margin-bottom: 6px;
+}
+.csv-export-btn:hover { opacity: 0.85; }
+/* ---- Figure controls popup (Filter By) ---- */
+.fc-popup-wrap { position: relative; display: inline-block; }
+.fc-popup-btn {
+  border: 1px solid #cbd5e1; border-radius: 5px; padding: 4px 10px;
+  font-size: .77rem; background: #fff; cursor: pointer; color: #475569;
+  display: inline-flex; align-items: center; gap: 5px; transition: border-color .15s, color .15s;
+}
+.fc-popup-btn:hover, .fc-popup-btn.open { border-color: #3b82f6; color: #1e40af; }
+.fc-popup {
+  display: none; position: absolute; top: calc(100% + 4px); left: 0;
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.14); z-index: 500;
+  min-width: 190px; max-width: 280px; padding: 10px 12px;
+}
+.fc-popup.open { display: block; }
+.fc-popup-title { font-size: .71rem; font-weight: 700; color: #475569;
+  text-transform: uppercase; letter-spacing: .04em; margin-bottom: 8px; }
+.fc-popup-checks { max-height: 180px; overflow-y: auto; border: 1px solid #f1f5f9;
+  border-radius: 5px; padding: 4px 6px; margin-bottom: 8px; }
+.fc-popup-checks label {
+  display: flex; align-items: center; gap: 6px; font-size: .77rem;
+  padding: 3px 0; cursor: pointer; color: #334155; user-select: none;
+}
+.fc-popup-checks label:hover { color: #1e40af; }
+.fc-popup-checks input[type=checkbox] { width: 13px; height: 13px; cursor: pointer; flex-shrink: 0; }
+.fc-popup-actions { display: flex; gap: 6px; justify-content: flex-end; }
+.fc-popup-actions button {
+  font-size: .72rem; padding: 3px 10px; border-radius: 5px; cursor: pointer; border: 1px solid;
+}
+.fc-popup-apply { background: #3b82f6; color: #fff; border-color: #2563eb; }
+.fc-popup-apply:hover { background: #2563eb; }
+.fc-popup-clear { background: #f8fafc; color: #475569; border-color: #cbd5e1; }
+.fc-popup-clear:hover { background: #e2e8f0; }
+
+  </style>
+</head>
+<body>
+
+
+<div id="header">
+  <h1>CoEval EEA &nbsp;·&nbsp; <span class="report-type">Coverage Summary</span></h1>
+  <span class="header-meta">Experiment:&nbsp;<b>medium-benchmark-v1</b></span>
+  <span class="header-badge tag-completed">completed</span>
+  <span class="header-meta">Tasks:&nbsp;4</span>
+  <span class="header-meta">Models:&nbsp;5</span>
+  <span class="header-meta">Datapoints:&nbsp;397</span>
+   <span class="header-badge" title="Self-judging evaluations detected">⚠ 1592 self-judging</span> <span class="header-badge" title="Self-teaching evaluations detected">⚠ 1599 self-teaching</span>
+  <span class="header-meta" style="margin-left:auto;opacity:.6">Analyzed:&nbsp;2026-03-01T13:52:55Z</span>
+</div>
+<div id="stats-bar">Total eval records: 7987 | Valid: 7978 | Invalid: 9</div>
+
+<div id="main">
+
+<style>
+/* ---- Coverage Summary ---- */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.stat-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 13px 14px;
+  text-align: center;
+}
+.stat-card .stat-val { font-size: 1.9rem; font-weight: 700; color: #1e3a5f; line-height: 1; }
+.stat-card .stat-lbl { font-size: 0.71rem; color: #64748b; margin-top: 4px; text-transform: uppercase; letter-spacing:.04em; }
+.stat-card.good .stat-val { color: #16a34a; }
+.stat-card.warn .stat-val { color: #d97706; }
+.stat-card.bad  .stat-val { color: #dc2626; }
+
+.phase-timeline { display:flex; flex-wrap:wrap; gap:7px; margin-top:10px; }
+.phase-badge {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:3px 11px; border-radius:20px; font-size:.72rem; font-weight:600; border:1px solid;
+}
+.phase-badge.done    { background:#dcfce7; color:#15803d; border-color:#86efac; }
+.phase-badge.running { background:#fef3c7; color:#b45309; border-color:#fcd34d; }
+.phase-badge.pending { background:#f1f5f9; color:#64748b; border-color:#cbd5e1; }
+.phase-badge .ph-dot { width:7px; height:7px; border-radius:50%; background:currentColor; }
+
+.fig-controls {
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  padding:9px 13px; background:#f8fafc; border:1px solid #e2e8f0;
+  border-radius:8px; margin-bottom:10px;
+}
+.fig-controls label { font-size:.77rem; font-weight:600; color:#475569; }
+.fig-controls select {
+  border:1px solid #cbd5e1; border-radius:5px; padding:4px 8px;
+  font-size:.77rem; background:#fff; cursor:pointer;
+}
+.fig-controls select:disabled { opacity:.4; cursor:default; }
+.fig-controls .fc-tip { font-size:.71rem; color:#94a3b8; margin-left:auto; }
+</style>
+
+<!-- ====================================================== -->
+<!-- Overview                                               -->
+<!-- ====================================================== -->
+<div class="view-section" id="view-meta">
+  <h2>Experiment Overview</h2>
+  <div id="stat-grid-container"></div>
+  <div id="phase-timeline-container"></div>
+  <details class="fig-explain">
+    <summary>About this panel</summary>
+    <div class="explain-body">
+      <b>Stat cards</b> summarise the experiment at a glance: tasks, teacher/student/judge counts,
+      generated datapoints, and overall valid-evaluation coverage.<br>
+      <b>Coverage&nbsp;%</b> = valid evaluations ÷ total evaluations. ≥&nbsp;100&nbsp;% is green;
+      ≥&nbsp;90&nbsp;% amber; below 80&nbsp;% red.<br>
+      <b>Phase timeline</b> shows pipeline phase status.
+    </div>
+  </details>
+</div>
+
+<!-- ====================================================== -->
+<!-- Figure 1 — Teacher Coverage                            -->
+<!-- ====================================================== -->
+<div class="view-section" id="view-teacher">
+  <h2>Teacher Coverage</h2>
+  <div class="fig-controls">
+    <label for="teacher-stack-sel">Stack by:</label>
+    <select id="teacher-stack-sel" onchange="renderTeacherCoverage()"></select>
+    <label for="teacher-group-sel">Group by:</label>
+    <select id="teacher-group-sel" onchange="_onGroupChange('teacher', renderTeacherCoverage)"></select>
+    <div class="fc-popup-wrap">
+      <button class="fc-popup-btn" id="teacher-filter-btn"
+        onclick="_toggleFilterPopup('teacher'); return false;">⊟ Filter ▾</button>
+      <div class="fc-popup" id="teacher-filter-popup">
+        <div class="fc-popup-title">Show stack values</div>
+        <div class="fc-popup-checks" id="teacher-filter-checks"></div>
+        <div class="fc-popup-actions">
+          <button class="fc-popup-clear" onclick="_clearFilter('teacher', renderTeacherCoverage)">All</button>
+          <button class="fc-popup-apply" onclick="_applyFilter('teacher', renderTeacherCoverage)">Apply</button>
+        </div>
+      </div>
+    </div>
+    <span class="fc-tip">Bars show datapoints generated; hover for counts.</span>
+  </div>
+  <div id="teacher-coverage-chart" class="chart-container"></div>
+  <details class="fig-explain">
+    <summary>About this figure</summary>
+    <div class="explain-body">
+      <b>What it shows:</b> Total datapoints generated by each teacher model
+      (Phase&nbsp;3), broken down by the selected stacking dimension.<br>
+      <b>Stack by</b>&nbsp;— controls bar colour coding (task, attribute, etc.).<br>
+      <b>Group by</b>&nbsp;— when set to a dimension (not Model), flips axes: that
+      dimension's values appear on the x-axis and models become separate traces.<br>
+      <b>Filter</b>&nbsp;— hides/shows specific stack values.<br>
+      <b>How to read it:</b> A balanced stack indicates the teacher generated a
+      representative sample across all attribute values.
+    </div>
+  </details>
+</div>
+
+<!-- ====================================================== -->
+<!-- Figure 2 — Student Coverage                            -->
+<!-- ====================================================== -->
+<div class="view-section" id="view-student">
+  <h2>Student Coverage</h2>
+  <div class="fig-controls">
+    <label for="student-stack-sel">Stack by:</label>
+    <select id="student-stack-sel" onchange="renderStudentCoverage()"></select>
+    <label for="student-group-sel">Group by:</label>
+    <select id="student-group-sel" onchange="_onGroupChange('student', renderStudentCoverage)"></select>
+    <div class="fc-popup-wrap">
+      <button class="fc-popup-btn" id="student-filter-btn"
+        onclick="_toggleFilterPopup('student'); return false;">⊟ Filter ▾</button>
+      <div class="fc-popup" id="student-filter-popup">
+        <div class="fc-popup-title">Show stack values</div>
+        <div class="fc-popup-checks" id="student-filter-checks"></div>
+        <div class="fc-popup-actions">
+          <button class="fc-popup-clear" onclick="_clearFilter('student', renderStudentCoverage)">All</button>
+          <button class="fc-popup-apply" onclick="_applyFilter('student', renderStudentCoverage)">Apply</button>
+        </div>
+      </div>
+    </div>
+    <span class="fc-tip">Bars show responses collected; hover for counts.</span>
+  </div>
+  <div id="student-coverage-chart" class="chart-container"></div>
+  <details class="fig-explain">
+    <summary>About this figure</summary>
+    <div class="explain-body">
+      <b>What it shows:</b> Total responses collected from each student model
+      (Phase&nbsp;4), broken down by the selected stacking dimension.<br>
+      <b>How to read it:</b> All student bars should be roughly equal in height — large
+      differences indicate that a student model failed on certain tasks or attribute
+      combinations and produced fewer responses than expected.
+    </div>
+  </details>
+</div>
+
+<!-- ====================================================== -->
+<!-- Figure 3 — Judge Coverage                              -->
+<!-- ====================================================== -->
+<div class="view-section" id="view-judge">
+  <h2>Judge Coverage</h2>
+  <div class="fig-controls">
+    <label for="judge-stack-sel">Stack by:</label>
+    <select id="judge-stack-sel" onchange="renderJudgeCoverage()"></select>
+    <label for="judge-group-sel">Group by:</label>
+    <select id="judge-group-sel" onchange="_onGroupChange('judge', renderJudgeCoverage)"></select>
+    <div class="fc-popup-wrap">
+      <button class="fc-popup-btn" id="judge-filter-btn"
+        onclick="_toggleFilterPopup('judge'); return false;">⊟ Filter ▾</button>
+      <div class="fc-popup" id="judge-filter-popup">
+        <div class="fc-popup-title">Show stack values</div>
+        <div class="fc-popup-checks" id="judge-filter-checks"></div>
+        <div class="fc-popup-actions">
+          <button class="fc-popup-clear" onclick="_clearFilter('judge', renderJudgeCoverage)">All</button>
+          <button class="fc-popup-apply" onclick="_applyFilter('judge', renderJudgeCoverage)">Apply</button>
+        </div>
+      </div>
+    </div>
+    <span class="fc-tip">Bars show valid evaluations; hover for counts.</span>
+  </div>
+  <div id="judge-coverage-chart" class="chart-container"></div>
+  <details class="fig-explain">
+    <summary>About this figure</summary>
+    <div class="explain-body">
+      <b>What it shows:</b> Total <em>valid</em> evaluations produced by each judge model
+      (Phase&nbsp;5), broken down by the selected stacking dimension.<br>
+      <b>Teacher stacking</b>&nbsp;— reveals whether a judge evaluated all teacher
+      models equally, or concentrated effort on certain teacher-student pairs.<br>
+      <b>Task stacking</b>&nbsp;— shows whether evaluation load is balanced across tasks.<br>
+      <b>How to read it:</b> A very short bar for a judge means it produced few valid
+      evaluations, which may degrade ensemble reliability for that task or teacher.
+    </div>
+  </details>
+</div>
+
+</div>
+<footer>Generated by CoEval EEA &mdash; 2026-03-01T13:52:55Z</footer>
+<script>
+
+function getFilter(id) {
+  var el = document.getElementById('flt_' + id);
+  return el ? el.value : '__all__';
+}
+
+function applyFilters() {
+  if (typeof renderAll === 'function') renderAll();
+}
+
+function fmt(v, decimals) {
+  if (v === null || v === undefined) return '<span class="na">N/A</span>';
+  return parseFloat(v).toFixed(decimals !== undefined ? decimals : 3);
+}
+
+function fmtPct(v) {
+  if (v === null || v === undefined) return '<span class="na">N/A</span>';
+  return (parseFloat(v) * 100).toFixed(1) + '%';
+}
+
+function selfFlag(is_self_judging, is_self_teaching) {
+  var flags = [];
+  if (is_self_judging) flags.push('<span class="warn-flag" title="Self-evaluation: judge model = student model.">⚠SJ</span>');
+  if (is_self_teaching) flags.push('<span class="warn-flag" title="Self-teaching: teacher model = student model.">⚠ST</span>');
+  return flags.join(' ');
+}
+
+// Colour helpers
+function scoreColor(v) {
+  if (v === null || v === undefined) return '#eee';
+  var r = Math.round(255 * (1 - v));
+  var g = Math.round(200 * v);
+  return 'rgb(' + r + ',' + g + ',60)';
+}
+
+// ---- CSV export ----
+// _csvExportTable(containerId, filename) — download the rendered table as UTF-8 CSV.
+function _csvExportTable(idOrEl, filename) {
+  var container = typeof idOrEl === 'string' ? document.getElementById(idOrEl) : idOrEl;
+  if (!container) return;
+  var tbl = (container.tagName === 'TABLE') ? container : container.querySelector('table');
+  if (!tbl) return;
+  var rows = [];
+  tbl.querySelectorAll('tr').forEach(function(tr) {
+    var cells = [];
+    tr.querySelectorAll('th, td').forEach(function(td) {
+      var text = td.textContent.replace(/[\u2014\u2026]/g, '-').replace(/[",\n\r]/g, ' ').trim();
+      cells.push('"' + text + '"');
+    });
+    rows.push(cells.join(','));
+  });
+  var csv = '\uFEFF' + rows.join('\r\n');
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = filename || 'table.csv';
+  document.body.appendChild(a); a.click();
+  setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+}
+
+// ---- Sortable table ----
+// Call after rendering a table; pass the container element or id string.
+function _makeSortable(idOrEl) {
+  var container = typeof idOrEl === 'string' ? document.getElementById(idOrEl) : idOrEl;
+  if (!container) return;
+  var tbl = (container.tagName === 'TABLE') ? container : container.querySelector('table');
+  if (!tbl) return;
+  var ths = Array.prototype.slice.call(tbl.querySelectorAll('th'));
+  ths.forEach(function(th, col) {
+    th.classList.add('sortable');
+    var arrow = document.createElement('span');
+    arrow.className = 'sort-arrow'; arrow.textContent = '⇅';
+    th.appendChild(arrow);
+    th._sortDir = 0;
+    th.addEventListener('click', function() {
+      var dir = (th._sortDir === 1) ? -1 : 1;
+      ths.forEach(function(h) {
+        h._sortDir = 0;
+        h.classList.remove('sort-asc','sort-desc');
+        var a = h.querySelector('.sort-arrow');
+        if (a) a.textContent = '⇅';
+      });
+      th._sortDir = dir;
+      th.classList.add(dir === 1 ? 'sort-asc' : 'sort-desc');
+      var a = th.querySelector('.sort-arrow');
+      if (a) a.textContent = dir === 1 ? '▲' : '▼';
+      var rows = Array.prototype.slice.call(tbl.querySelectorAll('tr')).slice(1);
+      rows.sort(function(a, b) {
+        var ac = a.querySelectorAll('td')[col];
+        var bc = b.querySelectorAll('td')[col];
+        var at = ac ? ac.textContent.trim() : '';
+        var bt = bc ? bc.textContent.trim() : '';
+        var an = parseFloat(at), bn = parseFloat(bt);
+        if (!isNaN(an) && !isNaN(bn)) return dir * (an - bn);
+        return dir * at.localeCompare(bt);
+      });
+      rows.forEach(function(r) { tbl.appendChild(r); });
+    });
+  });
+}
+
+// ---- Floating chart element tooltip system ----
+var _ft = (function() {
+  var _el = null;
+  function _init() {
+    if (_el) return;
+    _el = document.createElement('div');
+    _el.style.cssText = (
+      'position:fixed;display:none;background:#0f172a;color:#e2e8f0;'
+      + 'font-size:.72rem;line-height:1.55;padding:7px 11px;border-radius:7px;'
+      + 'box-shadow:0 6px 20px rgba(0,0,0,.35),0 0 0 1px rgba(99,102,241,.25);'
+      + 'z-index:9999;pointer-events:none;max-width:260px;white-space:normal;'
+    );
+    document.body.appendChild(_el);
+  }
+  return {
+    show: function(html, x, y) {
+      _init();
+      _el.innerHTML = html;
+      _el.style.display = 'block';
+      _el.style.left = Math.min(x + 14, window.innerWidth - 280) + 'px';
+      _el.style.top  = Math.max(y - 40, 4) + 'px';
+    },
+    hide: function() { if (_el) _el.style.display = 'none'; }
+  };
+})();
+
+var _AXIS_TIPS = {
+  'Rubric aspect': 'Evaluation criterion in the rubric (e.g. Accuracy, Clarity). Each response is scored on each aspect.',
+  'Teacher model': 'LLM that generated the evaluation datapoints (Phase 3 — Data Generation).',
+  'Student model': 'LLM whose responses are being evaluated (Phase 4 — Response Collection).',
+  'Judge model': 'LLM that scores student responses against rubric criteria (Phase 5 — Evaluation).',
+  'Task': 'Evaluation task defined in the experiment configuration.',
+  'Model': 'Model identifier. Role (teacher / student / judge) depends on context.',
+  'Datapoints generated': 'Number of evaluation prompts produced in Phase 3.',
+  'Responses collected': 'Number of student model responses collected in Phase 4.',
+  'Valid evaluations': 'Number of successful judge-produced evaluations in Phase 5.',
+  'Mean normalised score (0–1)': 'Average score normalised: Low = 0, Medium = 0.5, High = 1.',
+  'Mean score (Low=0, Med=0.5, High=1)': 'Average normalised score across evaluations.',
+  'Fraction of evaluations': 'Fraction of all evaluations in this group.',
+  'Fraction High': 'Fraction of evaluations scored High.',
+  'Fraction Medium': 'Fraction of evaluations scored Medium.',
+  'Fraction Low': 'Fraction of evaluations scored Low.',
+  'Score': 'Normalised evaluation score in [0, 1].',
+  'Normalised score (0–1)': 'Score normalised to [0, 1]: Low = 0, Medium = 0.5, High = 1.',
+  'High': 'Highest score level (normalised = 1.0).',
+  'Medium': 'Middle score level (normalised = 0.5).',
+  'Low': 'Lowest score level (normalised = 0.0).',
+};
+
+function _buildTipMap(extra) {
+  var m = {};
+  var tips = (typeof DATA !== 'undefined') ? (DATA.tips || {}) : {};
+  var asp = tips.aspects || {}, tsk = tips.tasks || {}, att = tips.attrs || {};
+  Object.keys(asp).forEach(function(k) { m[k] = asp[k]; });
+  Object.keys(tsk).forEach(function(k) { m[k] = tsk[k]; });
+  Object.keys(att).forEach(function(k) {
+    m[k] = att[k];
+    var eq = k.indexOf('=');
+    if (eq >= 0) { var v = k.slice(eq+1); if (v && !m[v]) m[v] = att[k]; }
+  });
+  Object.keys(_AXIS_TIPS).forEach(function(k) { m[k] = _AXIS_TIPS[k]; });
+  if (extra) Object.keys(extra).forEach(function(k) { m[k] = extra[k]; });
+  return m;
+}
+
+function _bindFt(el, raw) {
+  if (!el || !raw) return;
+  el.style.cursor = 'help';
+  var html = String(raw).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  function _mv(ev) { _ft.show(html, ev.clientX, ev.clientY); }
+  el.addEventListener('mouseenter', function(e) {
+    _ft.show(html, e.clientX, e.clientY);
+    el.addEventListener('mousemove', _mv);
+  });
+  el.addEventListener('mouseleave', function() {
+    _ft.hide();
+    el.removeEventListener('mousemove', _mv);
+  });
+}
+
+function _addPlotTooltips(divId, extra) {
+  var cont = document.getElementById(divId);
+  if (!cont) return;
+  var tipMap = _buildTipMap(extra || {});
+  function _run() {
+    ['.xtick text','.ytick text','.legendtext','.g-xtitle text','.g-ytitle text'].forEach(function(sel) {
+      cont.querySelectorAll(sel).forEach(function(el) {
+        var t = (el.textContent || '').trim();
+        if (t && tipMap[t]) _bindFt(el, tipMap[t]);
+      });
+    });
+  }
+  setTimeout(_run, 350);
+}
+
+// ---- Filter popup state & helpers ----
+var _stackFilters = {};
+
+function _syncFilterPopup(prefix, dim, allVals) {
+  var state = _stackFilters[prefix];
+  if (!state || state.dim !== dim) {
+    state = { dim: dim, vals: {} };
+    allVals.forEach(function(v) { state.vals[v] = true; });
+    _stackFilters[prefix] = state;
+  } else {
+    allVals.forEach(function(v) { if (!(v in state.vals)) state.vals[v] = true; });
+    Object.keys(state.vals).forEach(function(v) { if (allVals.indexOf(v) < 0) delete state.vals[v]; });
+  }
+  var el = document.getElementById(prefix + '-filter-checks');
+  if (!el) return;
+  el.innerHTML = '';
+  allVals.forEach(function(v) {
+    var lbl = document.createElement('label');
+    var cb = document.createElement('input');
+    cb.type = 'checkbox'; cb.value = v; cb.checked = !!state.vals[v];
+    (function(val) { cb.addEventListener('change', function() { state.vals[val] = cb.checked; }); })(v);
+    lbl.appendChild(cb);
+    lbl.appendChild(document.createTextNode(' ' + (v === '(none)' ? '(unset)' : v)));
+    el.appendChild(lbl);
+  });
+}
+
+function _getFilteredVals(prefix, dim, allVals) {
+  var state = _stackFilters[prefix];
+  if (!state || state.dim !== dim) return allVals;
+  return allVals.filter(function(v) { return !!state.vals[v]; });
+}
+
+function _toggleFilterPopup(prefix) {
+  var popup = document.getElementById(prefix + '-filter-popup');
+  var btn   = document.getElementById(prefix + '-filter-btn');
+  if (!popup || !btn) return;
+  var open = popup.classList.contains('open');
+  document.querySelectorAll('.fc-popup.open').forEach(function(el) { el.classList.remove('open'); });
+  document.querySelectorAll('.fc-popup-btn.open').forEach(function(el) { el.classList.remove('open'); });
+  if (!open) { popup.classList.add('open'); btn.classList.add('open'); }
+}
+
+function _applyFilter(prefix, renderFn) {
+  var p = document.getElementById(prefix + '-filter-popup');
+  var b = document.getElementById(prefix + '-filter-btn');
+  if (p) p.classList.remove('open');
+  if (b) b.classList.remove('open');
+  if (typeof renderFn === 'function') renderFn();
+}
+
+function _clearFilter(prefix, renderFn) {
+  var state = _stackFilters[prefix];
+  if (state) Object.keys(state.vals).forEach(function(v) { state.vals[v] = true; });
+  _applyFilter(prefix, renderFn);
+}
+
+// Close popups on outside click
+document.addEventListener('click', function(e) {
+  if (!e.target || !e.target.closest || !e.target.closest('.fc-popup-wrap')) {
+    document.querySelectorAll('.fc-popup.open').forEach(function(el) { el.classList.remove('open'); });
+    document.querySelectorAll('.fc-popup-btn.open').forEach(function(el) { el.classList.remove('open'); });
+  }
+});
+
+// -----------------------------------------------------------------------
+// Shared colour palette
+// -----------------------------------------------------------------------
+var _PALETTE = [
+  '#3b82f6','#22c55e','#f59e0b','#ef4444','#8b5cf6',
+  '#06b6d4','#ec4899','#84cc16','#f97316','#14b8a6',
+  '#6366f1','#a3e635','#fb923c','#38bdf8','#e879f9',
+  '#4ade80','#fbbf24','#f43f5e','#34d399','#818cf8',
+];
+function _colour(i) { return _PALETTE[i % _PALETTE.length]; }
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+         .replace(/"/g,'&quot;');
+}
+
+function _dimLabel(dim) {
+  return (DATA.dim_labels || {})[dim] || dim.replace(/_/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();});
+}
+
+// -----------------------------------------------------------------------
+// Populate stack-by and group-by dropdowns
+// -----------------------------------------------------------------------
+function _populateDimSelect(selectId, dims) {
+  var sel = document.getElementById(selectId);
+  if (!sel) return;
+  sel.innerHTML = '';
+  dims.forEach(function(dim) {
+    var opt = document.createElement('option');
+    opt.value = dim;
+    opt.textContent = _dimLabel(dim);
+    sel.appendChild(opt);
+  });
+}
+
+function _populateGroupSelect(selectId, dims) {
+  var sel = document.getElementById(selectId);
+  if (!sel) return;
+  sel.innerHTML = '';
+  var modelOpt = document.createElement('option');
+  modelOpt.value = 'model'; modelOpt.textContent = 'Model (default)';
+  sel.appendChild(modelOpt);
+  dims.forEach(function(dim) {
+    var opt = document.createElement('option');
+    opt.value = dim; opt.textContent = _dimLabel(dim);
+    sel.appendChild(opt);
+  });
+}
+
+// When group-by changes, enable/disable stack-sel and filter button
+function _onGroupChange(prefix, renderFn) {
+  var groupSel = document.getElementById(prefix + '-group-sel');
+  var stackSel = document.getElementById(prefix + '-stack-sel');
+  var filterBtn = document.getElementById(prefix + '-filter-btn');
+  var groupDim = groupSel ? groupSel.value : 'model';
+  if (stackSel) stackSel.disabled = (groupDim !== 'model');
+  if (filterBtn) filterBtn.disabled = (groupDim !== 'model');
+  renderFn();
+}
+
+// -----------------------------------------------------------------------
+// Core stacked-bar renderer
+// params:
+//   divId      : DOM id
+//   models     : array of model names
+//   stacks     : DATA.teacher_stacks etc  → {dim: {model: {value: count}}}
+//   stackDim   : selected stacking dimension string
+//   yLabel     : y-axis label
+//   groupDim   : 'model' (default) or a dimension name
+//   filterPrefix: prefix for filter state ('teacher'/'student'/'judge')
+// -----------------------------------------------------------------------
+function _renderStackedBar(divId, models, stacks, stackDim, yLabel, groupDim, filterPrefix) {
+  groupDim = groupDim || 'model';
+
+  if (!models || models.length === 0) {
+    document.getElementById(divId).innerHTML =
+      '<p style="color:#94a3b8;padding:20px">No data available.</p>';
+    return;
+  }
+
+  if (groupDim === 'model') {
+    // ---- Current mode: models on x-axis, stacked by stackDim ----
+    var dimData = stacks[stackDim] || {};
+
+    var allValSet = {};
+    models.forEach(function(m) {
+      Object.keys(dimData[m] || {}).forEach(function(v) { allValSet[v] = true; });
+    });
+    var allValues = Object.keys(allValSet).sort();
+
+    if (!allValues.length) {
+      document.getElementById(divId).innerHTML =
+        '<p style="color:#94a3b8;padding:20px">No stacking data for this dimension.</p>';
+      return;
+    }
+
+    // Sync filter popup
+    if (filterPrefix) _syncFilterPopup(filterPrefix, stackDim, allValues);
+    var values = filterPrefix ? _getFilteredVals(filterPrefix, stackDim, allValues) : allValues;
+
+    var traces = values.map(function(val, i) {
+      var traceName = val === '(none)' ? '(unset)' : val;
+      var y = models.map(function(m) { return (dimData[m] || {})[val] || 0; });
+      return {
+        type: 'bar', name: traceName, x: models, y: y,
+        marker: { color: _colour(i) },
+        hovertemplate: '<b>' + escHtml(traceName) + '</b><br>Model: %{x}<br>Count: %{y}<extra></extra>',
+      };
+    });
+
+    var heightPx = Math.max(340, models.length * 36 + 140);
+    Plotly.newPlot(divId, traces, {
+      barmode: 'stack',
+      xaxis: { title: 'Model', tickangle: models.length > 5 ? -35 : 0, automargin: true },
+      yaxis: { title: yLabel, rangemode: 'tozero', gridcolor: '#f1f5f9' },
+      legend: {
+        orientation: values.length > 8 ? 'v' : 'h',
+        y: values.length > 8 ? 0.5 : -0.28,
+        x: values.length > 8 ? 1.02 : 0.5,
+        xanchor: values.length > 8 ? 'left' : 'center',
+        font: { size: 11 },
+      },
+      margin: { t: 20, b: values.length > 8 ? 80 : 120, l: 60, r: values.length > 8 ? 180 : 40 },
+      height: heightPx, paper_bgcolor: '#fff', plot_bgcolor: '#f8fafc',
+    }, { responsive: true });
+
+  } else {
+    // ---- Group-by mode: groupDim values on x-axis, models as traces ----
+    var gDimData = stacks[groupDim] || {};
+    var xSet = {};
+    models.forEach(function(m) {
+      Object.keys(gDimData[m] || {}).forEach(function(v) { xSet[v] = true; });
+    });
+    var xVals = Object.keys(xSet).sort();
+
+    if (!xVals.length) {
+      document.getElementById(divId).innerHTML =
+        '<p style="color:#94a3b8;padding:20px">No data for this dimension.</p>';
+      return;
+    }
+
+    var traces = models.map(function(m, mi) {
+      return {
+        type: 'bar', name: m,
+        x: xVals,
+        y: xVals.map(function(v) { return (gDimData[m] || {})[v] || 0; }),
+        marker: { color: _colour(mi) },
+        hovertemplate: '<b>%{x}</b><br>Model: ' + escHtml(m) + '<br>Count: %{y}<extra></extra>',
+      };
+    });
+
+    var heightPx = Math.max(340, xVals.length * 36 + 140);
+    Plotly.newPlot(divId, traces, {
+      barmode: 'group',
+      xaxis: { title: _dimLabel(groupDim), tickangle: xVals.length > 5 ? -35 : 0, automargin: true },
+      yaxis: { title: yLabel, rangemode: 'tozero', gridcolor: '#f1f5f9' },
+      legend: { orientation: 'h', y: -0.28, x: 0.5, xanchor: 'center', font: { size: 11 } },
+      margin: { t: 20, b: 120, l: 60, r: 40 },
+      height: heightPx, paper_bgcolor: '#fff', plot_bgcolor: '#f8fafc',
+    }, { responsive: true });
+  }
+
+  _addPlotTooltips(divId);
+}
+
+// -----------------------------------------------------------------------
+// Render functions
+// -----------------------------------------------------------------------
+function renderTeacherCoverage() {
+  var stackDim = document.getElementById('teacher-stack-sel').value || 'task';
+  var groupDim = (document.getElementById('teacher-group-sel') || {}).value || 'model';
+  _renderStackedBar('teacher-coverage-chart', DATA.teachers,
+    DATA.teacher_stacks, stackDim, 'Datapoints generated', groupDim, 'teacher');
+}
+
+function renderStudentCoverage() {
+  var stackDim = document.getElementById('student-stack-sel').value || 'task';
+  var groupDim = (document.getElementById('student-group-sel') || {}).value || 'model';
+  _renderStackedBar('student-coverage-chart', DATA.students,
+    DATA.student_stacks, stackDim, 'Responses collected', groupDim, 'student');
+}
+
+function renderJudgeCoverage() {
+  var stackDim = document.getElementById('judge-stack-sel').value || 'task';
+  var groupDim = (document.getElementById('judge-group-sel') || {}).value || 'model';
+  _renderStackedBar('judge-coverage-chart', DATA.judges,
+    DATA.judge_stacks, stackDim, 'Valid evaluations', groupDim, 'judge');
+}
+
+// -----------------------------------------------------------------------
+// Overview: stat cards + phase timeline
+// -----------------------------------------------------------------------
+function renderMeta() {
+  var m = DATA.meta_panel;
+  var validPct = m.total_evals > 0
+    ? Math.round(m.valid_evals / m.total_evals * 100) : 100;
+  var statClass = validPct === 100 ? 'good' : (validPct >= 90 ? 'warn' : 'bad');
+
+  var stats = [
+    { val: m.tasks,        lbl: 'Tasks',       cls: '' },
+    { val: m.teachers,     lbl: 'Teachers',    cls: '' },
+    { val: m.students,     lbl: 'Students',    cls: '' },
+    { val: m.judges,       lbl: 'Judges',      cls: '' },
+    { val: m.datapoints,   lbl: 'Datapoints',  cls: '' },
+    { val: m.total_evals,  lbl: 'Total Evals', cls: '' },
+    { val: m.valid_evals,  lbl: 'Valid Evals', cls: statClass },
+    { val: validPct + '%', lbl: 'Coverage',    cls: statClass },
+  ];
+
+  var gridHtml = '<div class="stat-grid">';
+  stats.forEach(function(s) {
+    gridHtml += '<div class="stat-card ' + s.cls + '">'
+              + '<div class="stat-val">' + s.val + '</div>'
+              + '<div class="stat-lbl">' + s.lbl + '</div>'
+              + '</div>';
+  });
+  gridHtml += '</div>';
+  document.getElementById('stat-grid-container').innerHTML = gridHtml;
+
+  var allPhases = [
+    'attribute_mapping','rubric_mapping','data_generation',
+    'response_collection','evaluation'
+  ];
+  var phaseLabels = {
+    attribute_mapping:   'Attr Mapping',
+    rubric_mapping:      'Rubric Mapping',
+    data_generation:     'Data Gen',
+    response_collection: 'Resp Collection',
+    evaluation:          'Evaluation'
+  };
+  var completed  = new Set(m.phases_completed  || []);
+  var inProgress = new Set(m.phases_in_progress || []);
+
+  var tlHtml = '<div class="phase-timeline">';
+  allPhases.forEach(function(ph) {
+    var cls  = completed.has(ph) ? 'done' : (inProgress.has(ph) ? 'running' : 'pending');
+    var icon = completed.has(ph) ? '✓'    : (inProgress.has(ph) ? '…'       : '○');
+    tlHtml += '<span class="phase-badge ' + cls + '">'
+            + '<span class="ph-dot"></span>'
+            + icon + ' ' + (phaseLabels[ph] || ph)
+            + '</span>';
+  });
+  tlHtml += '</div>';
+  document.getElementById('phase-timeline-container').innerHTML = tlHtml;
+}
+
+// -----------------------------------------------------------------------
+// Main entry
+// -----------------------------------------------------------------------
+function renderAll() {
+  renderMeta();
+
+  _populateDimSelect('teacher-stack-sel', DATA.teacher_dims || ['task']);
+  _populateDimSelect('student-stack-sel', DATA.student_dims || ['task']);
+  _populateDimSelect('judge-stack-sel',   DATA.judge_dims   || ['task']);
+
+  _populateGroupSelect('teacher-group-sel', DATA.teacher_dims || ['task']);
+  _populateGroupSelect('student-group-sel', DATA.student_dims || ['task']);
+  _populateGroupSelect('judge-group-sel',   DATA.judge_dims   || ['task']);
+
+  renderTeacherCoverage();
+  renderStudentCoverage();
+  renderJudgeCoverage();
+}
+
+document.addEventListener('DOMContentLoaded', renderAll);
+
+</script>
+</body>
+</html>

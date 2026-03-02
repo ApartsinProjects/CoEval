@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Score Distribution — simple-test-v1</title>
+  <script src="../plotly.min.js"></script>
+  <script>
+const DATA = {"aspects": ["accuracy", "conciseness"], "students": ["smollm2-135m", "smollm2-360m"], "judges": ["gpt-4o-mini"], "aspect_hist": {"accuracy": {"High": 2, "Medium": 0, "Low": 2}, "conciseness": {"High": 1, "Medium": 2, "Low": 1}}, "asp_student_avg": {"accuracy||smollm2-135m": 0.5, "conciseness||smollm2-135m": 0.75, "accuracy||smollm2-360m": 0.5, "conciseness||smollm2-360m": 0.25}, "attr_labels": ["tone=casual", "tone=formal"], "attr_asp_avg": {"tone=formal||accuracy": 0.0, "tone=formal||conciseness": 0.5, "tone=casual||accuracy": 1.0, "tone=casual||conciseness": 0.5}, "judge_sequences": {"gpt-4o-mini": [0.0, 1.0, 1.0, 0.5, 0.0, 0.0, 1.0, 0.5]}, "all_units": [{"task": "text_summary", "teacher": "gpt-4o-mini", "student": "smollm2-135m", "judge": "gpt-4o-mini", "aspect": "accuracy", "score": "Low", "score_norm": 0.0, "evaluated_at": "2026-02-24T12:11:59Z"}, {"task": "text_summary", "teacher": "gpt-4o-mini", "student": "smollm2-135m", "judge": "gpt-4o-mini", "aspect": "conciseness", "score": "High", "score_norm": 1.0, "evaluated_at": "2026-02-24T12:11:59Z"}, {"task": "text_summary", "teacher": "gpt-4o-mini", "student": "smollm2-135m", "judge": "gpt-4o-mini", "aspect": "accuracy", "score": "High", "score_norm": 1.0, "evaluated_at": "2026-02-24T12:12:00Z"}, {"task": "text_summary", "teacher": "gpt-4o-mini", "student": "smollm2-135m", "judge": "gpt-4o-mini", "aspect": "conciseness", "score": "Medium", "score_norm": 0.5, "evaluated_at": "2026-02-24T12:12:00Z"}, {"task": "text_summary", "teacher": "gpt-4o-mini", "student": "smollm2-360m", "judge": "gpt-4o-mini", "aspect": "accuracy", "score": "Low", "score_norm": 0.0, "evaluated_at": "2026-02-24T12:12:01Z"}, {"task": "text_summary", "teacher": "gpt-4o-mini", "student": "smollm2-360m", "judge": "gpt-4o-mini", "aspect": "conciseness", "score": "Low", "score_norm": 0.0, "evaluated_at": "2026-02-24T12:12:01Z"}, {"task": "text_summary", "teacher": "gpt-4o-mini", "student": "smollm2-360m", "judge": "gpt-4o-mini", "aspect": "accuracy", "score": "High", "score_norm": 1.0, "evaluated_at": "2026-02-24T12:12:02Z"}, {"task": "text_summary", "teacher": "gpt-4o-mini", "student": "smollm2-360m", "judge": "gpt-4o-mini", "aspect": "conciseness", "score": "Medium", "score_norm": 0.5, "evaluated_at": "2026-02-24T12:12:02Z"}]};
+  </script>
+  <style>
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+       background: #f5f5f5; color: #333; }
+#header { background: #1a1a2e; color: #fff; padding: 14px 20px;
+          display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+#header h1 { font-size: 1.1rem; font-weight: 600; }
+.header-meta { font-size: 0.78rem; opacity: 0.8; }
+.header-badge { background: rgba(255,255,255,.15); border-radius: 4px;
+                padding: 2px 8px; font-size: 0.75rem; }
+.partial-notice { background: #f59e0b; color: #000; padding: 8px 20px;
+                  font-size: 0.85rem; font-weight: 500; }
+#filter-panel { background: #fff; border-bottom: 1px solid #e0e0e0;
+                padding: 10px 20px; display: flex; flex-wrap: wrap; gap: 12px;
+                align-items: center; }
+.filter-group { display: flex; align-items: center; gap: 6px; }
+.filter-group label { font-size: 0.8rem; font-weight: 500; color: #555; }
+.filter-group select { font-size: 0.8rem; border: 1px solid #ccc;
+                        border-radius: 4px; padding: 3px 6px; }
+#stats-bar { background: #e8f4f8; padding: 6px 20px; font-size: 0.78rem;
+             color: #555; border-bottom: 1px solid #c9e3ee; }
+#main { padding: 16px 20px; }
+.view-section { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.1);
+                padding: 16px; margin-bottom: 16px; }
+.view-section h2 { font-size: 1rem; font-weight: 600; margin-bottom: 12px; color: #1a1a2e; }
+.view-section p.note { font-size: 0.8rem; color: #666; background: #fffbeb;
+                       border-left: 3px solid #f59e0b; padding: 6px 10px;
+                       margin-bottom: 10px; border-radius: 0 4px 4px 0; }
+.chart-container { min-height: 360px; }
+table.data-table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
+table.data-table th { background: #f0f4f8; text-align: left;
+                       padding: 6px 10px; border-bottom: 2px solid #d0d8e0;
+                       font-weight: 600; color: #444; white-space: nowrap; }
+table.data-table td { padding: 5px 10px; border-bottom: 1px solid #eee; }
+table.data-table tr:hover td { background: #f8f9fb; }
+.warn-flag { color: #d97706; font-size: 0.85em; cursor: help; }
+.degenerate-notice { background: #fef3c7; border: 1px solid #fbbf24;
+                     border-radius: 6px; padding: 10px 14px; margin-bottom: 12px;
+                     font-size: 0.82rem; }
+.na { color: #aaa; font-style: italic; }
+.tag { display: inline-block; font-size: 0.7rem; border-radius: 3px;
+       padding: 1px 5px; margin: 0 2px; }
+.tag-partial { background: #fef3c7; color: #92400e; }
+.tag-completed { background: #d1fae5; color: #065f46; }
+footer { text-align: center; padding: 16px; font-size: 0.75rem; color: #999; }
+
+  </style>
+</head>
+<body>
+
+
+<div id="header">
+  <h1>CoEval EEA &mdash; Score Distribution</h1>
+  <span class="header-meta">Experiment: <b>simple-test-v1</b></span>
+  <span class="header-badge tag-completed">completed</span>
+  <span class="header-meta">Tasks: 1</span>
+  <span class="header-meta">Models: 3</span>
+  <span class="header-meta">Datapoints: 2</span>
+  <span class="header-meta">Self-judging: 0</span>
+  <span class="header-meta">Self-teaching: 0</span>
+  <span class="header-meta">Analyzed: 2026-02-24T12:12:16Z</span>
+</div>
+<div id="stats-bar">Total eval records: 4 | Valid: 4 | Invalid: 0</div>
+<div id="filter-panel">
+<div class="filter-group"><label for="flt_task">Task:</label><select id="flt_task" onchange="applyFilters()"><option value="__all__">All</option><option value="text_summary">text_summary</option></select></div>
+<div class="filter-group"><label for="flt_judge">Judge:</label><select id="flt_judge" onchange="applyFilters()"><option value="__all__">All</option><option value="gpt-4o-mini">gpt-4o-mini</option></select></div>
+<div class="filter-group"><label for="flt_teacher">Teacher:</label><select id="flt_teacher" onchange="applyFilters()"><option value="__all__">All</option><option value="gpt-4o-mini">gpt-4o-mini</option></select></div>
+<div class="filter-group"><label for="flt_student">Student:</label><select id="flt_student" onchange="applyFilters()"><option value="__all__">All</option><option value="smollm2-135m">smollm2-135m</option><option value="smollm2-360m">smollm2-360m</option></select></div>
+</div>
+<div id="main">
+
+<div class="view-section">
+  <h2>View 1 — Overall Score Distribution by Rubric Aspect</h2>
+  <div id="v1-chart" class="chart-container"></div>
+</div>
+<div class="view-section">
+  <h2>View 2 — Score Distribution by Student Model</h2>
+  <div class="filter-group" style="margin-bottom:8px">
+    <label>Show level:</label>
+    <select id="v2-level" onchange="renderV2()">
+      <option value="High">High</option>
+      <option value="Medium">Medium</option>
+      <option value="Low">Low</option>
+    </select>
+  </div>
+  <div id="v2-chart" class="chart-container"></div>
+</div>
+<div class="view-section">
+  <h2>View 3 — Score by Target Attribute Value (Heatmap)</h2>
+  <div id="v3-chart" class="chart-container"></div>
+</div>
+<div class="view-section">
+  <h2>View 4 — Judge Score Drift Over Evaluation Order</h2>
+  <p class="note">Hidden when any judge has fewer than 20 valid evaluation records.</p>
+  <div id="v4-chart" class="chart-container"></div>
+</div>
+
+</div>
+<footer>Generated by CoEval EEA &mdash; 2026-02-24T12:12:16Z</footer>
+<script>
+
+function getFilter(id) {
+  var el = document.getElementById('flt_' + id);
+  return el ? el.value : '__all__';
+}
+
+function applyFilters() {
+  if (typeof renderAll === 'function') renderAll();
+}
+
+function fmt(v, decimals) {
+  if (v === null || v === undefined) return '<span class="na">N/A</span>';
+  return parseFloat(v).toFixed(decimals !== undefined ? decimals : 3);
+}
+
+function fmtPct(v) {
+  if (v === null || v === undefined) return '<span class="na">N/A</span>';
+  return (parseFloat(v) * 100).toFixed(1) + '%';
+}
+
+function selfFlag(is_self_judging, is_self_teaching) {
+  var flags = [];
+  if (is_self_judging) flags.push('<span class="warn-flag" title="Self-evaluation: judge model = student model.">⚠SJ</span>');
+  if (is_self_teaching) flags.push('<span class="warn-flag" title="Self-teaching: teacher model = student model.">⚠ST</span>');
+  return flags.join(' ');
+}
+
+// Colour helpers
+function scoreColor(v) {
+  if (v === null || v === undefined) return '#eee';
+  var r = Math.round(255 * (1 - v));
+  var g = Math.round(200 * v);
+  return 'rgb(' + r + ',' + g + ',60)';
+}
+
+function filteredUnits() {
+  var tf = getFilter('task'), jf = getFilter('judge');
+  var tef = getFilter('teacher'), sf = getFilter('student');
+  return DATA.all_units.filter(function(u) {
+    return (tf === '__all__' || u.task === tf)
+        && (jf === '__all__' || u.judge === jf)
+        && (tef === '__all__' || u.teacher === tef)
+        && (sf === '__all__' || u.student === sf);
+  });
+}
+
+function renderV1() {
+  var units = filteredUnits();
+  var ah = {};
+  units.forEach(function(u) {
+    if (!ah[u.aspect]) ah[u.aspect] = {High:0,Medium:0,Low:0};
+    ah[u.aspect][u.score]++;
+  });
+  var aspects = Object.keys(ah).sort();
+  if (aspects.length === 0) { document.getElementById('v1-chart').innerHTML = '<p class="na" style="padding:16px">No data</p>'; return; }
+  var total = aspects.map(function(a) { return ah[a].High + ah[a].Medium + ah[a].Low || 1; });
+  var traces = [
+    {name:'High', x: aspects, y: aspects.map(function(a,i){return ah[a].High/total[i]*100;}),
+     type:'bar', marker:{color:'#27ae60'}, text: aspects.map(function(a){return ah[a].High.toString();}), textposition:'auto'},
+    {name:'Medium', x: aspects, y: aspects.map(function(a,i){return ah[a].Medium/total[i]*100;}),
+     type:'bar', marker:{color:'#f0a500'}},
+    {name:'Low', x: aspects, y: aspects.map(function(a,i){return ah[a].Low/total[i]*100;}),
+     type:'bar', marker:{color:'#e74c3c'}},
+  ];
+  Plotly.newPlot('v1-chart', traces,
+    {barmode:'stack', yaxis:{title:'%', range:[0,100]}, margin:{t:20}});
+}
+
+function renderV2() {
+  var level = document.getElementById('v2-level').value;
+  var units = filteredUnits();
+  var asp_student: dict = {};
+  units.forEach(function(u) {
+    var k = u.aspect + '||' + u.student;
+    if (!asp_student[k]) asp_student[k] = [];
+    asp_student[k].push(u.score === level ? 1 : 0);
+  });
+  var aspects = [...new Set(units.map(function(u){return u.aspect;}))].sort();
+  var students = [...new Set(units.map(function(u){return u.student;}))].sort();
+  if (aspects.length === 0) return;
+  var traces = students.map(function(s) {
+    return {
+      name: s, type: 'bar',
+      x: aspects,
+      y: aspects.map(function(a) {
+        var k = a + '||' + s;
+        var arr = asp_student[k] || [];
+        return arr.length ? arr.reduce(function(a,b){return a+b;},0)/arr.length : 0;
+      }),
+    };
+  });
+  Plotly.newPlot('v2-chart', traces,
+    {barmode:'group', yaxis:{title: 'Fraction ' + level, range:[0,1]}, margin:{t:20}});
+}
+
+function renderV3() {
+  var units = filteredUnits();
+  var attrAsp = {};
+  units.forEach(function(u) {
+    // Get attr-value from DATA by datapoint — we embed all_units with score only,
+    // so use precomputed attr_asp_avg filtered by current filters
+    // For simplicity, use DATA.attr_asp_avg as-is (no dynamic filtering by attr)
+  });
+  var attrLabels = DATA.attr_labels;
+  var aspects = [...new Set(units.map(function(u){return u.aspect;}))].sort();
+  if (!attrLabels.length || !aspects.length) return;
+
+  var z = attrLabels.map(function(av) {
+    return aspects.map(function(a) {
+      var key = av + '||' + a;
+      return DATA.attr_asp_avg[key] !== undefined ? DATA.attr_asp_avg[key] : null;
+    });
+  });
+  Plotly.newPlot('v3-chart', [{
+    type: 'heatmap', z: z, x: aspects, y: attrLabels,
+    colorscale: [[0,'#e74c3c'],[0.5,'#f7f7f7'],[1,'#27ae60']],
+    zmin: 0, zmax: 1,
+  }], {margin:{t:20}});
+}
+
+function renderV4() {
+  var seqs = DATA.judge_sequences;
+  var judges = Object.keys(seqs);
+  var WIN = 20;
+  var anyShort = judges.some(function(j){return seqs[j].length < WIN;});
+  if (anyShort) {
+    document.getElementById('v4-chart').innerHTML =
+      '<p class="na" style="padding:16px">Hidden: at least one judge has fewer than 20 evaluation records.</p>';
+    return;
+  }
+  var traces = judges.map(function(j) {
+    var seq = seqs[j];
+    var rolled = seq.map(function(_, i) {
+      if (i < WIN-1) return null;
+      var window = seq.slice(i-WIN+1, i+1);
+      return window.reduce(function(a,b){return a+b;},0) / WIN;
+    }).filter(function(v){return v !== null;});
+    return {name: j, type: 'scatter', mode: 'lines', y: rolled};
+  });
+  Plotly.newPlot('v4-chart', traces, {
+    title: 'Rolling average score (window=20)',
+    yaxis: {range: [0, 1], title: 'Score'},
+    xaxis: {title: 'Evaluation #'},
+    margin: {t: 40},
+  });
+}
+
+// Fix: remove accidental dict type annotation from V2
+function renderV2() {
+  var level = document.getElementById('v2-level').value;
+  var units = filteredUnits();
+  var asp_student = {};
+  units.forEach(function(u) {
+    var k = u.aspect + '||' + u.student;
+    if (!asp_student[k]) asp_student[k] = [];
+    asp_student[k].push(u.score === level ? 1 : 0);
+  });
+  var aspects = [];
+  units.forEach(function(u){ if(aspects.indexOf(u.aspect)<0) aspects.push(u.aspect); });
+  aspects.sort();
+  var students = [];
+  units.forEach(function(u){ if(students.indexOf(u.student)<0) students.push(u.student); });
+  students.sort();
+  if (aspects.length === 0) return;
+  var traces = students.map(function(s) {
+    return {
+      name: s, type: 'bar', x: aspects,
+      y: aspects.map(function(a) {
+        var k = a + '||' + s;
+        var arr = asp_student[k] || [];
+        return arr.length ? arr.reduce(function(a,b){return a+b;},0)/arr.length : 0;
+      }),
+    };
+  });
+  Plotly.newPlot('v2-chart', traces,
+    {barmode:'group', yaxis:{title: 'Fraction ' + level, range:[0,1]}, margin:{t:20}});
+}
+
+function renderAll() { renderV1(); renderV2(); renderV3(); renderV4(); }
+document.addEventListener('DOMContentLoaded', renderAll);
+
+</script>
+</body>
+</html>

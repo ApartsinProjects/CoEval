@@ -7,7 +7,7 @@
 ```
 CoEval/
 │
-├── experiments/                      # Core pipeline package (experiments.* namespace)
+├── Code/runner/                       # Core pipeline package (runner.* namespace)
 │   │
 │   ├── cli.py                        # Entry point: coeval <subcommand>
 │   ├── runner.py                     # Pipeline orchestrator — 5 phases, probe, estimation
@@ -27,7 +27,7 @@ CoEval/
 │   ├── interfaces/
 │   │   ├── pool.py                   # ModelPool factory + VRAM management
 │   │   ├── registry.py               # Key file loading, model listing, auto-routing
-│   │   ├── probe.py                  # Model availability probe (all 15 interfaces)
+│   │   ├── probe.py                  # Model availability probe (all 18 interfaces)
 │   │   ├── cost_estimator.py         # Cost/time estimation (PRICE_TABLE + heuristics)
 │   │   ├── openai_iface.py           # OpenAI + Batch API
 │   │   ├── anthropic_iface.py        # Anthropic + Message Batches API
@@ -38,7 +38,8 @@ CoEval/
 │   │   ├── bedrock_iface.py          # AWS Bedrock (native key + IAM)
 │   │   ├── vertex_iface.py           # Google Vertex AI
 │   │   ├── openrouter_iface.py       # OpenRouter
-│   │   └── openai_compat_iface.py    # Groq, DeepSeek, Mistral, DeepInfra, Cerebras
+│   │   ├── openai_compat_iface.py    # Groq, DeepSeek, Mistral, DeepInfra, Cerebras, Cohere, HuggingFace API
+│   │   └── mistral_batch.py          # Mistral Batch API runner (~50% discount)
 │   │
 │   ├── commands/
 │   │   ├── probe_cmd.py              # coeval probe
@@ -60,7 +61,7 @@ CoEval/
 │       ├── test_auto_interface_and_pricing.py  # Auto-routing, pricing table
 │       └── ...
 │
-├── analysis/                         # Analysis & reporting package (analysis.* namespace)
+├── Code/analyzer/                     # Analysis & reporting package (analyzer.* namespace)
 │   ├── main.py                       # analyze command entry point
 │   ├── loader.py                     # Run folder data loader (JSONL → DataFrames)
 │   ├── metrics.py                    # Agreement (ρ, τ), differentiation, reliability
@@ -149,7 +150,7 @@ CoEval/
 | `experiments/storage.py` | All filesystem read/write; JSONL and JSON helpers |
 | `experiments/interfaces/pool.py` | ModelPool: instantiates the right interface class per model |
 | `experiments/interfaces/registry.py` | Credential resolution, auto-routing, model listing |
-| `experiments/interfaces/probe.py` | Availability probe for all 15 interfaces |
+| `experiments/interfaces/probe.py` | Availability probe for all 18 interfaces |
 | `experiments/interfaces/cost_estimator.py` | PRICE_TABLE, batch discounts, token heuristics |
 | `benchmark/provider_pricing.yaml` | Auto-routing rules and per-model price table |
 | `analysis/metrics.py` | Spearman ρ, Kendall τ, ACR, PFR, differentiation score |

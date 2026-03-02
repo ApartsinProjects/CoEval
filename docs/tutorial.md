@@ -22,38 +22,22 @@ the reference documents for the fine details.
 
 ## 1. Motivation
 
-### The evaluation problem
-
-Training a language model is expensive.  Evaluating it properly should be cheap but
-rigorous — yet in practice it is neither.  The typical alternatives are:
-
-* **Human raters** — high quality but slow and costly; hard to scale or reproduce.
-* **Reference-based metrics** (BLEU, ROUGE) — fast but brittle; they punish valid
-  paraphrases and reward word overlap rather than meaning.
-* **Single-model judge** (e.g., GPT-4 rating its own student) — fast and cheap, but
-  scores are biased toward outputs that resemble the judge's own style, and a single judge
-  cannot be trusted at scale.
-
-CoEval's answer is a **multi-model, multi-role evaluation pipeline**.  Every model in your
-experiment can serve up to three distinct roles:
+CoEval addresses the core difficulty in practical LLM evaluation: generic benchmarks do not
+transfer to your use-case, human raters are expensive, and a single judge model is biased
+toward its own style.  The answer is a **multi-model, multi-role ensemble** where each
+participating model rotates through three distinct roles:
 
 | Role | What it does |
 |------|-------------|
-| **Teacher** | Generates (prompt, reference-response) pairs, proposes attribute taxonomy and rubric |
-| **Student** | Receives teacher prompts and produces its own responses |
-| **Judge** | Scores student responses against the rubric on a High / Medium / Low scale |
+| **Teacher** | Generates synthetic (prompt, reference-response) pairs and proposes the attribute taxonomy and rubric |
+| **Student** | Receives teacher prompts and produces its own responses — these are the models under evaluation |
+| **Judge** | Scores every student response against the rubric on a High / Medium / Low scale |
 
-Because any model can play any role, you can pit every model against itself and against the
-others, then aggregate over an ensemble of judges to wash out individual biases.  The
-result is a *robust* quality signal that is cheap (batch API pricing), reproducible
-(deterministic seeds and phase modes), and auditable (every artifact is written to disk).
+Rotating roles across the full model ensemble and aggregating over multiple judges washes
+out individual biases — yielding a *robust*, reproducible, and cost-efficient quality signal.
 
-### Typical use-cases
-
-* Comparing a fine-tuned model vs its base model on a domain-specific task
-* Validating a small model as a production replacement for a large one
-* Building a new evaluation benchmark grounded in real NLP datasets
-* Studying judge reliability or teacher data quality as independent research questions
+> **Deeper background** — problem statement, design rationale, leakage pitfalls, and
+> typical use-cases: [Overview & Why CoEval → docs/README/01-overview.md](README/01-overview.md)
 
 ---
 
@@ -124,36 +108,33 @@ they have access to.
 
 ### Supported providers
 
-| Interface | Auth | Batch discount | Best for |
-|-----------|------|---------------|---------|
-| `openai` | `OPENAI_API_KEY` | 50% | GPT-4o, o-series |
-| `anthropic` | `ANTHROPIC_API_KEY` | 50% | Claude Haiku, Sonnet |
-| `gemini` | `GEMINI_API_KEY` | 50% | Gemini Flash (cheapest with batch) |
-| `openrouter` | `OPENROUTER_API_KEY` | None | Open models: Llama, Qwen, DeepSeek, Mistral |
-| `bedrock` | AWS key or IAM | None | AWS-native deployments |
-| `azure_openai` | Azure key + endpoint | None | Azure enterprise deployments |
-| `vertex` | GCP ADC | None | GCP enterprise deployments |
-| `huggingface` | `HF_TOKEN` | None | Local GPU inference |
+CoEval supports **16 model interfaces** across cloud, local, and virtual providers.  For
+the complete table — auth setup, async batch support, pricing, and YAML examples — see:
 
-For open-weight models (Llama, Mistral, Qwen, DeepSeek), the recommended interface is
-`openrouter` — one API key routes to hundreds of models with competitive pricing:
+> 📋 **[Provider Guide → docs/README/05-providers.md](README/05-providers.md)**
 
-```yaml
-providers:
-  openrouter: sk-or-v1-...
+**Quick reference — most commonly used interfaces:**
 
-# Then in your config:
-- name: llama-3.3-70b
-  interface: openrouter
-  parameters:
-    model: meta-llama/llama-3.3-70b-instruct
-    temperature: 0.7
-    max_tokens: 512
-  roles: [student]
-```
+| Interface | Auth env var | Async batch | Best for |
+|-----------|-------------|:-----------:|---------|
+| `openai` | `OPENAI_API_KEY` | ✅ 50% off | GPT-4o, o-series |
+| `anthropic` | `ANTHROPIC_API_KEY` | ✅ 50% off | Claude Haiku/Sonnet |
+| `gemini` | `GEMINI_API_KEY` | ⚡ Concurrent¹ | Gemini Flash (fast/cheap) |
+| `azure_openai` | `AZURE_OPENAI_API_KEY` | ✅ 50% off | Azure enterprise GPT |
+| `bedrock` | AWS key or IAM | ✅ 50% off² | AWS-native (Claude, Nova) |
+| `vertex` | GCP ADC | ✅ 50% off² | GCP enterprise Gemini |
+| `openrouter` | `OPENROUTER_API_KEY` | — | Open models: Llama, Qwen, DeepSeek |
+| `huggingface` | `HF_TOKEN` | — | Local GPU inference |
 
-See [`docs/README/05-providers.md`](README/05-providers.md) for a complete pricing table and setup guide for
-each provider, including native direct-API providers (Groq, DeepInfra, DeepSeek, Mistral, Cerebras).
+> ¹ Gemini uses concurrent requests, not a native async batch endpoint — no additional discount.
+> ² Bedrock and Vertex async batch require cloud storage (S3/GCS) and a service role — see the [Provider Guide](README/05-providers.md#aws-bedrock) for setup details.
+
+For open-weight models, `openrouter` provides access to hundreds of models with a single
+key.  Direct-API providers (Groq, DeepInfra, DeepSeek direct, Mistral direct, Cerebras,
+Ollama) are also available — see the [Provider Guide](README/05-providers.md#openai-compatible-providers).
+
+> **Security:** `keys.yaml` is in `.gitignore` by default.  Never commit credentials.
+> Full key-file format and lookup order: [CLI Reference → Provider Key File](cli_reference.md#provider-key-file).
 
 ### Verifying your setup
 
@@ -291,6 +272,10 @@ experiment:
       max_calls: 5000
 ```
 
+> **Full YAML reference** — every config field (models, tasks, sampling, rubric, phases,
+> batch, quota) with types, defaults, and validation rules:
+> [Configuration Guide → docs/README/04-configuration.md](README/04-configuration.md)
+
 **Phase mode quick reference**
 
 | Mode | Behaviour |
@@ -346,7 +331,7 @@ This opens a self-contained HTML page in your browser showing:
 
 No API calls are made; the command is purely informational.
 
-> **Example planning HTML:** Open the [Education Benchmark Plan](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/benchmark/education_description.html) to see a real planning view for the education benchmark (3 real-dataset tasks + 10 synthetic tasks, 6 models, cost table).
+> **Example planning HTML:** Open the [Education Benchmark Plan](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Public/benchmark/education_description.html) to see a real planning view for the education benchmark (3 real-dataset tasks + 10 synthetic tasks, 6 models, cost table).
 
 ### 3.5 Checking model availability
 
@@ -363,6 +348,10 @@ coeval run --config experiments/my-eval.yaml --probe full
 Results are written to `probe_results.json` in the EES folder.  If a model fails,
 `--probe-on-fail abort` (default) stops the experiment immediately; use `warn` to
 continue without the failing model.
+
+> **All probe options** — `--probe` modes (`full`, `resume`, `disable`), `--probe-on-fail`,
+> and the `probe_results.json` schema:
+> [CLI Reference → `coeval probe`](cli_reference.md#coeval-probe)
 
 ### 3.6 Estimating cost and time
 
@@ -387,7 +376,12 @@ Phase 5 calls = n_judges   × Phase_4_calls
 Total         = sum of the above
 ```
 
-With batch pricing enabled (OpenAI or Anthropic), phases 4 and 5 cost 50 % less.
+With async batch pricing enabled (OpenAI, Anthropic, Azure OpenAI, Bedrock, or Vertex),
+phases 4 and 5 cost 50 % less.
+
+> **All plan/estimate options** — `--estimate-samples`, `cost_estimate.json` schema,
+> and per-provider batch discount details:
+> [CLI Reference → `coeval plan`](cli_reference.md#coeval-plan)
 
 ### 3.7 Running the experiment
 
@@ -407,6 +401,10 @@ Useful flags:
 | `--continue` | Restart a failed experiment in-place (see §4.3) |
 | `--probe full` | Probe all models before starting |
 | `--only-models A B` | Restrict which models participate (useful for incremental additions) |
+
+> **All `coeval run` flags** — `--dry-run`, `--estimate-only`, `--only-models`,
+> `--probe`, phase modes, and batch configuration options:
+> [CLI Reference → `coeval run`](cli_reference.md#coeval-run)
 
 ### 3.8 Using real benchmark datasets as teachers
 
@@ -648,14 +646,14 @@ Phase 4 records add `student_model_id` and `response`.  Phase 5 records add
 >
 > | Sample file | Report type |
 > |-------------|-------------|
-> | [Student Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_student_report.html) | Student Report |
-> | [Judge Consistency](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_judge_consistency.html) | Judge Consistency |
-> | [Robust Summary](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_robust_summary.html) | Robust Summary |
-> | [Score Distribution](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_score_distribution.html) | Score Distribution |
-> | [Teacher Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_teacher_report.html) | Teacher Report |
-> | [Interaction Matrix](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_interaction_matrix.html) | Interaction Matrix |
-> | [Coverage Summary](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_coverage_summary.html) | Coverage Summary |
-> | [Judge Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_judge_report.html) | Judge Report |
+> | [Student Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_student_report.html) | Student Report |
+> | [Judge Consistency](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_judge_consistency.html) | Judge Consistency |
+> | [Robust Summary](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_robust_summary.html) | Robust Summary |
+> | [Score Distribution](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_score_distribution.html) | Score Distribution |
+> | [Teacher Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_teacher_report.html) | Teacher Report |
+> | [Interaction Matrix](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_interaction_matrix.html) | Interaction Matrix |
+> | [Coverage Summary](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_coverage_summary.html) | Coverage Summary |
+> | [Judge Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_judge_report.html) | Judge Report |
 
 ### Coverage Summary
 
@@ -864,11 +862,11 @@ native Parquet types.
 | [`docs/README/06-running.md`](README/06-running.md) | Complete running guide: phase modes, multi-role config, HuggingFace local models, cost estimation, use-case examples |
 | [`docs/cli_reference.md`](cli_reference.md) | Every CLI subcommand with full option tables and exit codes |
 | [`docs/developer_guide.md`](developer_guide.md) | Repository layout, module APIs, how to add a new provider interface or phase |
-| [`docs/README/05-providers.md`](README/05-providers.md) | All 15 interfaces, pricing tables, provider setup guides, `interface: auto` routing |
+| [`docs/README/05-providers.md`](README/05-providers.md) | All 16 interfaces (incl. Bedrock/Vertex async batch), pricing tables, provider setup guides, `interface: auto` routing |
 | [`docs/README/07-benchmarks.md`](README/07-benchmarks.md) | Benchmark datasets, `coeval ingest`, `interface: benchmark` virtual teacher, reproducing published results |
 | [`docs/README/08-reports.md`](README/08-reports.md) | Analysis CLI reference, metrics formulas (ACR, RAR, Spearman ρ), programmatic API, calibration |
-| [`benchmark/mixed.yaml`](../benchmark/mixed.yaml) | Complete working config for the mixed benchmark experiment |
-| [`benchmark/paper_dual_track.yaml`](../benchmark/paper_dual_track.yaml) | Full dual-track paper experiment config (10 SOTA models, Track A + Track B) |
+| [`benchmark/mixed.yaml`](../Runs/mixed/mixed.yaml) | Complete working config for the mixed benchmark experiment |
+| [`benchmark/paper_dual_track.yaml`](../Runs/paper/paper_dual_track.yaml) | Full dual-track paper experiment config (10 SOTA models, Track A + Track B) |
 
 ---
 

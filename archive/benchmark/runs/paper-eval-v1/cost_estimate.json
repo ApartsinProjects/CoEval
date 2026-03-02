@@ -1,0 +1,289 @@
+{
+  "is_remaining_estimate": false,
+  "completed_phases": [],
+  "total_cost_usd": 0.0,
+  "total_calls": 0,
+  "total_time_min": 0.0,
+  "per_phase": {
+    "attribute_mapping": {
+      "calls_per_model": {},
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "cost_usd": 0.0,
+      "time_s": 0.0,
+      "time_min": 0.0
+    },
+    "rubric_mapping": {
+      "calls_per_model": {},
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "cost_usd": 0.0,
+      "time_s": 0.0,
+      "time_min": 0.0
+    },
+    "data_generation": {
+      "calls_per_model": {},
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "cost_usd": 0.0,
+      "time_s": 0.0,
+      "time_min": 0.0
+    },
+    "response_collection": {
+      "calls_per_model": {},
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "cost_usd": 0.0,
+      "time_s": 0.0,
+      "time_min": 0.0
+    },
+    "evaluation": {
+      "calls_per_model": {},
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "cost_usd": 0.0,
+      "time_s": 0.0,
+      "time_min": 0.0
+    }
+  },
+  "per_provider": {},
+  "per_model": {
+    "gpt-4o": {
+      "interface": "openai",
+      "roles": [
+        "student",
+        "judge"
+      ],
+      "latency_s": 0.0,
+      "tokens_per_second": 0.0,
+      "price_input_per_m": 2.5,
+      "price_output_per_m": 10.0,
+      "estimated_calls": 0,
+      "sample_error": "All sample calls failed"
+    },
+    "gpt-4o-mini": {
+      "interface": "openai",
+      "roles": [
+        "student",
+        "judge"
+      ],
+      "latency_s": 0.0,
+      "tokens_per_second": 0.0,
+      "price_input_per_m": 0.15,
+      "price_output_per_m": 0.6,
+      "estimated_calls": 0,
+      "sample_error": "All sample calls failed"
+    },
+    "gpt-3.5-turbo": {
+      "interface": "openai",
+      "roles": [
+        "student"
+      ],
+      "latency_s": 0.0,
+      "tokens_per_second": 0.0,
+      "price_input_per_m": 0.5,
+      "price_output_per_m": 1.5,
+      "estimated_calls": 0,
+      "sample_error": "All sample calls failed"
+    },
+    "claude-opus-4-6": {
+      "interface": "anthropic",
+      "roles": [
+        "student",
+        "judge"
+      ],
+      "latency_s": 0.0,
+      "tokens_per_second": 0.0,
+      "price_input_per_m": 15.0,
+      "price_output_per_m": 75.0,
+      "estimated_calls": 0,
+      "sample_error": "All sample calls failed"
+    },
+    "claude-sonnet-4-6": {
+      "interface": "anthropic",
+      "roles": [
+        "student"
+      ],
+      "latency_s": 0.0,
+      "tokens_per_second": 0.0,
+      "price_input_per_m": 3.0,
+      "price_output_per_m": 15.0,
+      "estimated_calls": 0,
+      "sample_error": "All sample calls failed"
+    },
+    "qwen2p5-0b5": {
+      "interface": "huggingface",
+      "roles": [
+        "student"
+      ],
+      "latency_s": 10.0,
+      "tokens_per_second": 15.0,
+      "price_input_per_m": 1.0,
+      "price_output_per_m": 3.0,
+      "estimated_calls": 0,
+      "sample_error": null
+    },
+    "qwen2p5-1b5": {
+      "interface": "huggingface",
+      "roles": [
+        "student"
+      ],
+      "latency_s": 10.0,
+      "tokens_per_second": 15.0,
+      "price_input_per_m": 1.0,
+      "price_output_per_m": 3.0,
+      "estimated_calls": 0,
+      "sample_error": null
+    },
+    "smollm2-1b7": {
+      "interface": "huggingface",
+      "roles": [
+        "student"
+      ],
+      "latency_s": 10.0,
+      "tokens_per_second": 15.0,
+      "price_input_per_m": 1.0,
+      "price_output_per_m": 3.0,
+      "estimated_calls": 0,
+      "sample_error": null
+    }
+  },
+  "assumptions": {
+    "token_counts": {
+      "teacher_prompt": 350,
+      "teacher_output": 250,
+      "student_input": 200,
+      "student_output": 180,
+      "judge_prompt": 600,
+      "judge_output": 80,
+      "rubric_prompt": 300,
+      "rubric_output": 200,
+      "attr_prompt": 250,
+      "attr_output": 200
+    },
+    "price_table": {
+      "gpt-4o-mini": [
+        0.15,
+        0.6
+      ],
+      "gpt-4o": [
+        2.5,
+        10.0
+      ],
+      "gpt-4-turbo": [
+        10.0,
+        30.0
+      ],
+      "gpt-4": [
+        30.0,
+        60.0
+      ],
+      "gpt-3.5-turbo": [
+        0.5,
+        1.5
+      ],
+      "o1-mini": [
+        3.0,
+        12.0
+      ],
+      "o1": [
+        15.0,
+        60.0
+      ],
+      "o3-mini": [
+        1.1,
+        4.4
+      ],
+      "o4-mini": [
+        1.1,
+        4.4
+      ],
+      "gpt-4.1-mini": [
+        0.4,
+        1.6
+      ],
+      "gpt-4.1-nano": [
+        0.1,
+        0.4
+      ],
+      "gpt-4.1": [
+        2.0,
+        8.0
+      ],
+      "claude-3-5-sonnet": [
+        3.0,
+        15.0
+      ],
+      "claude-3-5-haiku": [
+        0.8,
+        4.0
+      ],
+      "claude-3-opus": [
+        15.0,
+        75.0
+      ],
+      "claude-3-sonnet": [
+        3.0,
+        15.0
+      ],
+      "claude-3-haiku": [
+        0.25,
+        1.25
+      ],
+      "claude-opus-4": [
+        15.0,
+        75.0
+      ],
+      "claude-sonnet-4": [
+        3.0,
+        15.0
+      ],
+      "claude-haiku-4": [
+        0.8,
+        4.0
+      ],
+      "gemini-2.5-pro": [
+        1.25,
+        10.0
+      ],
+      "gemini-2.5-flash": [
+        0.15,
+        0.6
+      ],
+      "gemini-2.5-flash-lite": [
+        0.075,
+        0.3
+      ],
+      "gemini-2.0-flash": [
+        0.1,
+        0.4
+      ],
+      "gemini-2.0-flash-lite": [
+        0.075,
+        0.3
+      ],
+      "gemini-1.5-flash": [
+        0.075,
+        0.3
+      ],
+      "gemini-1.5-pro": [
+        1.25,
+        5.0
+      ],
+      "gemini-1.0-pro": [
+        0.5,
+        1.5
+      ],
+      "openrouter": [
+        1.0,
+        3.0
+      ]
+    },
+    "batch_discount": {
+      "openai": 0.5,
+      "anthropic": 0.5,
+      "gemini": 1.0
+    },
+    "n_samples_per_model": 2
+  }
+}
