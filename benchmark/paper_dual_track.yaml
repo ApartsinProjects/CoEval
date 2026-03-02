@@ -30,12 +30,18 @@
 #     email_composition   → content_fidelity  [BA: BERTScore-F1]
 #     data_interpretation → numerical_accuracy [BA: exact-match accuracy]
 #
-# Cost estimate (100 items/task, 4 tasks = 400 total, batch pricing)
+# Cost estimate (100 items/task per teacher, 4 tasks, batch pricing)
 # ═══════════════════════════════════════════════════════════════════
-#   Phase 3 (synthetic):  3 teachers × 400 items           ≈  $2
-#   Phase 4 (responses): 10 students × 3 teachers × 400    ≈ $18
-#   Phase 5 (evaluation): 3 judges × 10s × 3t × 400        ≈ $22
-#   Total estimated                                         ≈ $42
+#   Track A:  4 benchmark teachers (xsum, codesearchnet-python, aeslc,
+#             wikitablequestions) — pre-ingested, 0 API calls
+#   Track B:  4 LLM teachers (gpt-4o, gpt-4o-mini, gemini-2.0-flash,
+#             llama-3.3-70b) — generate 100 items × 4 tasks each
+#
+#   Phase 3 (synthetic):  4 LLM teachers × 400 items       ≈  $3
+#   Phase 4 (responses): 10 students × 8 teachers × 400    ≈ $30
+#   Phase 5 (evaluation): 3 judges × 10s × 8t × 400        ≈ $36
+#   Total estimated                                         ≈ $69
+#   (Run `coeval describe --config benchmark/paper_dual_track.yaml` for exact estimate)
 #
 # Setup
 # ─# ─# ─
@@ -272,12 +278,14 @@ tasks:
       complexity: [simple, moderate, complex, technical]
       domain:     [science, business, politics, technology, health, other]
 
-    nuanced_attributes: {}
+    nuanced_attributes:
+      article_length:  [short_200w, medium_400w, long_600w]
+      narrative_type:  [event_report, feature_piece, analysis_commentary]
 
     sampling:
       target: [1]
-      nuance: [0]
-      total:  100   # 100 items × 3 teachers = 300 Phase-3 records total
+      nuance: [1, 2]
+      total:  100   # 100 items per teacher; 4 LLM + 1 benchmark (xsum) = 500 per task
 
     # Rubric — one dimension per quality axis.
     # [BA] faithfulness is mechanistically aligned with BERTScore-F1
@@ -299,7 +307,26 @@ tasks:
     evaluation_mode: single
 
     prompt_library:
-      sample: "{prompt}"
+      sample: |
+        You are generating synthetic benchmark data for a text summarisation task
+        modelled on the BBC XSum dataset (one-sentence news summaries).
+
+        Task description: {task_description}
+        Output format: {output_description}
+        Required target attributes (must be reflected in the article): {target_attributes}
+        Required nuance attributes (must shape the writing style): {nuanced_attributes}
+
+        Write a realistic BBC-style news article excerpt whose length matches article_length
+        (short_200w ≈ 200 words, medium_400w ≈ 400 words, long_600w ≈ 600 words) and whose
+        narrative style matches narrative_type (event_report = factual news event,
+        feature_piece = human-interest story, analysis_commentary = opinion/analysis).
+        The domain and complexity must match the target attributes.
+
+        Then write a gold one-sentence summary (20–50 words) capturing the single most
+        newsworthy fact from the article.
+
+        Return ONLY valid JSON — no markdown fences, no explanation:
+        {{"prompt": "<article text>", "response": "<one-sentence summary>"}}
 
   # ══════════════════════════════════════════════════════════════════════
   # Task 2: Code Explanation
@@ -322,12 +349,14 @@ tasks:
       complexity:   [beginner, intermediate, advanced]
       snippet_type: [function, class_definition, algorithm, database_query]
 
-    nuanced_attributes: {}
+    nuanced_attributes:
+      doc_style:        [brief_one_liner, detailed_prose, step_by_step, api_reference]
+      abstraction_level: [implementation_details, behavioral_description, conceptual_overview]
 
     sampling:
       target: [1]
-      nuance: [0]
-      total:  100
+      nuance: [1, 2]
+      total:  100   # 100 items per teacher; 4 LLM + 1 benchmark (codesearchnet-python) = 500 per task
 
     # [BA] technical_accuracy aligns with BERTScore-F1 vs. reference docstring
     rubric:
@@ -352,7 +381,26 @@ tasks:
     evaluation_mode: single
 
     prompt_library:
-      sample: "{prompt}"
+      sample: |
+        You are generating synthetic benchmark data for a code explanation task
+        modelled on the CodeSearchNet Python benchmark (function-to-docstring).
+
+        Task description: {task_description}
+        Output format: {output_description}
+        Required target attributes (must be reflected in the code snippet): {target_attributes}
+        Required nuance attributes (must shape the explanation style): {nuanced_attributes}
+
+        Write a realistic, self-contained Python function (8–40 lines) matching the specified
+        complexity and snippet_type. The function must be syntactically valid Python.
+
+        Then write a gold explanation matching doc_style (brief_one_liner = one sentence,
+        detailed_prose = flowing paragraphs, step_by_step = numbered steps,
+        api_reference = parameter/return table) and abstraction_level
+        (implementation_details = how it works internally, behavioral_description = what it
+        does from a caller's perspective, conceptual_overview = high-level purpose).
+
+        Return ONLY valid JSON — no markdown fences, no explanation:
+        {{"prompt": "<python function code>", "response": "<explanation>"}}
 
   # ══════════════════════════════════════════════════════════════════════
   # Task 3: Email Composition
@@ -373,12 +421,14 @@ tasks:
       purpose: [information_request, project_update, complaint_resolution, proposal, follow_up]
       length:  [brief, standard, detailed]
 
-    nuanced_attributes: {}
+    nuanced_attributes:
+      formality:     [formal, semi_formal, casual]
+      urgency:       [low, medium, high]
 
     sampling:
       target: [1]
-      nuance: [0]
-      total:  100
+      nuance: [1, 2]
+      total:  100   # 100 items per teacher; 4 LLM + 1 benchmark (aeslc) = 500 per task
 
     # [BA] content_fidelity aligns with BERTScore-F1 vs. reference email
     rubric:
@@ -403,7 +453,24 @@ tasks:
     evaluation_mode: single
 
     prompt_library:
-      sample: "{prompt}"
+      sample: |
+        You are generating synthetic benchmark data for an email composition task
+        modelled on the AESLC (Annotated Enron Subject Line Corpus) benchmark.
+
+        Task description: {task_description}
+        Output format: {output_description}
+        Required target attributes (must be reflected in the email scenario): {target_attributes}
+        Required nuance attributes (must shape tone and urgency): {nuanced_attributes}
+
+        Create a realistic workplace scenario description (1–2 sentences) as the prompt,
+        then write a complete gold email (Subject, greeting, body, sign-off) that responds
+        to the scenario. The email's purpose and length must match the target attributes;
+        the formality (formal = Dear Mr/Ms + full grammar, semi_formal = Hi Name + friendly
+        but professional, casual = Hey Name + conversational) and urgency level must match
+        the nuanced attributes.
+
+        Return ONLY valid JSON — no markdown fences, no explanation:
+        {{"prompt": "<scenario description>", "response": "<complete email with Subject: line, greeting, body, sign-off>"}}
 
   # ══════════════════════════════════════════════════════════════════════
   # Task 4: Data Interpretation
@@ -424,12 +491,14 @@ tasks:
     target_attributes:
       insight_depth: [surface_observation, analytical_interpretation, predictive_inference]
 
-    nuanced_attributes: {}
+    nuanced_attributes:
+      question_type:  [single_lookup, comparison, aggregation, temporal_trend]
+      table_domain:   [sports, geography, history, science, finance]
 
     sampling:
       target: [1]
-      nuance: [0]
-      total:  100
+      nuance: [1, 2]
+      total:  100   # 100 items per teacher; 4 LLM + 1 benchmark (wikitablequestions) = 500 per task
 
     # [BA] numerical_accuracy aligns with exact-match accuracy vs. gold answer
     rubric:
@@ -453,7 +522,26 @@ tasks:
     evaluation_mode: single
 
     prompt_library:
-      sample: "{prompt}"
+      sample: |
+        You are generating synthetic benchmark data for a data interpretation task
+        modelled on the WikiTableQuestions benchmark (answering questions about HTML tables).
+
+        Task description: {task_description}
+        Output format: {output_description}
+        Required target attributes (must be reflected in the question difficulty): {target_attributes}
+        Required nuance attributes (must shape the table and question style): {nuanced_attributes}
+
+        Create a realistic Markdown table (3–8 rows, 3–6 columns) on a topic matching the
+        table_domain attribute. Then write a question whose answer_type matches question_type
+        (single_lookup = find one cell value, comparison = compare two rows/columns,
+        aggregation = count/sum/average, temporal_trend = describe change over time).
+        The question's insight_depth must match the target attribute.
+
+        The prompt field must contain the question followed by the table:
+        "Question: <question>\\n\\nTable:\\n<markdown table>"
+
+        Return ONLY valid JSON — no markdown fences, no explanation:
+        {{"prompt": "Question: <question>\\n\\nTable:\\n<markdown table>", "response": "<concise gold answer>"}}
 
 
 # ─── EXPERIMENT ───────────────────────────────────────────────────────────────
@@ -491,29 +579,30 @@ experiment:
       evaluation:          true
 
   # ── Per-model quota (safety ceiling) ───────────────────────────────────────────
-  # Phase 3 (teacher calls):  3 teachers × 4 tasks × 100 items     = 1,200
-  # Phase 4 (student calls): 10 students × 3 teachers × 400 items  = 12,000
-  # Phase 5 (judge calls):    3 judges × 10s × 3t × 400 items      = 36,000
-  # Limits set with 20% headroom above expected call counts.
+  # Phase 3 (LLM teacher):    4 teachers × 4 tasks × 100 items  = 1,600 (400/teacher)
+  # Phase 4 (student):        10 students × 2,000 datapoints     = 20,000 (2,000/student)
+  #   (datapoints: 5 teachers × 100 items × 4 tasks = 2,000 total)
+  # Phase 5 (judge):          3 judges × 20,000 responses        = 60,000 (20,000/judge)
+  # Per-model max = (teacher_calls + student_calls + judge_calls) × 1.2 headroom
   quota:
-    gpt-4o:
-      max_calls: 20000
-    gpt-4o-mini:
-      max_calls: 20000
-    claude-sonnet-4-6:
-      max_calls: 7000
-    claude-3-5-haiku:
-      max_calls: 7000
-    gemini-2.0-flash:
-      max_calls: 20000
-    llama-3.3-70b:
-      max_calls: 7000
-    llama-3.1-8b:
-      max_calls: 7000
-    mistral-small:
-      max_calls: 7000
-    deepseek-v3:
-      max_calls: 7000
-    qwen2.5-72b:
-      max_calls: 7000
+    gpt-4o:             # teacher (400) + student (2,000) + judge (20,000) = 22,400
+      max_calls: 27000
+    gpt-4o-mini:        # teacher (400) + student (2,000) + judge (0)      = 2,400
+      max_calls: 27000
+    claude-sonnet-4-6:  # student (2,000) + judge (20,000)                 = 22,000
+      max_calls: 27000
+    claude-3-5-haiku:   # student (2,000) + judge (20,000)                 = 22,000
+      max_calls: 27000
+    gemini-2.0-flash:   # teacher (400) + student (2,000) + judge (20,000) = 22,400
+      max_calls: 27000
+    llama-3.3-70b:      # teacher (400) + student (2,000)                  = 2,400
+      max_calls: 3000
+    llama-3.1-8b:       # student (2,000)
+      max_calls: 2500
+    mistral-small:      # student (2,000)
+      max_calls: 2500
+    deepseek-v3:        # student (2,000)
+      max_calls: 2500
+    qwen2.5-72b:        # student (2,000)
+      max_calls: 2500
 

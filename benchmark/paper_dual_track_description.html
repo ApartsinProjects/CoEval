@@ -155,6 +155,62 @@
       color: #166534; border-radius: 0 4px 4px 0;
     }
 
+    /* Prompt templates */
+    .prompt-templates { margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 16px; }
+    .prompt-templates-title {
+      font-size: 0.78rem; text-transform: uppercase; letter-spacing: .05em;
+      color: #94a3b8; margin-bottom: 10px; font-weight: 700;
+    }
+    .prompt-detail {
+      border: 1px solid #e2e8f0; border-radius: 6px;
+      margin-bottom: 8px; overflow: hidden;
+    }
+    .prompt-summary {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 14px; background: #f8fafc; cursor: pointer;
+      list-style: none; font-size: 0.86rem; font-weight: 500;
+    }
+    .prompt-summary:hover { background: #f0f4ff; }
+    .prompt-summary::-webkit-details-marker { display: none; }
+    .prompt-summary::before { content: "▶"; font-size: 0.65rem; color: #9ca3af; }
+    details[open] > .prompt-summary::before { content: "▼"; }
+    .prompt-role {
+      display: inline-block; padding: 1px 9px; border-radius: 999px;
+      font-size: 0.73rem; font-weight: 700; flex-shrink: 0;
+    }
+    .prompt-role.teacher { background: #dbeafe; color: #1d4ed8; }
+    .prompt-role.student { background: #dcfce7; color: #15803d; }
+    .prompt-role.judge   { background: #f3e8ff; color: #7e22ce; }
+    .prompt-phase { color: #64748b; font-size: 0.82rem; flex: 1; }
+    .tpl-source {
+      font-size: 0.73rem; padding: 1px 8px; border-radius: 4px; font-weight: 600; flex-shrink: 0;
+    }
+    .tpl-source.override  { background: #fef3c7; color: #92400e; }
+    .tpl-source.canonical { background: #f1f5f9; color: #64748b; }
+    .tpl-body {
+      padding: 14px 16px; margin: 0;
+      font-family: "SF Mono", Consolas, "Courier New", monospace;
+      font-size: 0.79rem; line-height: 1.65; background: #fafbfc;
+      white-space: pre-wrap; word-break: break-word;
+      border-top: 1px solid #e2e8f0; color: #1e293b;
+    }
+    .tpl-var { color: #2563eb; font-weight: 700; }
+    .tpl-model-overrides {
+      border-top: 1px solid #fed7aa; background: #fff7ed;
+      padding: 8px 16px; font-size: 0.78rem;
+    }
+    .tpl-model-override-item { margin-bottom: 4px; }
+    .tpl-model-name {
+      display: inline-block; background: #fde68a; color: #78350f;
+      padding: 0 6px; border-radius: 4px; font-weight: 600;
+      margin-right: 6px; font-size: 0.72rem;
+    }
+    .tpl-skipped {
+      padding: 10px 16px; font-size: 0.80rem; color: #9ca3af;
+      font-style: italic; background: #fafafa;
+      border-top: 1px solid #f1f5f9;
+    }
+
     /* Quota */
     .quota-table { border-collapse: collapse; }
     .quota-table th, .quota-table td {
@@ -211,7 +267,7 @@
   <div class="exp-id">experiment: <b>paper-dual-track-v1</b></div>
   <div class="meta">
     Config: <code style="background:rgba(255,255,255,.15);color:#fff">E:\Projects\CoEval\main\benchmark\paper_dual_track.yaml</code>
-    &nbsp;&nbsp;|&nbsp;&nbsp;Generated: 2026-03-02 02:48 UTC
+    &nbsp;&nbsp;|&nbsp;&nbsp;Generated: 2026-03-02 03:13 UTC
     &nbsp;&nbsp;|&nbsp;&nbsp;Storage: <code style="background:rgba(255,255,255,.15);color:#fff">./benchmark/runs</code>
   </div>
 </div>
@@ -392,8 +448,8 @@
             <div class="task-grid">
               <div class="task-col">
                 <h4>Target Attributes</h4><table class="attr-table"><tr><td><b>complexity</b></td><td><code>simple</code>, <code>moderate</code>, <code>complex</code>, <code>technical</code></td></tr><tr><td><b>domain</b></td><td><code>science</code>, <code>business</code>, <code>politics</code>, <code>technology</code>, <code>health</code>, <code>other</code></td></tr></table>
-                <h4 style="margin-top:1em">Nuanced Attributes</h4><em>none</em>
-                <p class="sampling-info">Sampling: <b>100</b> items&nbsp;&nbsp;|&nbsp;&nbsp;target attrs: [1]&nbsp;&nbsp;|&nbsp;&nbsp;nuance attrs: [0]</p>
+                <h4 style="margin-top:1em">Nuanced Attributes</h4><table class="attr-table"><tr><td><b>article_length</b></td><td><code>short_200w</code>, <code>medium_400w</code>, <code>long_600w</code></td></tr><tr><td><b>narrative_type</b></td><td><code>event_report</code>, <code>feature_piece</code>, <code>analysis_commentary</code></td></tr></table>
+                <p class="sampling-info">Sampling: <b>100</b> items&nbsp;&nbsp;|&nbsp;&nbsp;target attrs: [1]&nbsp;&nbsp;|&nbsp;&nbsp;nuance attrs: [1, 2]</p>
               </div>
               <div class="task-col">
                 <h4>Rubric (3 criteria)</h4>
@@ -403,6 +459,36 @@
 </td></tr></table>
               </div>
             </div>
+            <div class="prompt-templates"><div class="prompt-templates-title">Prompt Templates</div><details class="prompt-detail"><summary class="prompt-summary"><span class="prompt-role teacher">Teacher</span><span class="prompt-phase">Phase 3 — data generation</span><span class="tpl-source override">task override</span></summary><pre class="tpl-body">You are generating synthetic benchmark data for a text summarisation task
+modelled on the BBC XSum dataset (one-sentence news summaries).
+
+Task description: <span class="tpl-var">{task_description}</span>
+Output format: <span class="tpl-var">{output_description}</span>
+Required target attributes (must be reflected in the article): <span class="tpl-var">{target_attributes}</span>
+Required nuance attributes (must shape the writing style): <span class="tpl-var">{nuanced_attributes}</span>
+
+Write a realistic BBC-style news article excerpt whose length matches article_length
+(short_200w ≈ 200 words, medium_400w ≈ 400 words, long_600w ≈ 600 words) and whose
+narrative style matches narrative_type (event_report = factual news event,
+feature_piece = human-interest story, analysis_commentary = opinion/analysis).
+The domain and complexity must match the target attributes.
+
+Then write a gold one-sentence summary (20–50 words) capturing the single most
+newsworthy fact from the article.
+
+Return ONLY valid JSON — no markdown fences, no explanation:
+{{&quot;prompt&quot;: &quot;&lt;article text&gt;&quot;, &quot;response&quot;: &quot;&lt;one-sentence summary&gt;&quot;}}
+</pre></details><details class="prompt-detail"><summary class="prompt-summary"><span class="prompt-role student">Student</span><span class="prompt-phase">Phase 4 — response collection</span><span class="tpl-source canonical">canonical</span></summary><pre class="tpl-body">Given the datapoint: <span class="tpl-var">{input}</span>
+Perform the following task: <span class="tpl-var">{task_description}</span>
+Produce the response: <span class="tpl-var">{output_description}</span></pre></details><details class="prompt-detail"><summary class="prompt-summary"><span class="prompt-role judge">Judge</span><span class="prompt-phase">Phase 5 — evaluation (evaluate_single)</span><span class="tpl-source canonical">canonical</span></summary><pre class="tpl-body">Evaluate the following student response for the task &quot;<span class="tpl-var">{task_description}</span>&quot; that produces &quot;<span class="tpl-var">{output_description}</span>&quot;, given input &quot;<span class="tpl-var">{input}</span>&quot; and known attributes <span class="tpl-var">{target_attributes}</span>.
+
+Reference answer: <span class="tpl-var">{reference_response}</span>
+Student response: <span class="tpl-var">{response}</span>
+
+Score the student response against each of the following rubric factors:
+<span class="tpl-var">{rubric}</span>
+
+Return only a JSON object where each key is a rubric factor name and each value is one of: &quot;High&quot;, &quot;Medium&quot;, or &quot;Low&quot;. Output only the JSON.</pre></details></div>
           </div>
         </details>
         <details class="task-card" >
@@ -421,8 +507,8 @@
             <div class="task-grid">
               <div class="task-col">
                 <h4>Target Attributes</h4><table class="attr-table"><tr><td><b>complexity</b></td><td><code>beginner</code>, <code>intermediate</code>, <code>advanced</code></td></tr><tr><td><b>snippet_type</b></td><td><code>function</code>, <code>class_definition</code>, <code>algorithm</code>, <code>database_query</code></td></tr></table>
-                <h4 style="margin-top:1em">Nuanced Attributes</h4><em>none</em>
-                <p class="sampling-info">Sampling: <b>100</b> items&nbsp;&nbsp;|&nbsp;&nbsp;target attrs: [1]&nbsp;&nbsp;|&nbsp;&nbsp;nuance attrs: [0]</p>
+                <h4 style="margin-top:1em">Nuanced Attributes</h4><table class="attr-table"><tr><td><b>doc_style</b></td><td><code>brief_one_liner</code>, <code>detailed_prose</code>, <code>step_by_step</code>, <code>api_reference</code></td></tr><tr><td><b>abstraction_level</b></td><td><code>implementation_details</code>, <code>behavioral_description</code>, <code>conceptual_overview</code></td></tr></table>
+                <p class="sampling-info">Sampling: <b>100</b> items&nbsp;&nbsp;|&nbsp;&nbsp;target attrs: [1]&nbsp;&nbsp;|&nbsp;&nbsp;nuance attrs: [1, 2]</p>
               </div>
               <div class="task-col">
                 <h4>Rubric (4 criteria)</h4>
@@ -433,6 +519,36 @@
 </td></tr></table>
               </div>
             </div>
+            <div class="prompt-templates"><div class="prompt-templates-title">Prompt Templates</div><details class="prompt-detail"><summary class="prompt-summary"><span class="prompt-role teacher">Teacher</span><span class="prompt-phase">Phase 3 — data generation</span><span class="tpl-source override">task override</span></summary><pre class="tpl-body">You are generating synthetic benchmark data for a code explanation task
+modelled on the CodeSearchNet Python benchmark (function-to-docstring).
+
+Task description: <span class="tpl-var">{task_description}</span>
+Output format: <span class="tpl-var">{output_description}</span>
+Required target attributes (must be reflected in the code snippet): <span class="tpl-var">{target_attributes}</span>
+Required nuance attributes (must shape the explanation style): <span class="tpl-var">{nuanced_attributes}</span>
+
+Write a realistic, self-contained Python function (8–40 lines) matching the specified
+complexity and snippet_type. The function must be syntactically valid Python.
+
+Then write a gold explanation matching doc_style (brief_one_liner = one sentence,
+detailed_prose = flowing paragraphs, step_by_step = numbered steps,
+api_reference = parameter/return table) and abstraction_level
+(implementation_details = how it works internally, behavioral_description = what it
+does from a caller&#x27;s perspective, conceptual_overview = high-level purpose).
+
+Return ONLY valid JSON — no markdown fences, no explanation:
+{{&quot;prompt&quot;: &quot;&lt;python function code&gt;&quot;, &quot;response&quot;: &quot;&lt;explanation&gt;&quot;}}
+</pre></details><details class="prompt-detail"><summary class="prompt-summary"><span class="prompt-role student">Student</span><span class="prompt-phase">Phase 4 — response collection</span><span class="tpl-source canonical">canonical</span></summary><pre class="tpl-body">Given the datapoint: <span class="tpl-var">{input}</span>
+Perform the following task: <span class="tpl-var">{task_description}</span>
+Produce the response: <span class="tpl-var">{output_description}</span></pre></details><details class="prompt-detail"><summary class="prompt-summary"><span class="prompt-role judge">Judge</span><span class="prompt-phase">Phase 5 — evaluation (evaluate_single)</span><span class="tpl-source canonical">canonical</span></summary><pre class="tpl-body">Evaluate the following student response for the task &quot;<span class="tpl-var">{task_description}</span>&quot; that produces &quot;<span class="tpl-var">{output_description}</span>&quot;, given input &quot;<span class="tpl-var">{input}</span>&quot; and known attributes <span class="tpl-var">{target_attributes}</span>.
+
+Reference answer: <span class="tpl-var">{reference_response}</span>
+Student response: <span class="tpl-var">{response}</span>
+
+Score the student response against each of the following rubric factors:
+<span class="tpl-var">{rubric}</span>
+
+Return only a JSON object where each key is a rubric factor name and each value is one of: &quot;High&quot;, &quot;Medium&quot;, or &quot;Low&quot;. Output only the JSON.</pre></details></div>
           </div>
         </details>
         <details class="task-card" >
@@ -451,8 +567,8 @@
             <div class="task-grid">
               <div class="task-col">
                 <h4>Target Attributes</h4><table class="attr-table"><tr><td><b>purpose</b></td><td><code>information_request</code>, <code>project_update</code>, <code>complaint_resolution</code>, <code>proposal</code>, <code>follow_up</code></td></tr><tr><td><b>length</b></td><td><code>brief</code>, <code>standard</code>, <code>detailed</code></td></tr></table>
-                <h4 style="margin-top:1em">Nuanced Attributes</h4><em>none</em>
-                <p class="sampling-info">Sampling: <b>100</b> items&nbsp;&nbsp;|&nbsp;&nbsp;target attrs: [1]&nbsp;&nbsp;|&nbsp;&nbsp;nuance attrs: [0]</p>
+                <h4 style="margin-top:1em">Nuanced Attributes</h4><table class="attr-table"><tr><td><b>formality</b></td><td><code>formal</code>, <code>semi_formal</code>, <code>casual</code></td></tr><tr><td><b>urgency</b></td><td><code>low</code>, <code>medium</code>, <code>high</code></td></tr></table>
+                <p class="sampling-info">Sampling: <b>100</b> items&nbsp;&nbsp;|&nbsp;&nbsp;target attrs: [1]&nbsp;&nbsp;|&nbsp;&nbsp;nuance attrs: [1, 2]</p>
               </div>
               <div class="task-col">
                 <h4>Rubric (4 criteria)</h4>
@@ -463,6 +579,34 @@
 </td></tr></table>
               </div>
             </div>
+            <div class="prompt-templates"><div class="prompt-templates-title">Prompt Templates</div><details class="prompt-detail"><summary class="prompt-summary"><span class="prompt-role teacher">Teacher</span><span class="prompt-phase">Phase 3 — data generation</span><span class="tpl-source override">task override</span></summary><pre class="tpl-body">You are generating synthetic benchmark data for an email composition task
+modelled on the AESLC (Annotated Enron Subject Line Corpus) benchmark.
+
+Task description: <span class="tpl-var">{task_description}</span>
+Output format: <span class="tpl-var">{output_description}</span>
+Required target attributes (must be reflected in the email scenario): <span class="tpl-var">{target_attributes}</span>
+Required nuance attributes (must shape tone and urgency): <span class="tpl-var">{nuanced_attributes}</span>
+
+Create a realistic workplace scenario description (1–2 sentences) as the prompt,
+then write a complete gold email (Subject, greeting, body, sign-off) that responds
+to the scenario. The email&#x27;s purpose and length must match the target attributes;
+the formality (formal = Dear Mr/Ms + full grammar, semi_formal = Hi Name + friendly
+but professional, casual = Hey Name + conversational) and urgency level must match
+the nuanced attributes.
+
+Return ONLY valid JSON — no markdown fences, no explanation:
+{{&quot;prompt&quot;: &quot;&lt;scenario description&gt;&quot;, &quot;response&quot;: &quot;&lt;complete email with Subject: line, greeting, body, sign-off&gt;&quot;}}
+</pre></details><details class="prompt-detail"><summary class="prompt-summary"><span class="prompt-role student">Student</span><span class="prompt-phase">Phase 4 — response collection</span><span class="tpl-source canonical">canonical</span></summary><pre class="tpl-body">Given the datapoint: <span class="tpl-var">{input}</span>
+Perform the following task: <span class="tpl-var">{task_description}</span>
+Produce the response: <span class="tpl-var">{output_description}</span></pre></details><details class="prompt-detail"><summary class="prompt-summary"><span class="prompt-role judge">Judge</span><span class="prompt-phase">Phase 5 — evaluation (evaluate_single)</span><span class="tpl-source canonical">canonical</span></summary><pre class="tpl-body">Evaluate the following student response for the task &quot;<span class="tpl-var">{task_description}</span>&quot; that produces &quot;<span class="tpl-var">{output_description}</span>&quot;, given input &quot;<span class="tpl-var">{input}</span>&quot; and known attributes <span class="tpl-var">{target_attributes}</span>.
+
+Reference answer: <span class="tpl-var">{reference_response}</span>
+Student response: <span class="tpl-var">{response}</span>
+
+Score the student response against each of the following rubric factors:
+<span class="tpl-var">{rubric}</span>
+
+Return only a JSON object where each key is a rubric factor name and each value is one of: &quot;High&quot;, &quot;Medium&quot;, or &quot;Low&quot;. Output only the JSON.</pre></details></div>
           </div>
         </details>
         <details class="task-card" >
@@ -481,8 +625,8 @@
             <div class="task-grid">
               <div class="task-col">
                 <h4>Target Attributes</h4><table class="attr-table"><tr><td><b>insight_depth</b></td><td><code>surface_observation</code>, <code>analytical_interpretation</code>, <code>predictive_inference</code></td></tr></table>
-                <h4 style="margin-top:1em">Nuanced Attributes</h4><em>none</em>
-                <p class="sampling-info">Sampling: <b>100</b> items&nbsp;&nbsp;|&nbsp;&nbsp;target attrs: [1]&nbsp;&nbsp;|&nbsp;&nbsp;nuance attrs: [0]</p>
+                <h4 style="margin-top:1em">Nuanced Attributes</h4><table class="attr-table"><tr><td><b>question_type</b></td><td><code>single_lookup</code>, <code>comparison</code>, <code>aggregation</code>, <code>temporal_trend</code></td></tr><tr><td><b>table_domain</b></td><td><code>sports</code>, <code>geography</code>, <code>history</code>, <code>science</code>, <code>finance</code></td></tr></table>
+                <p class="sampling-info">Sampling: <b>100</b> items&nbsp;&nbsp;|&nbsp;&nbsp;target attrs: [1]&nbsp;&nbsp;|&nbsp;&nbsp;nuance attrs: [1, 2]</p>
               </div>
               <div class="task-col">
                 <h4>Rubric (4 criteria)</h4>
@@ -493,6 +637,36 @@
 </td></tr></table>
               </div>
             </div>
+            <div class="prompt-templates"><div class="prompt-templates-title">Prompt Templates</div><details class="prompt-detail"><summary class="prompt-summary"><span class="prompt-role teacher">Teacher</span><span class="prompt-phase">Phase 3 — data generation</span><span class="tpl-source override">task override</span></summary><pre class="tpl-body">You are generating synthetic benchmark data for a data interpretation task
+modelled on the WikiTableQuestions benchmark (answering questions about HTML tables).
+
+Task description: <span class="tpl-var">{task_description}</span>
+Output format: <span class="tpl-var">{output_description}</span>
+Required target attributes (must be reflected in the question difficulty): <span class="tpl-var">{target_attributes}</span>
+Required nuance attributes (must shape the table and question style): <span class="tpl-var">{nuanced_attributes}</span>
+
+Create a realistic Markdown table (3–8 rows, 3–6 columns) on a topic matching the
+table_domain attribute. Then write a question whose answer_type matches question_type
+(single_lookup = find one cell value, comparison = compare two rows/columns,
+aggregation = count/sum/average, temporal_trend = describe change over time).
+The question&#x27;s insight_depth must match the target attribute.
+
+The prompt field must contain the question followed by the table:
+&quot;Question: &lt;question&gt;\\n\\nTable:\\n&lt;markdown table&gt;&quot;
+
+Return ONLY valid JSON — no markdown fences, no explanation:
+{{&quot;prompt&quot;: &quot;Question: &lt;question&gt;\\n\\nTable:\\n&lt;markdown table&gt;&quot;, &quot;response&quot;: &quot;&lt;concise gold answer&gt;&quot;}}
+</pre></details><details class="prompt-detail"><summary class="prompt-summary"><span class="prompt-role student">Student</span><span class="prompt-phase">Phase 4 — response collection</span><span class="tpl-source canonical">canonical</span></summary><pre class="tpl-body">Given the datapoint: <span class="tpl-var">{input}</span>
+Perform the following task: <span class="tpl-var">{task_description}</span>
+Produce the response: <span class="tpl-var">{output_description}</span></pre></details><details class="prompt-detail"><summary class="prompt-summary"><span class="prompt-role judge">Judge</span><span class="prompt-phase">Phase 5 — evaluation (evaluate_single)</span><span class="tpl-source canonical">canonical</span></summary><pre class="tpl-body">Evaluate the following student response for the task &quot;<span class="tpl-var">{task_description}</span>&quot; that produces &quot;<span class="tpl-var">{output_description}</span>&quot;, given input &quot;<span class="tpl-var">{input}</span>&quot; and known attributes <span class="tpl-var">{target_attributes}</span>.
+
+Reference answer: <span class="tpl-var">{reference_response}</span>
+Student response: <span class="tpl-var">{response}</span>
+
+Score the student response against each of the following rubric factors:
+<span class="tpl-var">{rubric}</span>
+
+Return only a JSON object where each key is a rubric factor name and each value is one of: &quot;High&quot;, &quot;Medium&quot;, or &quot;Low&quot;. Output only the JSON.</pre></details></div>
           </div>
         </details>
   </div>
@@ -596,7 +770,7 @@
     <p><b>Batch API enabled:</b> <span class="batch-badge">openai/data_generation</span>, <span class="batch-badge">openai/response_collection</span>, <span class="batch-badge">openai/evaluation</span>, <span class="batch-badge">anthropic/data_generation</span>, <span class="batch-badge">anthropic/response_collection</span>, <span class="batch-badge">anthropic/evaluation</span>, <span class="batch-badge">gemini/data_generation</span>, <span class="batch-badge">gemini/response_collection</span>, <span class="batch-badge">gemini/evaluation</span> &nbsp;(50% cost reduction per API provider)</p>
     <br>
     <h4 style="font-size:0.85rem;color:#374151;margin-bottom:8px">Per-model call quotas</h4>
-    <table class="quota-table"><thead><tr><th>Model</th><th>Max calls</th></tr></thead><tbody><tr><td>gpt-4o</td><td>20,000</td></tr><tr><td>gpt-4o-mini</td><td>20,000</td></tr><tr><td>claude-sonnet-4-6</td><td>7,000</td></tr><tr><td>claude-3-5-haiku</td><td>7,000</td></tr><tr><td>gemini-2.0-flash</td><td>20,000</td></tr><tr><td>llama-3.3-70b</td><td>7,000</td></tr><tr><td>llama-3.1-8b</td><td>7,000</td></tr><tr><td>mistral-small</td><td>7,000</td></tr><tr><td>deepseek-v3</td><td>7,000</td></tr><tr><td>qwen2.5-72b</td><td>7,000</td></tr></tbody></table>
+    <table class="quota-table"><thead><tr><th>Model</th><th>Max calls</th></tr></thead><tbody><tr><td>gpt-4o</td><td>27,000</td></tr><tr><td>gpt-4o-mini</td><td>27,000</td></tr><tr><td>claude-sonnet-4-6</td><td>27,000</td></tr><tr><td>claude-3-5-haiku</td><td>27,000</td></tr><tr><td>gemini-2.0-flash</td><td>27,000</td></tr><tr><td>llama-3.3-70b</td><td>3,000</td></tr><tr><td>llama-3.1-8b</td><td>2,500</td></tr><tr><td>mistral-small</td><td>2,500</td></tr><tr><td>deepseek-v3</td><td>2,500</td></tr><tr><td>qwen2.5-72b</td><td>2,500</td></tr></tbody></table>
   </div>
 
 </div>

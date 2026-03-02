@@ -51,6 +51,36 @@ def _esc(s: str) -> str:
     return _html_module.escape(str(s))
 
 
+def _highlight_vars(template: str) -> str:
+    """HTML-escape a template string and wrap ``{variable}`` placeholders in a styled span."""
+    import re
+    return re.sub(r'\{(\w+)\}', r'<span class="tpl-var">{\1}</span>', _esc(template))
+
+
+def _resolve_prompt(prompt_id: str, prompt_lib: dict) -> tuple[str, str]:
+    """Return ``(template_text, source_label)`` for *prompt_id*.
+
+    Resolution order mirrors ``prompts.get_prompt``:
+    1. task-level override from *prompt_lib*
+    2. canonical ``TEMPLATES[prompt_id]``
+
+    *source_label* is ``'task override'`` or ``'canonical'``.
+    """
+    try:
+        from ..prompts import TEMPLATES as _CANON
+    except Exception:
+        _CANON = {}
+    if prompt_id in prompt_lib:
+        return prompt_lib[prompt_id], 'task override'
+    return _CANON.get(prompt_id, '(template unavailable)'), 'canonical'
+
+
+def _model_overrides_for(prompt_id: str, prompt_lib: dict) -> list[tuple[str, str]]:
+    """Return list of ``(model_name, template)`` for model-specific overrides of *prompt_id*."""
+    prefix = f'{prompt_id}.'
+    return [(k[len(prefix):], v) for k, v in prompt_lib.items() if k.startswith(prefix)]
+
+
 def _call_budget(cfg) -> dict:
     """Return {phase: (calls, per_model_calls)} estimated call counts."""
     teachers = cfg.get_models_by_role("teacher")
@@ -437,6 +467,58 @@ def _render_html(cfg, config_path: str, probe_results: dict | None = None) -> st
 
         eval_mode_badge = f'<span class="eval-badge">{_esc(task.evaluation_mode)}</span>'
 
+        # --- Prompt templates block (pre-computed before the f-string) ---
+        _plib = getattr(task, 'prompt_library', {}) or {}
+        _eval_pid = ('evaluate_per_factor'
+                     if getattr(task, 'evaluation_mode', 'single') == 'per_factor'
+                     else 'evaluate_single')
+        _all_benchmark = all(t.interface == 'benchmark' for t in teachers)
+
+        def _pb(role_cls: str, role_lbl: str, phase_lbl: str, pid: str, skip: str = '') -> str:
+            _tpl, _src = _resolve_prompt(pid, _plib)
+            _ovr = _model_overrides_for(pid, _plib)
+            _sc = 'override' if _src == 'task override' else 'canonical'
+            _body = (
+                f'<div class="tpl-skipped">{skip}</div>' if skip
+                else f'<pre class="tpl-body">{_highlight_vars(_tpl)}</pre>'
+            )
+            _ovr_html = ''
+            if _ovr:
+                _items = ''.join(
+                    f'<div class="tpl-model-override-item">'
+                    f'<span class="tpl-model-name">{_esc(mn)}</span>'
+                    f'<pre class="tpl-body" style="margin-top:4px;font-size:0.76rem">'
+                    f'{_highlight_vars(tl)}</pre>'
+                    f'</div>'
+                    for mn, tl in _ovr
+                )
+                _ovr_html = (
+                    f'<div class="tpl-model-overrides">'
+                    f'<b style="font-size:0.78rem;color:#92400e">Model-specific overrides:</b>'
+                    f'{_items}</div>'
+                )
+            return (
+                f'<details class="prompt-detail">'
+                f'<summary class="prompt-summary">'
+                f'<span class="prompt-role {role_cls}">{role_lbl}</span>'
+                f'<span class="prompt-phase">{phase_lbl}</span>'
+                f'<span class="tpl-source {_sc}">{_esc(_src)}</span>'
+                f'</summary>{_body}{_ovr_html}</details>'
+            )
+
+        _t_skip = (
+            'All teachers are benchmark sources — Phase&nbsp;3 is pre-ingested; '
+            '<em>sample</em> prompt not used for benchmark teachers.'
+        ) if _all_benchmark else ''
+        prompt_templates_html = (
+            '<div class="prompt-templates">'
+            '<div class="prompt-templates-title">Prompt Templates</div>'
+            + _pb('teacher', 'Teacher', 'Phase 3 — data generation', 'sample', _t_skip)
+            + _pb('student', 'Student', 'Phase 4 — response collection', 'test')
+            + _pb('judge', 'Judge', f'Phase 5 — evaluation ({_eval_pid})', _eval_pid)
+            + '</div>'
+        )
+
         tasks_html += f"""
         <details class="task-card" {'open' if i == 0 else ''}>
           <summary class="task-summary">
@@ -462,6 +544,7 @@ def _render_html(cfg, config_path: str, probe_results: dict | None = None) -> st
                 {rubric_html}
               </div>
             </div>
+            {prompt_templates_html}
           </div>
         </details>"""
 
@@ -667,6 +750,62 @@ def _render_html(cfg, config_path: str, probe_results: dict | None = None) -> st
       background: #f0fdf4; border-left: 3px solid #22c55e;
       padding: 6px 12px; margin: 8px 0; font-size: 0.87rem;
       color: #166534; border-radius: 0 4px 4px 0;
+    }}
+
+    /* Prompt templates */
+    .prompt-templates {{ margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 16px; }}
+    .prompt-templates-title {{
+      font-size: 0.78rem; text-transform: uppercase; letter-spacing: .05em;
+      color: #94a3b8; margin-bottom: 10px; font-weight: 700;
+    }}
+    .prompt-detail {{
+      border: 1px solid #e2e8f0; border-radius: 6px;
+      margin-bottom: 8px; overflow: hidden;
+    }}
+    .prompt-summary {{
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 14px; background: #f8fafc; cursor: pointer;
+      list-style: none; font-size: 0.86rem; font-weight: 500;
+    }}
+    .prompt-summary:hover {{ background: #f0f4ff; }}
+    .prompt-summary::-webkit-details-marker {{ display: none; }}
+    .prompt-summary::before {{ content: "▶"; font-size: 0.65rem; color: #9ca3af; }}
+    details[open] > .prompt-summary::before {{ content: "▼"; }}
+    .prompt-role {{
+      display: inline-block; padding: 1px 9px; border-radius: 999px;
+      font-size: 0.73rem; font-weight: 700; flex-shrink: 0;
+    }}
+    .prompt-role.teacher {{ background: #dbeafe; color: #1d4ed8; }}
+    .prompt-role.student {{ background: #dcfce7; color: #15803d; }}
+    .prompt-role.judge   {{ background: #f3e8ff; color: #7e22ce; }}
+    .prompt-phase {{ color: #64748b; font-size: 0.82rem; flex: 1; }}
+    .tpl-source {{
+      font-size: 0.73rem; padding: 1px 8px; border-radius: 4px; font-weight: 600; flex-shrink: 0;
+    }}
+    .tpl-source.override  {{ background: #fef3c7; color: #92400e; }}
+    .tpl-source.canonical {{ background: #f1f5f9; color: #64748b; }}
+    .tpl-body {{
+      padding: 14px 16px; margin: 0;
+      font-family: "SF Mono", Consolas, "Courier New", monospace;
+      font-size: 0.79rem; line-height: 1.65; background: #fafbfc;
+      white-space: pre-wrap; word-break: break-word;
+      border-top: 1px solid #e2e8f0; color: #1e293b;
+    }}
+    .tpl-var {{ color: #2563eb; font-weight: 700; }}
+    .tpl-model-overrides {{
+      border-top: 1px solid #fed7aa; background: #fff7ed;
+      padding: 8px 16px; font-size: 0.78rem;
+    }}
+    .tpl-model-override-item {{ margin-bottom: 4px; }}
+    .tpl-model-name {{
+      display: inline-block; background: #fde68a; color: #78350f;
+      padding: 0 6px; border-radius: 4px; font-weight: 600;
+      margin-right: 6px; font-size: 0.72rem;
+    }}
+    .tpl-skipped {{
+      padding: 10px 16px; font-size: 0.80rem; color: #9ca3af;
+      font-style: italic; background: #fafafa;
+      border-top: 1px solid #f1f5f9;
     }}
 
     /* Quota */
