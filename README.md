@@ -285,9 +285,9 @@ YAML Config  →  Phase 1: Attribute Mapping   (teachers infer task dimensions)
 |-----------|------:|----:|
 | `Code/runner` — pipeline engine | 59 `.py` | 15,087 |
 | `Code/analyzer` — analysis & reports | 21 `.py` | 9,554 |
-| `Public/benchmark` — dataset utilities | 15 `.py` | 3,269 |
-| `Tests` — test suites | 20 `.py` | 13,042 |
-| `docs` — documentation | 34 `.md` | 11,994 |
+| `Public/benchmark` — dataset utilities | 18 `.py` | 3,692 |
+| `Tests` — test suites | 21 `.py` | 13,769 |
+| `docs` — documentation | 35 `.md` | 12,489 |
 
 ---
 
