@@ -100,11 +100,119 @@ def _batch_settings(cfg) -> list[tuple[str, str]]:
 
 
 # ---------------------------------------------------------------------------
+# Cost estimate rendering helper
+# ---------------------------------------------------------------------------
+
+def _render_cost_section(cost_report: dict | None) -> str:
+    """Render the Cost Estimate HTML section from an ``estimate_cost_static`` report.
+
+    Returns an empty string when cost estimation failed (report is None).
+    """
+    if not cost_report:
+        return ""
+
+    total = cost_report['total_cost_usd']
+    savings = cost_report.get('batch_savings_usd', 0.0)
+
+    # Per-phase rows
+    phase_rows = ""
+    for pid, pdata in cost_report['per_phase'].items():
+        if pdata['calls'] == 0:
+            cls = ' class="zero-row"'
+            cost_str = "—"
+            calls_str = "—"
+            saving_str = "—"
+        else:
+            cls = ""
+            cost_str = f"${pdata['cost_usd']:.2f}"
+            calls_str = f"{pdata['calls']:,}"
+            s = pdata.get('batch_savings_usd', 0.0)
+            saving_str = f"<span class='saving'>−${s:.2f}</span>" if s > 0.01 else "—"
+        phase_rows += (
+            f"<tr{cls}>"
+            f"<td class='phase-name'>{_esc(pid.replace('_',' ').title())}</td>"
+            f"<td class='calls-count'>{calls_str}</td>"
+            f"<td class='cost-val'>{cost_str}</td>"
+            f"<td class='saving-val'>{saving_str}</td>"
+            f"</tr>"
+        )
+
+    # Provider rows (sorted by cost desc, already sorted in report)
+    provider_rows = ""
+    for iface, pdata in cost_report['per_provider'].items():
+        icon = _IFACE_ICONS.get(iface, '⚙️')
+        batch_tag = (
+            '<span class="batch-badge" style="font-size:0.72rem">batch</span>'
+            if pdata['batch'] else ''
+        )
+        models_str = _esc(', '.join(pdata['models']))
+        provider_rows += (
+            f"<tr>"
+            f"<td>{icon} <b>{_esc(iface)}</b> {batch_tag}</td>"
+            f"<td class='calls-count'>{pdata['calls']:,}</td>"
+            f"<td class='cost-val'>${pdata['cost_usd']:.2f}</td>"
+            f"<td class='small-text'>{models_str}</td>"
+            f"</tr>"
+        )
+
+    savings_note = (
+        f'<p class="savings-note">💚 Batch API saves an estimated '
+        f'<b>${savings:.2f}</b> vs. real-time pricing '
+        f'({100*(savings/(total+savings)):.0f}% discount applied).</p>'
+        if savings > 0.01 else ""
+    )
+
+    return f"""
+  <div class="section">
+    <div class="section-title"><span class="section-icon">💰</span> Estimated Cost (heuristic, no sample calls)</div>
+    <p class="cost-disclaimer">
+      Estimates use average token-count heuristics and current prices from
+      <code>benchmark/provider_pricing.yaml</code>. Actual cost may vary by ±30%.
+    </p>
+    {savings_note}
+    <div class="cost-grid">
+      <div class="cost-col">
+        <h4>Per Phase</h4>
+        <table class="cost-table">
+          <thead><tr>
+            <th>Phase</th><th style="text-align:right">Calls</th>
+            <th style="text-align:right">Cost</th>
+            <th style="text-align:right">Batch saving</th>
+          </tr></thead>
+          <tbody>{phase_rows}</tbody>
+          <tfoot><tr class="total-row">
+            <td colspan="2"><b>Total</b></td>
+            <td class="cost-val"><b>${total:.2f}</b></td>
+            <td class="saving-val">{'<span class="saving">−$'+f'{savings:.2f}</span>' if savings > 0.01 else '—'}</td>
+          </tr></tfoot>
+        </table>
+      </div>
+      <div class="cost-col">
+        <h4>Per Provider</h4>
+        <table class="cost-table">
+          <thead><tr>
+            <th>Provider</th><th style="text-align:right">Calls</th>
+            <th style="text-align:right">Cost</th>
+            <th>Models</th>
+          </tr></thead>
+          <tbody>{provider_rows}</tbody>
+        </table>
+      </div>
+    </div>
+  </div>"""
+
+
+# ---------------------------------------------------------------------------
 # HTML generation
 # ---------------------------------------------------------------------------
 
 def _render_html(cfg, config_path: str) -> str:
     from ..config import PHASE_IDS
+    try:
+        from ..interfaces.cost_estimator import estimate_cost_static
+        cost_report = estimate_cost_static(cfg)
+    except Exception:
+        cost_report = None
 
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     exp = cfg.experiment
@@ -451,6 +559,41 @@ def _render_html(cfg, config_path: str) -> str:
     }}
     .quota-table th {{ background: #f0f4ff; font-size: 0.78rem; text-transform: uppercase; }}
 
+    /* Cost estimate section */
+    .cost-disclaimer {{
+      font-size: 0.82rem; color: #6b7280; margin-bottom: 10px;
+    }}
+    .savings-note {{
+      background: #f0fdf4; border-left: 3px solid #22c55e;
+      padding: 7px 14px; margin: 0 0 14px; font-size: 0.87rem;
+      color: #166534; border-radius: 0 4px 4px 0;
+    }}
+    .cost-grid {{
+      display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    }}
+    @media (max-width: 800px) {{ .cost-grid {{ grid-template-columns: 1fr; }} }}
+    .cost-col h4 {{
+      font-size: 0.82rem; text-transform: uppercase; letter-spacing: .05em;
+      color: #6b7280; margin-bottom: 8px; font-weight: 600;
+    }}
+    .cost-table {{ width: 100%; border-collapse: collapse; font-size: 0.88rem; }}
+    .cost-table th {{
+      background: #f0f4ff; color: #374151; font-size: 0.76rem;
+      text-transform: uppercase; letter-spacing: .04em;
+      padding: 6px 10px; text-align: left; border-bottom: 2px solid #dbeafe;
+    }}
+    .cost-table td {{ padding: 7px 10px; border-bottom: 1px solid #f1f5f9;
+                      vertical-align: top; }}
+    .cost-table tr.zero-row td {{ color: #9ca3af; }}
+    .cost-val {{ text-align: right; font-family: monospace; font-weight: 600;
+                 white-space: nowrap; }}
+    .saving-val {{ text-align: right; font-family: monospace; white-space: nowrap; }}
+    .saving {{ color: #16a34a; font-weight: 600; }}
+    .cost-table tfoot .total-row td {{
+      font-weight: 700; background: #f8fafc;
+      border-top: 2px solid #dbeafe;
+    }}
+
     /* Footer */
     .footer {{
       text-align: center; color: #94a3b8; font-size: 0.78rem; margin-top: 40px;
@@ -494,6 +637,11 @@ def _render_html(cfg, config_path: str) -> str:
     <div class="val">{total_calls:,}</div>
     <div class="lbl">LLM Calls (est.)</div>
   </div>
+  {(
+    f'<div class="stat"><div class="val">'
+    f'${cost_report["total_cost_usd"]:.2f}'
+    f'</div><div class="lbl">Est. Cost (USD)</div></div>'
+  ) if cost_report else ''}
 </div>
 
 <div class="container">
@@ -537,6 +685,9 @@ def _render_html(cfg, config_path: str) -> str:
       </tbody>
     </table>
   </div>
+
+  <!-- ── Cost Estimate ── -->
+  {_render_cost_section(cost_report)}
 
   <!-- ── Batch & Quota ── -->
   <div class="section">

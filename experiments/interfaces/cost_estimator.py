@@ -147,9 +147,11 @@ _FALLBACK_PRICE_TABLE: dict[str, tuple[float, float]] = {
 
 #: Hardcoded fallback batch discounts.
 _FALLBACK_BATCH_DISCOUNT: dict[str, float] = {
-    'openai':	   0.50,
-    'anthropic': 0.50,
-    'gemini':	   0.50,   # Gemini Batch API (50% off) — updated 2026-03
+    'openai':       0.50,
+    'anthropic':    0.50,
+    'gemini':       0.50,        # Gemini Batch API (50% off) — updated 2026-03
+    'azure_openai': 0.50,        # Azure Global Batch API (50% off) — CoEval AzureBatchRunner
+    # 'bedrock': 0.50            # Bedrock Batch ~50% off natively but runner not yet implemented
 }
 
 # Attempt to load from YAML; fall back to hardcoded defaults.
@@ -771,6 +773,165 @@ def _heuristic_tps(model_cfg: 'ModelConfig') -> float:
     if iface in ('bedrock', 'azure_openai', 'azure_ai', 'vertex'):
         return 70.0
     return 15.0   # HuggingFace on typical GPU
+
+
+# ---------------------------------------------------------------------------
+# Static (no-I/O) heuristic estimator — used by `coeval describe`
+# ---------------------------------------------------------------------------
+
+def estimate_cost_static(cfg: 'CoEvalConfig') -> dict:
+    """Return a cost estimate dict using only heuristics — no LLM calls, no I/O.
+
+    Designed for lightweight use by ``coeval describe`` and other tooling that
+    needs a cost preview without side effects (no files written, no printing).
+
+    Parameters
+    ----------
+    cfg:
+        Loaded experiment configuration.
+
+    Returns
+    -------
+    dict with keys:
+        ``total_cost_usd``   : float
+        ``per_phase``        : dict[phase_id, {"cost_usd": float, "calls": int}]
+        ``per_provider``     : dict[interface, {"cost_usd": float, "calls": int, "batch": bool}]
+        ``per_model``        : dict[model_name, {"cost_usd": float, "calls": int, "interface": str}]
+        ``batch_savings_usd``: float — amount saved vs. full-price (no batch)
+    """
+    # Token constants (same as in estimate_experiment_cost)
+    _TOKENS = {
+        'teacher_prompt': 350,
+        'teacher_output': 250,
+        'student_input':  200,
+        'student_output': 180,
+        'judge_prompt':   600,
+        'judge_output':    80,
+        'attr_prompt':    250,
+        'attr_output':    200,
+        'rubric_prompt':  300,
+        'rubric_output':  200,
+    }
+
+    teachers = cfg.get_models_by_role('teacher')
+    students = cfg.get_models_by_role('student')
+    judges   = cfg.get_models_by_role('judge')
+    active_teachers = [t for t in teachers if t.interface != 'benchmark']
+
+    per_phase:    dict[str, dict] = {
+        p: {'cost_usd': 0.0, 'calls': 0, 'cost_usd_no_batch': 0.0}
+        for p in ('attribute_mapping', 'rubric_mapping',
+                  'data_generation', 'response_collection', 'evaluation')
+    }
+    per_provider: dict[str, dict] = {}
+    per_model:    dict[str, dict] = {}
+
+    def _add(phase_id: str, model_cfg: 'ModelConfig',
+             calls: int, in_tok: int, out_tok: int) -> None:
+        pi, po  = get_prices(model_cfg)
+        iface   = model_cfg.interface
+        use_bat = cfg.use_batch(iface, phase_id)
+        disc    = BATCH_DISCOUNT.get(iface, 1.0) if use_bat else 1.0
+        cost    = (pi * in_tok + po * out_tok) / 1_000_000 * disc
+        cost_nb = (pi * in_tok + po * out_tok) / 1_000_000  # no-batch reference
+
+        per_phase[phase_id]['cost_usd']          += cost
+        per_phase[phase_id]['cost_usd_no_batch'] += cost_nb
+        per_phase[phase_id]['calls']             += calls
+
+        name = model_cfg.name
+        if iface not in per_provider:
+            per_provider[iface] = {'cost_usd': 0.0, 'calls': 0,
+                                   'batch': False, 'models': []}
+        per_provider[iface]['cost_usd'] += cost
+        per_provider[iface]['calls']    += calls
+        if use_bat:
+            per_provider[iface]['batch'] = True
+        if name not in per_provider[iface]['models']:
+            per_provider[iface]['models'].append(name)
+
+        if name not in per_model:
+            per_model[name] = {'cost_usd': 0.0, 'calls': 0,
+                               'interface': iface, 'roles': model_cfg.roles}
+        per_model[name]['cost_usd'] += cost
+        per_model[name]['calls']    += calls
+
+    for task in cfg.tasks:
+        n = task.sampling.total
+
+        # Phase 1 — attribute mapping (only if 'auto')
+        if isinstance(task.target_attributes, str) and task.target_attributes != 'complete':
+            for t in active_teachers:
+                _add('attribute_mapping', t, 1,
+                     _TOKENS['attr_prompt'], _TOKENS['attr_output'])
+
+        # Phase 2 — rubric mapping (only if 'auto')
+        if isinstance(task.rubric, str):
+            for t in active_teachers:
+                _add('rubric_mapping', t, 1,
+                     _TOKENS['rubric_prompt'], _TOKENS['rubric_output'])
+
+        # Phase 3 — data generation (active teachers only)
+        for t in active_teachers:
+            _add('data_generation', t, n,
+                 _TOKENS['teacher_prompt'] * n, _TOKENS['teacher_output'] * n)
+
+        # Phase 4 — response collection (all teachers incl. benchmark)
+        for _t in teachers:
+            for s in students:
+                _add('response_collection', s, n,
+                     _TOKENS['student_input'] * n, _TOKENS['student_output'] * n)
+
+        # Phase 5 — evaluation
+        n_factors = len(task.rubric) if isinstance(task.rubric, dict) else 4
+        cpr = n_factors if task.evaluation_mode == 'per_factor' else 1
+        for _t in teachers:
+            for _s in students:
+                for j in judges:
+                    calls = n * cpr
+                    _add('evaluation', j, calls,
+                         _TOKENS['judge_prompt'] * calls,
+                         _TOKENS['judge_output'] * calls)
+
+    total_cost    = sum(p['cost_usd']          for p in per_phase.values())
+    total_no_bat  = sum(p['cost_usd_no_batch'] for p in per_phase.values())
+    batch_savings = max(0.0, total_no_bat - total_cost)
+
+    return {
+        'total_cost_usd':    round(total_cost, 2),
+        'batch_savings_usd': round(batch_savings, 2),
+        'per_phase': {
+            pid: {
+                'cost_usd': round(p['cost_usd'], 2),
+                'calls':    p['calls'],
+                'batch_savings_usd': round(
+                    max(0.0, p['cost_usd_no_batch'] - p['cost_usd']), 2),
+            }
+            for pid, p in per_phase.items()
+        },
+        'per_provider': {
+            iface: {
+                'cost_usd': round(p['cost_usd'], 2),
+                'calls':    p['calls'],
+                'batch':    p['batch'],
+                'models':   p['models'],
+            }
+            for iface, p in sorted(
+                per_provider.items(),
+                key=lambda kv: kv[1]['cost_usd'], reverse=True)
+        },
+        'per_model': {
+            name: {
+                'cost_usd':  round(m['cost_usd'], 2),
+                'calls':     m['calls'],
+                'interface': m['interface'],
+                'roles':     m['roles'],
+            }
+            for name, m in sorted(
+                per_model.items(),
+                key=lambda kv: kv[1]['cost_usd'], reverse=True)
+        },
+    }
 
 
 # ---------------------------------------------------------------------------

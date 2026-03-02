@@ -163,6 +163,41 @@
     }
     .quota-table th { background: #f0f4ff; font-size: 0.78rem; text-transform: uppercase; }
 
+    /* Cost estimate section */
+    .cost-disclaimer {
+      font-size: 0.82rem; color: #6b7280; margin-bottom: 10px;
+    }
+    .savings-note {
+      background: #f0fdf4; border-left: 3px solid #22c55e;
+      padding: 7px 14px; margin: 0 0 14px; font-size: 0.87rem;
+      color: #166534; border-radius: 0 4px 4px 0;
+    }
+    .cost-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    }
+    @media (max-width: 800px) { .cost-grid { grid-template-columns: 1fr; } }
+    .cost-col h4 {
+      font-size: 0.82rem; text-transform: uppercase; letter-spacing: .05em;
+      color: #6b7280; margin-bottom: 8px; font-weight: 600;
+    }
+    .cost-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    .cost-table th {
+      background: #f0f4ff; color: #374151; font-size: 0.76rem;
+      text-transform: uppercase; letter-spacing: .04em;
+      padding: 6px 10px; text-align: left; border-bottom: 2px solid #dbeafe;
+    }
+    .cost-table td { padding: 7px 10px; border-bottom: 1px solid #f1f5f9;
+                      vertical-align: top; }
+    .cost-table tr.zero-row td { color: #9ca3af; }
+    .cost-val { text-align: right; font-family: monospace; font-weight: 600;
+                 white-space: nowrap; }
+    .saving-val { text-align: right; font-family: monospace; white-space: nowrap; }
+    .saving { color: #16a34a; font-weight: 600; }
+    .cost-table tfoot .total-row td {
+      font-weight: 700; background: #f8fafc;
+      border-top: 2px solid #dbeafe;
+    }
+
     /* Footer */
     .footer {
       text-align: center; color: #94a3b8; font-size: 0.78rem; margin-top: 40px;
@@ -176,7 +211,7 @@
   <div class="exp-id">experiment: <b>paper-dual-track-v1</b></div>
   <div class="meta">
     Config: <code style="background:rgba(255,255,255,.15);color:#fff">E:\Projects\CoEval\main\benchmark\paper_dual_track.yaml</code>
-    &nbsp;&nbsp;|&nbsp;&nbsp;Generated: 2026-03-02 01:41 UTC
+    &nbsp;&nbsp;|&nbsp;&nbsp;Generated: 2026-03-02 02:03 UTC
     &nbsp;&nbsp;|&nbsp;&nbsp;Storage: <code style="background:rgba(255,255,255,.15);color:#fff">./benchmark/runs</code>
   </div>
 </div>
@@ -206,6 +241,7 @@
     <div class="val">121,600</div>
     <div class="lbl">LLM Calls (est.)</div>
   </div>
+  <div class="stat"><div class="val">$71.54</div><div class="lbl">Est. Cost (USD)</div></div>
 </div>
 
 <div class="container">
@@ -485,6 +521,46 @@
         </tr>
       </tbody>
     </table>
+  </div>
+
+  <!-- ── Cost Estimate ── -->
+  
+  <div class="section">
+    <div class="section-title"><span class="section-icon">💰</span> Estimated Cost (heuristic, no sample calls)</div>
+    <p class="cost-disclaimer">
+      Estimates use average token-count heuristics and current prices from
+      <code>benchmark/provider_pricing.yaml</code>. Actual cost may vary by ±30%.
+    </p>
+    <p class="savings-note">💚 Batch API saves an estimated <b>$70.75</b> vs. real-time pricing (50% discount applied).</p>
+    <div class="cost-grid">
+      <div class="cost-col">
+        <h4>Per Phase</h4>
+        <table class="cost-table">
+          <thead><tr>
+            <th>Phase</th><th style="text-align:right">Calls</th>
+            <th style="text-align:right">Cost</th>
+            <th style="text-align:right">Batch saving</th>
+          </tr></thead>
+          <tbody><tr class="zero-row"><td class='phase-name'>Attribute Mapping</td><td class='calls-count'>—</td><td class='cost-val'>—</td><td class='saving-val'>—</td></tr><tr class="zero-row"><td class='phase-name'>Rubric Mapping</td><td class='calls-count'>—</td><td class='cost-val'>—</td><td class='saving-val'>—</td></tr><tr><td class='phase-name'>Data Generation</td><td class='calls-count'>1,600</td><td class='cost-val'>$0.80</td><td class='saving-val'><span class='saving'>−$0.74</span></td></tr><tr><td class='phase-name'>Response Collection</td><td class='calls-count'>20,000</td><td class='cost-val'>$7.44</td><td class='saving-val'><span class='saving'>−$6.71</span></td></tr><tr><td class='phase-name'>Evaluation</td><td class='calls-count'>100,000</td><td class='cost-val'>$63.30</td><td class='saving-val'><span class='saving'>−$63.30</span></td></tr></tbody>
+          <tfoot><tr class="total-row">
+            <td colspan="2"><b>Total</b></td>
+            <td class="cost-val"><b>$71.54</b></td>
+            <td class="saving-val"><span class="saving">−$70.75</span></td>
+          </tr></tfoot>
+        </table>
+      </div>
+      <div class="cost-col">
+        <h4>Per Provider</h4>
+        <table class="cost-table">
+          <thead><tr>
+            <th>Provider</th><th style="text-align:right">Calls</th>
+            <th style="text-align:right">Cost</th>
+            <th>Models</th>
+          </tr></thead>
+          <tbody><tr><td>🟠 <b>anthropic</b> <span class="batch-badge" style="font-size:0.72rem">batch</span></td><td class='calls-count'>44,000</td><td class='cost-val'>$42.18</td><td class='small-text'>claude-sonnet-4-6, claude-3-5-haiku</td></tr><tr><td>🟢 <b>openai</b> <span class="batch-badge" style="font-size:0.72rem">batch</span></td><td class='calls-count'>44,800</td><td class='cost-val'>$27.53</td><td class='small-text'>gpt-4o, gpt-4o-mini</td></tr><tr><td>🔵 <b>gemini</b> <span class="batch-badge" style="font-size:0.72rem">batch</span></td><td class='calls-count'>22,400</td><td class='cost-val'>$1.04</td><td class='small-text'>gemini-2.0-flash</td></tr><tr><td>🔴 <b>openrouter</b> </td><td class='calls-count'>10,400</td><td class='cost-val'>$0.79</td><td class='small-text'>llama-3.3-70b, llama-3.1-8b, mistral-small, deepseek-v3, qwen2.5-72b</td></tr></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <!-- ── Batch & Quota ── -->

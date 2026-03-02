@@ -102,12 +102,15 @@ providers:
       google/gemini-flash-1.5:              {input: 0.075, output: 0.30}
 
   # --------------------------------------------------------------------------
-  # AWS Bedrock  (no native batch discount; IAM or native API key)
+  # AWS Bedrock  (Batch Inference ~50% off natively, but NOT yet implemented
+  #               in CoEval — no bedrock_batch.py; set discount=1.00 until done)
   # https://aws.amazon.com/bedrock/pricing/
+  # Bedrock batch supports: Claude models, Amazon Nova, Llama, Mistral, AI21
+  # TODO: implement BedrockBatchRunner to unlock the ~50% discount
   # --------------------------------------------------------------------------
   bedrock:
     interface: bedrock
-    batch_discount: 1.00
+    batch_discount: 1.00   # update to 0.50 once BedrockBatchRunner is implemented
     models:
       anthropic.claude-3-5-haiku-20241022-v1:   {input: 0.80,  output: 4.00}
       anthropic.claude-3-5-sonnet-20241022-v2:  {input: 3.00,  output: 15.00}
@@ -119,12 +122,14 @@ providers:
       mistral.mistral-large-2402-v1:            {input: 4.00,  output: 12.00}
 
   # --------------------------------------------------------------------------
-  # Azure OpenAI  (no batch discount in most regions; PTU only)
+  # Azure OpenAI  (Global Batch: 50% off; CoEval AzureBatchRunner implemented)
   # https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/
+  # Batch supported: GPT-4o, GPT-4o-mini, GPT-4.1 family
+  # Enable in experiment config: batch: azure_openai: {response_collection: true, ...}
   # --------------------------------------------------------------------------
   azure_openai:
     interface: azure_openai
-    batch_discount: 1.00
+    batch_discount: 0.50
     models:
       gpt-4o:      {input: 2.50,  output: 10.00}
       gpt-4o-mini: {input: 0.165, output: 0.66}
@@ -211,27 +216,63 @@ auto_routing:
   amazon.nova-micro: {interface: bedrock, notes: "AWS Bedrock → $0.035/$0.14"}
   amazon.nova-lite:  {interface: bedrock, notes: "AWS Bedrock → $0.06/$0.24"}
   amazon.nova-pro:   {interface: bedrock, notes: "AWS Bedrock → $0.80/$3.20"}
-# ─── Suggested providers (not yet implemented in CoEval) ───────────────────────────
-# These providers offer cheaper inference and can be added in future releases.
-# All use OpenAI-compatible REST APIs (easy to integrate via openrouter for now).
+# ─── Suggested providers (not yet implemented as native CoEval interfaces) ──────
 #
-# Provider          | Batch? | Notable models               | Input  | Output
-# ─────────────────────────────────────────────────────────────────────────────────────
-# Groq              |  No    | Llama-3.1-8B-instant         | $0.05  | $0.08
-#                   |        | Mixtral-8x7B                 | $0.24  | $0.24
-# Together AI       |  No    | Llama-3.3-70B                | $0.90  | $0.90
-#                   |        | Qwen2.5-72B                  | $1.20  | $1.20
-# DeepInfra         |  No    | Llama-3.3-70B                | $0.12  | $0.40
-#                   |        | Qwen2.5-72B                  | $0.30  | $0.50
-# Fireworks AI      |  No    | Llama-3.3-70B-Instruct       | $0.20  | $0.20
-#                   |        | Mixtral-8x7B                 | $0.50  | $0.50
-# DeepSeek API      |  No    | DeepSeek-V3                  | $0.14  | $0.28
-#                   |        | DeepSeek-R1                  | $0.55  | $2.19
-# Mistral API       |  No    | Mistral-Small-Latest         | $0.10  | $0.30
-#                   |        | Mistral-Large-Latest         | $2.00  | $6.00
-# Cohere            |  No    | Command-R                    | $0.15  | $0.60
-#                   |        | Command-R+                   | $2.50  | $10.00
-# AI21 Labs         |  No    | Jamba-1.5-Mini               | $0.20  | $0.40
-# ─────────────────────────────────────────────────────────────────────────────────────
-# Note: All above providers can currently be accessed through OpenRouter
-# (interface: openrouter) without additional code changes.
+# WHY OpenRouter for open models (and not providers with batch discounts)?
+# ─────────────────────────────────────────────────────────────────────────────────
+# Batch discounts (OpenAI 50%, Anthropic 50%, Gemini 50%) are PROPRIETARY:
+#   - OpenAI Batch API  → only works for GPT-4o, GPT-4o-mini, GPT-4.1, etc.
+#   - Anthropic Batches → only works for Claude 3.5 / Claude 3 / Claude 4 models
+#   - Gemini Batch API  → only works for Gemini 2.0 / 1.5 models
+# For open-weight models (Llama, Mistral, DeepSeek, Qwen), NO hosting provider
+# currently offers a batch discount. OpenRouter is the cheapest convenient gateway
+# with the widest model selection ($0.04–$0.12/M input tokens for popular models).
+#
+# When to add a native interface instead of using OpenRouter:
+#   1. The provider is consistently cheaper than OpenRouter for your target models
+#   2. The provider offers unique features (e.g. Groq's extreme speed ~500 tok/s)
+#   3. You want to avoid the small OpenRouter markup (~5-15%)
+#
+# Priority tiers for future implementation:
+#   P1 — High priority  — unique capability or significantly cheaper
+#   P2 — Medium priority — marginally cheaper, easy to add (OpenAI-compat API)
+#   P3 — Low priority   — niche use case or similar price to OpenRouter
+#
+# ─────────────────────────────────────────────────────────────────────────────────────────────────────
+# Provider      | Priority | Batch? | Notable models              | Input  | Output | Why add natively?
+# ─────────────────────────────────────────────────────────────────────────────────────────────────────
+# Groq          |    P1    |  No    | Llama-3.1-8B-Instant        | $0.05  | $0.08  | ~500 tok/s; 10-20x faster than OpenRouter
+#               |          |        | Llama-3.3-70B               | $0.59  | $0.79  | ideal for Phase 4 latency-sensitive runs
+#               |          |        | Mixtral-8x7B                | $0.24  | $0.24  | API: console.groq.com (OpenAI-compat)
+#               |          |        | Gemma-2-9B-IT               | $0.20  | $0.20  |
+# DeepSeek API  |    P1    |  No    | DeepSeek-V3                 | $0.07  | $0.28  | 2x cheaper than OpenRouter for V3
+#  (direct)     |          |        | DeepSeek-R1                 | $0.55  | $2.19  | API: api.deepseek.com (OpenAI-compat)
+# Mistral API   |    P2    |  No    | Mistral-Small-Latest        | $0.10  | $0.30  | Same price as OR; avoids markup + better SLAs
+#  (direct)     |          |        | Mistral-Large-Latest        | $2.00  | $6.00  | API: api.mistral.ai (OpenAI-compat)
+#               |          |        | Codestral (code tasks)      | $0.20  | $0.60  | Only on Mistral direct (not on OpenRouter)
+# DeepInfra     |    P2    |  No    | Llama-3.3-70B               | $0.12  | $0.40  | Same as OR; more reliable SLAs
+#               |          |        | DeepSeek-R1                 | $0.55  | $2.19  | API: api.deepinfra.com (OpenAI-compat)
+#               |          |        | Qwen2.5-72B                 | $0.13  | $0.40  |
+# Cerebras      |    P2    |  No    | Llama-3.1-8B                | $0.10  | $0.10  | Wafer-scale AI; 1000+ tok/s (latency)
+#               |          |        | Llama-3.1-70B               | $0.60  | $0.60  | API: api.cerebras.ai (OpenAI-compat)
+# Fireworks AI  |    P2    |  No    | Llama-3.3-70B-Instruct      | $0.20  | $0.20  | Flat output price; cheap for long outputs
+#               |          |        | DeepSeek-V3                 | $0.50  | $1.50  | API: api.fireworks.ai (OpenAI-compat)
+# Novita AI     |    P2    |  No    | Llama-3.3-70B               | $0.09  | $0.35  | Slightly cheaper than OpenRouter
+#               |          |        | Qwen2.5-72B                 | $0.12  | $0.39  | API: api.novita.ai (OpenAI-compat)
+# Cohere        |    P3    |  No    | Command-R                   | $0.15  | $0.60  | RAG-optimised; unique retrieval features
+#               |          |        | Command-R+                  | $2.50  | $10.00 | API: api.cohere.com (native SDK)
+# SambaNova     |    P3    |  No    | Llama-3.1-405B              | $5.00  | $10.00 | Fastest for >100B models
+#               |          |        | Llama-3.1-70B               | $0.60  | $1.20  | API: api.sambanova.ai (OpenAI-compat)
+# Together AI   |    P3    |  No    | Llama-3.3-70B               | $0.90  | $0.90  | Higher price than OR; decent ecosystem
+#               |          |        | Qwen2.5-72B                 | $1.20  | $1.20  | API: api.together.xyz (OpenAI-compat)
+# AI21 Labs     |    P3    |  No    | Jamba-1.5-Mini              | $0.20  | $0.40  | SSM-Transformer hybrid; long context
+#               |          |        | Jamba-1.5-Large             | $2.00  | $8.00  | API: api.ai21.com (OpenAI-compat)
+# Cloudflare    |    P3    |  No    | Llama-3-8B (Workers AI)     | $0.01  | $0.01  | Extremely cheap for small models only
+#               |          |        | Mistral-7B                  | $0.01  | $0.01  | Serverless; only for quick/cheap eval
+# ─────────────────────────────────────────────────────────────────────────────────────────────────────
+#
+# Implementation effort: ~2-4 hours per provider (all are OpenAI-compatible).
+# Steps: new <provider>_iface.py → VALID_INTERFACES → pool.py → pricing block +
+#        auto_routing entries → probe.py supported_providers list.
+# For immediate access without new code: interface: openrouter routes to most
+# of the above providers automatically.

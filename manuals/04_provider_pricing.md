@@ -32,17 +32,6 @@ providers:
   openai: sk-...
 ```
 
-**Model spec:**
-```yaml
-- name: gpt-4o
-  interface: openai
-  parameters:
-    model: gpt-4o
-    temperature: 0.7
-    max_tokens: 512
-  roles: [teacher, student, judge]
-```
-
 ---
 
 ### 1.2 Anthropic
@@ -61,17 +50,6 @@ providers:
 ```yaml
 providers:
   anthropic: sk-ant-...
-```
-
-**Model spec:**
-```yaml
-- name: claude-3-5-haiku
-  interface: anthropic
-  parameters:
-    model: claude-3-5-haiku-20241022
-    temperature: 0.0
-    max_tokens: 256
-  roles: [judge]
 ```
 
 ---
@@ -96,25 +74,16 @@ providers:
   gemini: AIza...
 ```
 
-**Model spec:**
-```yaml
-- name: gemini-2.0-flash
-  interface: gemini
-  parameters:
-    model: gemini-2.0-flash
-    temperature: 0.7
-    max_tokens: 512
-  roles: [teacher, student, judge]
-```
-
 ---
 
 ### 1.4 OpenRouter
 
-OpenRouter is a meta-router that provides a single OpenAI-compatible API for hundreds of open and commercial models. It is the recommended interface for open-weight models (Llama, Mistral, Qwen, DeepSeek) because it:
-- Requires only one API key and one interface
-- Routes to the cheapest available backend automatically
+OpenRouter is a meta-router providing a single OpenAI-compatible API for hundreds of open and commercial models. It is the recommended interface for open-weight models (Llama, Mistral, Qwen, DeepSeek) because:
+- Single API key and interface covers all open models
+- Routes to cheapest available backend automatically
 - Supports all CoEval model parameters (`temperature`, `max_tokens`)
+
+> **Why not a provider with batch discounts?** Batch discounts (OpenAI 50%, Anthropic 50%, Gemini 50%) are **proprietary** — they only apply to each provider's own models. No inference provider today offers batch discounts for Llama, Mistral, DeepSeek, or Qwen models. For open-weight models, OpenRouter is already the cheapest convenient option at $0.04–$0.12/M input tokens.
 
 **No batch discount.** OpenRouter is real-time only.
 
@@ -134,17 +103,6 @@ OpenRouter is a meta-router that provides a single OpenAI-compatible API for hun
 ```yaml
 providers:
   openrouter: sk-or-v1-...
-```
-
-**Model spec:**
-```yaml
-- name: llama-3.3-70b
-  interface: openrouter
-  parameters:
-    model: meta-llama/llama-3.3-70b-instruct
-    temperature: 0.7
-    max_tokens: 512
-  roles: [teacher, student]
 ```
 
 ---
@@ -170,11 +128,26 @@ providers:
     region: us-east-1
 ```
 
-No batch discount. Real-time inference only.
+**Batch status:** AWS Bedrock **does** have a native Batch Inference API (launched late 2023) supporting Claude, Amazon Nova, Llama, and Mistral models with ~50% discount. However, **CoEval does not yet have a `BedrockBatchRunner`**, so batch mode is not available for Bedrock in CoEval. It runs real-time only (`batch_discount: 1.00` in pricing YAML).
+
+> **TODO:** Implement `BedrockBatchRunner` to unlock the ~50% Bedrock batch discount. Once implemented, update `bedrock: batch_discount: 0.50` in `benchmark/provider_pricing.yaml` and add `bedrock` to `create_batch_runner()` in `experiments/interfaces/__init__.py`.
+
+Selected Bedrock model prices:
+
+| Model | Input ($/1M) | Output ($/1M) | CoEval Batch? |
+|-------|-------------|--------------|---------------|
+| anthropic.claude-3-5-haiku-20241022-v1 | $0.80 | $4.00 | ❌ not yet |
+| anthropic.claude-3-5-sonnet-20241022-v2 | $3.00 | $15.00 | ❌ not yet |
+| amazon.nova-micro-v1 | $0.035 | $0.14 | ❌ not yet |
+| amazon.nova-lite-v1 | $0.06 | $0.24 | ❌ not yet |
+| amazon.nova-pro-v1 | $0.80 | $3.20 | ❌ not yet |
+| meta.llama3-70b-instruct-v1 | $0.99 | $0.99 | ❌ not yet |
 
 ---
 
 ### 1.6 Azure OpenAI
+
+Azure OpenAI supports **Global Batch** (50% discount) — **`AzureBatchRunner` is already implemented** in CoEval.
 
 ```yaml
 providers:
@@ -183,6 +156,25 @@ providers:
     endpoint: https://my-resource.openai.azure.com/
     api_version: 2024-08-01-preview
 ```
+
+**Batch discount:** 50% via Azure Global Batch API. Enable it per-phase in the experiment config:
+
+```yaml
+experiment:
+  batch:
+    azure_openai:
+      response_collection: true
+      evaluation: true
+```
+
+Selected Azure OpenAI model prices:
+
+| Deployment | Input ($/1M) | Output ($/1M) | Batch (50% off) |
+|------------|-------------|--------------|-----------------|
+| gpt-4o | $2.50 | $10.00 | ✅ $1.25 / $5.00 |
+| gpt-4o-mini | $0.165 | $0.66 | ✅ $0.083 / $0.33 |
+
+> **Note:** Azure prices include a small Azure markup over native OpenAI pricing (e.g. GPT-4o-mini $0.165 vs $0.15). After the 50% batch discount, the effective price is similar to OpenAI native batch. Use Azure when your team already has Azure credits or enterprise agreements.
 
 ---
 
@@ -196,6 +188,8 @@ providers:
 ```
 
 Requires Application Default Credentials (`gcloud auth application-default login`).
+
+Supports same Gemini models as the Gemini AI Studio interface. Vertex batch is supported with 50% discount but CoEval routes through the `gemini` interface by default.
 
 ---
 
@@ -221,13 +215,10 @@ CoEval scans the `auto_routing` table top-to-bottom (cheapest first), finds the 
 
 **Resolution happens at config load time** — the interface is permanently set before validation, so `coeval plan`, `coeval probe`, and `coeval run` all see the resolved interface.
 
-**How to update the routing table:**
-
-Edit `benchmark/provider_pricing.yaml` and modify the `auto_routing` section. Entries are ordered cheapest-first. To route a model to a different provider, change the `interface:` value for its fragment or add a new entry with higher specificity:
+**How to update the routing table:** Edit `benchmark/provider_pricing.yaml` and modify the `auto_routing` section (entries are ordered cheapest-first):
 
 ```yaml
 auto_routing:
-  # More specific fragment takes precedence
   deepseek/deepseek-r1: {interface: openrouter, notes: "reasoning model"}
   deepseek:             {interface: openrouter, notes: "default deepseek"}
 ```
@@ -248,48 +239,78 @@ The cost estimator loads this file at runtime. The hardcoded `PRICE_TABLE` in `c
 
 ## 4. Suggested Future Providers
 
-These providers offer competitive pricing and use OpenAI-compatible REST APIs. They are **not yet implemented** as dedicated CoEval interfaces but can be accessed today via `interface: openrouter`.
+### 4.1 Why Are Open Models on OpenRouter (Not a Cheaper Batch Provider)?
 
-| Provider | Batch? | Notable Models | Input ($/1M) | Output ($/1M) |
-|----------|--------|----------------|-------------|--------------|
-| **Groq** | No | Llama-3.1-8B-Instant | $0.05 | $0.08 |
-| | | Mixtral-8x7B | $0.24 | $0.24 |
-| **Together AI** | No | Llama-3.3-70B | $0.90 | $0.90 |
-| | | Qwen2.5-72B | $1.20 | $1.20 |
-| **DeepInfra** | No | Llama-3.3-70B | $0.12 | $0.40 |
-| | | Qwen2.5-72B | $0.30 | $0.50 |
-| **Fireworks AI** | No | Llama-3.3-70B-Instruct | $0.20 | $0.20 |
-| | | Mixtral-8x7B | $0.50 | $0.50 |
-| **DeepSeek API** | No | DeepSeek-V3 | $0.14 | $0.28 |
-| | | DeepSeek-R1 | $0.55 | $2.19 |
-| **Mistral API** | No | Mistral-Small-Latest | $0.10 | $0.30 |
-| | | Mistral-Large-Latest | $2.00 | $6.00 |
-| **Cohere** | No | Command-R | $0.15 | $0.60 |
-| | | Command-R+ | $2.50 | $10.00 |
-| **AI21 Labs** | No | Jamba-1.5-Mini | $0.20 | $0.40 |
+The 50% batch discounts are **exclusive to each provider's own proprietary models**:
 
-**Integration effort:** All except Cohere use OpenAI-compatible endpoints. Adding a dedicated interface requires:
-1. A new `experiments/interfaces/PROVIDER_iface.py` (copy from `openrouter_iface.py`, change base URL)
-2. Adding the provider to `resolve_provider_keys()` in `registry.py`
-3. Adding it to `VALID_INTERFACES` in `config.py`
-4. Adding entries to `benchmark/provider_pricing.yaml`
+| Batch discount | Applies to |
+|----------------|-----------|
+| OpenAI Batch API (50%) | GPT-4o, GPT-4o-mini, GPT-4.1, o-series only |
+| Anthropic Message Batches (50%) | Claude 3.x / Claude 4.x only |
+| Gemini Batch API (50%) | Gemini 1.5 / 2.0 / 2.5 only |
+| Azure Global Batch (50%) | GPT-4o, GPT-4o-mini (Azure deployments) |
+| **Open-weight models (Llama, Mistral, Qwen, DeepSeek)** | **No batch discount anywhere** |
 
-**Groq** and **Fireworks AI** are the highest-priority additions due to their extremely low latency (Groq LPU hardware) and competitive pricing for batch-like workloads.
+For `interface: auto`, frontier models are automatically routed to their native batch-enabled provider. Open-weight models go to OpenRouter because **no third-party inference provider offers a batch discount for them**. OpenRouter at $0.04–$0.12/M is already the cheapest option for these models.
+
+### 4.2 Provider Candidates (Priority-Ordered)
+
+These providers are not yet implemented as dedicated CoEval interfaces but can be accessed today via `interface: openrouter`.
+
+| Provider | Priority | Batch? | Notable Models | Input ($/1M) | Output ($/1M) | Why add natively? |
+|----------|----------|--------|----------------|-------------|--------------|-------------------|
+| **Groq** | P1 ★★★ | No | Llama-3.1-8B-Instant | $0.05 | $0.08 | ~500 tok/s (10–20× faster); ideal for large-scale Phase 4 |
+| | | | Llama-3.3-70B | $0.59 | $0.79 | API: `api.groq.com` (OpenAI-compat) |
+| | | | Mixtral-8x7B | $0.24 | $0.24 | |
+| **DeepSeek** | P1 ★★★ | No | DeepSeek-V3 | $0.07 | $0.28 | 2× cheaper than OpenRouter for V3 |
+| (direct) | | | DeepSeek-R1 | $0.55 | $2.19 | API: `api.deepseek.com` (OpenAI-compat) |
+| **Mistral API** | P2 ★★ | No | Mistral-Small-Latest | $0.10 | $0.30 | Same price as OpenRouter; no markup + better SLAs |
+| (direct) | | | Mistral-Large-Latest | $2.00 | $6.00 | Codestral (code tasks) only on direct, not OpenRouter |
+| | | | Codestral | $0.20 | $0.60 | |
+| **DeepInfra** | P2 ★★ | No | Llama-3.3-70B | $0.12 | $0.40 | Same price as OpenRouter; more reliable SLAs |
+| | | | DeepSeek-R1 | $0.55 | $2.19 | API: `api.deepinfra.com` (OpenAI-compat) |
+| | | | Qwen2.5-72B | $0.13 | $0.40 | |
+| **Cerebras** | P2 ★★ | No | Llama-3.1-8B | $0.10 | $0.10 | Wafer-scale AI chip; ~1000 tok/s sustained |
+| | | | Llama-3.1-70B | $0.60 | $0.60 | API: `api.cerebras.ai` (OpenAI-compat) |
+| **Fireworks AI** | P2 ★★ | No | Llama-3.3-70B | $0.20 | $0.20 | Flat output price; cheap for verbose outputs |
+| | | | DeepSeek-V3 | $0.50 | $1.50 | API: `api.fireworks.ai` (OpenAI-compat) |
+| **Novita AI** | P2 ★★ | No | Llama-3.3-70B | $0.09 | $0.35 | Slightly cheaper than OpenRouter for Llama |
+| | | | Qwen2.5-72B | $0.12 | $0.39 | API: `api.novita.ai` (OpenAI-compat) |
+| **Bedrock Batch** | P1 ★★★ | Yes (~50%) | Amazon Nova family | $0.018 | $0.07 | Already auth-supported; just needs BatchRunner impl |
+| | | | Claude via Bedrock | same as Anthropic direct | | BedrockBatchRunner in `experiments/interfaces/` |
+| **Cohere** | P3 ★ | No | Command-R | $0.15 | $0.60 | RAG-optimised; unique retrieval features |
+| | | | Command-R+ | $2.50 | $10.00 | `api.cohere.com` (native SDK) |
+| **AI21 Labs** | P3 ★ | No | Jamba-1.5-Mini | $0.20 | $0.40 | SSM-Transformer hybrid; 256K context |
+| | | | Jamba-1.5-Large | $2.00 | $8.00 | `api.ai21.com` (OpenAI-compat) |
+| **Cloudflare** | P3 ★ | No | Llama-3-8B | $0.01 | $0.01 | Extremely cheap for small-model quick evals |
+| (Workers AI) | | | Mistral-7B | $0.01 | $0.01 | Serverless; good for Phase 1/2 drafts |
+
+### 4.3 Implementation Effort
+
+All P1/P2 providers use **OpenAI-compatible REST APIs** (chat completions endpoint). Adding a dedicated native interface:
+
+1. Create `experiments/interfaces/<provider>_iface.py` (copy `openrouter_iface.py`; change base URL and auth)
+2. Add to `VALID_INTERFACES` in `experiments/config.py`
+3. Add to `create_batch_runner()` factory in `experiments/interfaces/__init__.py` (if batch supported)
+4. Add pricing block to `benchmark/provider_pricing.yaml` and `auto_routing` entries
+5. Add to `probe.py` supported providers list
+
+**Estimated effort:** 2–4 hours per provider. **BedrockBatchRunner** is highest-priority since authentication is already implemented.
 
 ---
 
 ## 5. Batch API Reference
 
-| Interface | Batch API | Discount | Polling |
-|-----------|-----------|---------|---------|
-| `openai` | OpenAI Batch API | 50% | `coeval status` |
-| `anthropic` | Message Batches API | 50% | `coeval status` |
-| `gemini` | Gemini Batch API | 50% | `coeval status` |
-| `openrouter` | None (real-time) | — | — |
-| `bedrock` | None (real-time) | — | — |
-| `azure_openai` | None (real-time) | — | — |
-| `vertex` | None (real-time) | — | — |
-| `huggingface` | None (local) | — | — |
+| Interface | Batch API | CoEval Status | Discount |
+|-----------|-----------|--------------|---------|
+| `openai` | OpenAI Batch API | ✅ Implemented | 50% |
+| `anthropic` | Message Batches API | ✅ Implemented | 50% |
+| `gemini` | Gemini Batch API | ✅ Implemented | 50% |
+| `azure_openai` | Azure Global Batch | ✅ Implemented (`AzureBatchRunner`) | 50% |
+| `bedrock` | AWS Bedrock Batch Inference | ❌ Not yet (native API exists) | ~50% when added |
+| `openrouter` | None (real-time) | N/A | — |
+| `vertex` | Vertex Batch (via Gemini) | Routes to `gemini` | — |
+| `huggingface` | None (local) | N/A | — |
 
 Enable batch per-interface in the experiment config:
 ```yaml
@@ -297,13 +318,16 @@ experiment:
   batch:
     openai:
       response_collection: true
-      evaluation:          true
+      evaluation: true
     anthropic:
       response_collection: true
-      evaluation:          true
+      evaluation: true
     gemini:
       response_collection: true
-      evaluation:          true
+      evaluation: true
+    azure_openai:          # ← also supported
+      response_collection: true
+      evaluation: true
 ```
 
 ---
