@@ -156,19 +156,79 @@ Available metrics:
 
 ---
 
-## 6. Step 5 — Produce Paper Tables
+## 6. Step 5 — Compute Baseline Scores (Optional but Recommended)
+
+Before producing paper tables, run the baseline comparison script to generate
+`paper/tables/baselines.csv` (Spearman ρ for BERTScore and G-Eval baselines):
+
+```bash
+# Requires: pip install bert-score scipy
+# Uses OPENAI_API_KEY and ANTHROPIC_API_KEY from keys.yaml or env vars
+python -m benchmark.run_baselines \
+    --run benchmark/runs/paper-eval-v1 \
+    --out paper/tables \
+    --methods bertscore geval-gpt4o geval-claude \
+    --max-pairs 200
+```
+
+Options:
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--methods` | Which baselines: `bertscore`, `geval-gpt4o`, `geval-claude` | all |
+| `--max-pairs N` | Subsample N items per task (cost control) | all |
+| `--geval-gpt4o-model` | OpenAI model for G-Eval | `gpt-4o` |
+| `--geval-claude-model` | Anthropic model for G-Eval | `claude-3-5-sonnet-20241022` |
+| `--bertscore-model` | BERTScore backbone | `distilbert-base-uncased` |
+| `--dry-run` | Print plan without making API calls | — |
+
+Output: `paper/tables/baselines.csv` with columns `task_id, method, model, n_pairs, spearman_rho, p_value, coverage`.
+
+---
+
+## 7. Step 6 — Produce Paper Tables
 
 ```bash
 python -m analysis.paper_tables \
-    --run-id paper-eval-v1 \
-    --out-dir ./paper/tables
+    --run benchmark/runs/paper-eval-v1 \
+    --out paper/tables
 ```
 
-This generates:
-- `table3_spearman_rho.csv` — CoEval vs. baselines × task × method
-- `table4_coverage.csv` — attribute coverage and surface bias metrics
-- `table7_sampling_ablation.csv` — random vs. frequency-weighted vs. stratified
-- `figure1_barplot_data.csv` — per-task ρ for all methods (for plotting)
+This generates all 7 tables (`.tex` + `.csv`):
+
+| File | Contents | Requires benchmark scores? |
+|------|----------|---------------------------|
+| `table3_spearman.tex` | Spearman ρ (CoEval ensemble + per-judge) vs. ground truth | Yes |
+| `table4_coverage.tex` | ACR, RAR, Surface Bias, fill rates | No |
+| `table5_student_scores.tex` | Student composite scores + Kendall τ ranking | No |
+| `table6_ensemble_ablation.tex` | ρ by ensemble size (1→3 judges) | Yes |
+| `table7_sampling_ablation.tex` | Random vs. freq-weighted vs. CoEval stratified | No (ACR/RAR computed from EES) |
+| `table8_calibration.tex` | OLS calibration effect (ρ + MAE before/after) | Yes |
+| `table9_positional_bias.tex` | Positional flip rates (requires swap pairs) | No |
+| `SUMMARY.md` | Data availability checklist + next steps | — |
+
+**New metrics computed automatically:**
+- **RAR (Rare-Attribute Recall)**: fraction of rare strata (count < 3) covered — appears in Table 4 and Table 7.
+- **Surface Bias**: mean pairwise sentence-BLEU across Phase 3 prompts per task — appears in Table 4. Requires `pip install nltk`.
+- **OLS Calibration**: α and β parameters fit on a 200-item holdout — Table 8 + `calibration_params_overall.json`.
+
+---
+
+## 8. Step 7 — Apply Calibration (Advanced)
+
+For per-judge, per-task calibration parameters (used in Appendix D of the paper):
+
+```python
+from analysis.calibration import load_or_fit_calibration
+from analysis.loader import load_ees
+
+model = load_ees("benchmark/runs/paper-eval-v1")
+params = load_or_fit_calibration(model, out_dir=Path("paper/tables"), holdout_n=200)
+# params["gpt-4o"]["text_summarization"] → {"alpha": ..., "beta": ..., "rho_raw": ..., ...}
+# params["_overall"] → overall calibration across all judges/tasks
+```
+
+The result is cached in `paper/tables/calibration_params.json`.
 
 ---
 

@@ -77,21 +77,59 @@ scores and benchmark-native metrics:
 
 ```bash
 python -m analysis.paper_tables \
-    --run-id  paper-eval-v1 \
-    --out-dir paper/tables
+    --run  benchmark/runs/paper-eval-v1 \
+    --out  paper/tables
 ```
 
 **Outputs:**
 
-| File | Paper table | Description |
-|------|-------------|-------------|
-| `table3_spearman_rho.csv` | Table 3 | Spearman ρ: CoEval and baselines vs. benchmark metrics |
-| `table4_coverage.csv` | Table 4 | ACR, RAR, surface bias across sampling strategies |
-| `table5_rankings.csv` | Table 5 | Model rankings (CoEval vs. benchmark-native ordering) |
-| `table6_ensemble_ablation.csv` | Table 6 | ρ by ensemble size (1, 2, 3 judges) |
-| `table7_sampling_ablation.csv` | Table 7 | ρ by sampling strategy |
-| `table8_calibration.csv` | Table 8 | Effect of judge calibration on MAE and ρ |
-| `figure1_barplot_data.csv` | Figure 1 | Per-task ρ for all methods (input for bar chart) |
+| File | Paper table | Description | Requires benchmark scores? |
+|------|-------------|-------------|---------------------------|
+| `table3_spearman.tex/.csv` | Table 3 | Spearman ρ: CoEval ensemble + per-judge vs. benchmark | Yes |
+| `table4_coverage.tex/.csv` | Table 4 | ACR, RAR, Surface Bias, fill rates by task | No |
+| `table5_student_scores.tex/.csv` | Table 5 | Student composite scores, Kendall τ ranking | No |
+| `table6_ensemble_ablation.tex/.csv` | Table 6 | ρ by ensemble size (1→all judges) | Yes |
+| `table7_sampling_ablation.tex/.csv` | Table 7 | Random vs. freq-weighted vs. stratified sampling | No (ACR/RAR from EES) |
+| `table8_calibration.tex/.csv` | Table 8 | OLS calibration effect (ρ + MAE before/after) | Yes |
+| `table9_positional_bias.tex/.csv` | Table 9 | Positional flip rates (needs swap pairs) | No |
+| `SUMMARY.md` | — | Data availability checklist + next steps | — |
+
+**Automatically computed metrics (new as of 2026-03-02):**
+
+- **RAR** (Rare-Attribute Recall) — fraction of rare strata (freq < 3) covered; Table 4 + Table 7.
+- **Surface Bias** — mean pairwise sentence-BLEU across Phase 3 prompts; Table 4. Requires `pip install nltk`.
+- **OLS Calibration** — α, β fit on 200-item holdout; Table 8 + `calibration_params_overall.json`. Uses `analysis/calibration.py`.
+
+### 2.4 Baseline Comparison (for Table 3 baseline columns)
+
+```bash
+python -m benchmark.run_baselines \
+    --run  benchmark/runs/paper-eval-v1 \
+    --out  paper/tables \
+    --methods bertscore geval-gpt4o geval-claude \
+    --max-pairs 200
+```
+
+Outputs `paper/tables/baselines.csv` with Spearman ρ for each method × task.
+Requires `pip install bert-score scipy` (BERTScore) and `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` (G-Eval).
+
+### 2.5 Calibration API
+
+```python
+from analysis.calibration import fit_calibration, apply_calibration, load_or_fit_calibration
+from analysis.loader import load_ees
+from pathlib import Path
+
+model = load_ees("benchmark/runs/paper-eval-v1")
+
+# Fit overall calibration
+params = load_or_fit_calibration(model, out_dir=Path("paper/tables"), holdout_n=200)
+# params["gpt-4o"]["text_summarization"] → {alpha, beta, rho_raw, rho_calibrated, mae_raw, mae_calibrated}
+# params["_overall"] → aggregated across all judges/tasks
+
+# Apply to a list of raw scores
+calibrated = apply_calibration(raw_scores, params["_overall"]["alpha"], params["_overall"]["beta"])
+```
 
 ---
 
