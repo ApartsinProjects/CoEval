@@ -16,7 +16,7 @@ Supported metrics
 Usage
 -----
     python -m benchmark.compute_scores \\
-        --run benchmark/runs/medium-benchmark-v1 \\
+        --run Runs/medium-benchmark \\
         [--datasets xsum codesearchnet aeslc wikitablequestions] \\
         [--metric bertscore|bleu|exact_match] \\
         [--model-type distilbert-base-uncased]   # BERTScore backbone
@@ -274,7 +274,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--run", required=True,
-        help="Path to EES experiment folder (e.g. benchmark/runs/medium-benchmark-v1)"
+        help="Path to EES experiment folder (e.g. Runs/medium-benchmark)"
     )
     parser.add_argument(
         "--datasets", nargs="*",

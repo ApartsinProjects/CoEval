@@ -357,7 +357,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Validate a CoEval run folder -- statistics and sanity checks.")
     parser.add_argument("--run", required=True, metavar="PATH",
-        help="Path to the run folder (e.g. benchmark/runs/medium-benchmark-v1)")
+        help="Path to the run folder (e.g. Runs/medium-benchmark)")
     args = parser.parse_args()
 
     run_path = Path(args.run).resolve()

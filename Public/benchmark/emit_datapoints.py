@@ -11,7 +11,7 @@ Usage
 # Custom output directory:
     python -m benchmark.emit_datapoints \\
         --dataset codesearchnet \\
-        --out-dir ./benchmark/runs/my-run/phase3_datapoints \\
+        --out-dir ./Runs/my-run/phase3_datapoints \\
         --sample-size 300
 
 All output files follow the Phase 3 naming convention:
@@ -101,7 +101,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--run-id", "-r",
         default=None,
-        help="Experiment run ID; output goes to benchmark/runs/<run-id>/phase3_datapoints/",
+        help="Experiment run ID; output goes to Runs/<run-id>/phase3_datapoints/",
     )
     parser.add_argument(
         "--out-dir", "-o",
@@ -137,7 +137,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.out_dir:
         out_dir = Path(args.out_dir)
     elif args.run_id:
-        out_dir = Path("benchmark/runs") / args.run_id / "phase3_datapoints"
+        out_dir = Path("Runs") / args.run_id / "phase3_datapoints"
     else:
         parser.error("Provide --run-id or --out-dir")
         return 1

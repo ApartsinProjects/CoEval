@@ -16,7 +16,7 @@ Output
 Usage
 -----
     python -m benchmark.run_baselines \\
-        --run benchmark/runs/paper-eval-v1 \\
+        --run Runs/paper/data \\
         --out paper/tables \\
         [--methods bertscore geval-gpt4o geval-claude] \\
         [--bertscore-model distilbert-base-uncased] \\
@@ -399,7 +399,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--run", required=True,
-        help="Path to EES experiment folder (e.g. benchmark/runs/paper-eval-v1)",
+        help="Path to EES experiment folder (e.g. Runs/paper/data)",
     )
     parser.add_argument(
         "--out", default="paper/tables",

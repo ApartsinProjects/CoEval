@@ -34,4 +34,5 @@ The [`README/`](README/) subdirectory splits the documentation into 13 focused, 
 ## Related
 
 - [`examples/`](../examples/) — example experiment configs
-- [`benchmark/`](../benchmark/) — benchmark configs and setup scripts
+- [`Public/benchmark/`](../Public/benchmark/) — benchmark loaders, setup scripts, configs
+- [`Runs/`](../Runs/) — experiment run folders (YAML configs + output data)

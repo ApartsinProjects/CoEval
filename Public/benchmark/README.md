@@ -25,7 +25,7 @@ benchmark/
 ### 1. Validate the config (no LLM calls)
 
 ```bash
-coeval run --config benchmark/benchmark_config.yaml --dry-run
+coeval run --config Runs/benchmark-config/config.yaml --dry-run
 ```
 
 This prints the full execution plan and exits without touching any model.
@@ -33,31 +33,31 @@ This prints the full execution plan and exits without touching any model.
 ### 2. Run the benchmark
 
 ```bash
-coeval run --config benchmark/benchmark_config.yaml
+coeval run --config Runs/benchmark-config/config.yaml
 ```
 
-Output is written to `benchmark/runs/benchmark-v1/`.
+Output is written to `Runs/benchmark-v1/`.
 
 ### 3. Generate reports
 
 ```bash
 # Full Excel workbook
 coeval analyze complete-report \
-    --run benchmark/runs/benchmark-v1 \
-    --out benchmark/runs/benchmark-v1-report.xlsx
+    --run Runs/benchmark-v1 \
+    --out Runs/benchmark-v1-report.xlsx
 
 # All HTML reports in one go
 coeval analyze all \
-    --run benchmark/runs/benchmark-v1 \
-    --out benchmark/runs/reports/
+    --run Runs/benchmark-v1 \
+    --out Runs/reports/
 ```
 
 ### 4. Export robust benchmark dataset
 
 ```bash
 coeval analyze export-benchmark \
-    --run benchmark/runs/benchmark-v1 \
-    --out benchmark/runs/benchmark-v1-robust.jsonl \
+    --run Runs/benchmark-v1 \
+    --out Runs/benchmark-v1-robust.jsonl \
     --judge-selection top_half \
     --agreement-metric spa \
     --agreement-threshold 0.8
@@ -255,7 +255,7 @@ Before committing to the full run, use the estimation probe to get a predicted
 cost and time breakdown per model:
 
 ```bash
-coeval run --config benchmark/benchmark_config.yaml --estimate-only
+coeval run --config Runs/benchmark-config/config.yaml --estimate-only
 ```
 
 This runs a small number of real inference calls (default: 2 per model), measures
@@ -269,7 +269,7 @@ cost table. No phase data is generated.
 If the run is interrupted, continue in-place without re-running completed phases:
 
 ```bash
-coeval run --config benchmark/benchmark_config.yaml --continue
+coeval run --config Runs/benchmark-config/config.yaml --continue
 ```
 
 The `--continue` flag reopens the existing experiment folder, reads `phases_completed`
@@ -280,14 +280,14 @@ records already written to JSONL).
 Alternatively, create a new experiment that inherits completed artifacts:
 
 ```bash
-coeval run --config benchmark/benchmark_config.yaml --resume benchmark-v1
+coeval run --config Runs/benchmark-config/config.yaml --resume benchmark-v1
 ```
 
 ---
 
 ## Output Structure
 
-After a successful run, `benchmark/runs/benchmark-v1/` will contain:
+After a successful run, `Runs/benchmark-v1/` will contain:
 
 ```
 benchmark-v1/
@@ -304,8 +304,8 @@ benchmark-v1/
 ## Analysis Workflow
 
 ```bash
-BASE=benchmark/runs/benchmark-v1
-OUT=benchmark/runs/reports
+BASE=Runs/benchmark-v1
+OUT=Runs/reports
 
 # Student performance overview
 coeval analyze student-report    --run $BASE --out $OUT/student_report.html
@@ -330,7 +330,7 @@ coeval analyze robust-summary \
 
 # Export filtered benchmark dataset
 coeval analyze export-benchmark \
-    --run $BASE --out benchmark/runs/benchmark-v1-robust.jsonl \
+    --run $BASE --out Runs/benchmark-v1-robust.jsonl \
     --judge-selection top_half \
     --agreement-metric spa \
     --agreement-threshold 0.8

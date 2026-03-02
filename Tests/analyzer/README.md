@@ -5,7 +5,7 @@ Unit tests for the CoEval Experiment Evaluation Analyzer (EEA).
 ## Running the Tests
 
 ```bash
-python -m pytest analysis/tests/
+python -m pytest Tests/analyzer/
 ```
 
 Add `-v` for verbose output or `-x` to stop on the first failure.
@@ -34,5 +34,4 @@ Smoke tests for report generation.
 
 ## See Also
 
-- [analysis/docs/spec_phase2_claude.md](../docs/spec_phase2_claude.md) — formal spec (COEVAL-SPEC-002)
-- [analysis/samples/](../samples/) — sample EES folders used as fixture data
+- [docs/spec_phase2_claude.md](../../docs/spec_phase2_claude.md) — formal spec (COEVAL-SPEC-002)

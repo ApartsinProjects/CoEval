@@ -4,7 +4,7 @@ Reads EES artifacts (via load_ees) and outputs LaTeX + CSV for each table.
 
 Usage
 -----
-    python -m analysis.paper_tables --run <run_path> --out <output_dir> [--partial-ok]
+    python -m analyzer.paper_tables --run <run_path> --out <output_dir> [--partial-ok]
 
 Output files
 ------------
@@ -647,7 +647,7 @@ def table7_sampling_ablation(model: EESDataModel, out_dir: Path) -> None:
 def table8_calibration(model: EESDataModel, out_dir: Path) -> None:
     """Table 8: Effect of judge calibration on ensemble reliability.
 
-    When benchmark scores are available, fits OLS calibration (analysis.calibration)
+    When benchmark scores are available, fits OLS calibration (analyzer.calibration)
     and reports ρ and MAE before and after calibration.
     When not available, shows placeholder values from the paper.
     """

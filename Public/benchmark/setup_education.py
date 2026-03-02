@@ -11,7 +11,7 @@ Downloads and ingests three real benchmark datasets as Phase 3 teacher data:
 
 After ingestion the folder structure is ready for ``coeval run --continue``:
 
-    benchmark/runs/education-benchmark-v1/
+    Runs/education-benchmark-v1/
     ├── meta.json
     ├── phase1_attributes/          (empty — filled by Phase 1)
     ├── phase2_rubric/              (empty — filled by Phase 2)
@@ -27,10 +27,10 @@ Usage
     python -m benchmark.setup_education
 
 Then run the full experiment:
-    coeval probe  --config benchmark/education.yaml
-    coeval plan   --config benchmark/education.yaml
-    coeval run    --config benchmark/education.yaml --continue
-    coeval analyze all --run benchmark/runs/education-benchmark-v1 --out reports/education
+    coeval probe  --config Runs/education/education.yaml
+    coeval plan   --config Runs/education/education.yaml
+    coeval run    --config Runs/education/education.yaml --continue
+    coeval analyze all --run Runs/education-benchmark-v1 --out reports/education
 """
 from __future__ import annotations
 
@@ -43,7 +43,7 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 
 EXPERIMENT_ID = "education-benchmark-v1"
-RUNS_DIR      = Path(__file__).parent / "runs"
+RUNS_DIR      = Path("Runs")
 SAMPLE_SIZE   = 30      # items per benchmark task
                          # Use 150–300 for a research-grade run
 

@@ -214,7 +214,7 @@ Computed at the response level across all 620 × 4 = 2,480 datapoints. Requires 
 
 ## Data Model
 
-All reports are built on top of the unified `EESDataModel` (loaded by `analysis.loader.load_ees`). The key analytical unit is:
+All reports are built on top of the unified `EESDataModel` (loaded by `analyzer.loader.load_ees`). The key analytical unit is:
 
 ```
 (response_id, rubric_factor) → score ∈ {High, Medium, Low}

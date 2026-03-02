@@ -5,7 +5,7 @@ Unit tests for the CoEval Experiment Execution Runtime (EER).
 ## Running the Tests
 
 ```bash
-python -m pytest experiments/tests/
+python -m pytest Tests/runner/
 ```
 
 Add `-v` for verbose output or `-x` to stop on the first failure.
@@ -54,7 +54,7 @@ Tests for Phase 4 (response collection) and Phase 5 (evaluation).
 - Per-phase skip logic and JSONL record counting
 
 ### test_label_eval.py *(new)*
-Tests for `experiments/label_eval.py` — label accuracy for classification and IE tasks.
+Tests for `Code/runner/label_eval.py` — label accuracy for classification and IE tasks.
 - `extract_label`: JSON exact key, alias key (`label`/`prediction`/`class`/`answer`), markdown fence,
   short free-text (≤60 chars), long text (returns `None`), empty text, null value, integer coercion
 - `extract_multilabel`: JSON multi-key, missing keys, short free-text fallback, empty attr list
@@ -66,7 +66,7 @@ Tests for `experiments/label_eval.py` — label accuracy for classification and 
 - Information-extraction scenario (`entity_type` attribute)
 
 ### test_probe_and_estimator.py *(new)*
-Tests for `experiments/interfaces/probe.py` and `experiments/interfaces/cost_estimator.py`.
+Tests for `Code/runner/interfaces/probe.py` and `Code/runner/interfaces/cost_estimator.py`.
 
 **Probe tests:**
 - `_models_needed`: resume mode filters models by roles needed for remaining phases
@@ -90,8 +90,7 @@ Tests for `experiments/interfaces/probe.py` and `experiments/interfaces/cost_est
 
 ## See Also
 
-- [experiments/docs/spec_claude.md](../docs/spec_claude.md) — formal spec (COEVAL-SPEC-001)
-- [experiments/docs/running_experiments.md](../docs/running_experiments.md) — usage guide
-- [experiments/label_eval.py](../label_eval.py) — label accuracy module
-- [experiments/interfaces/cost_estimator.py](../interfaces/cost_estimator.py) — cost/time estimation
-- [experiments/interfaces/probe.py](../interfaces/probe.py) — model availability probe
+- [docs/spec_claude.md](../../docs/spec_claude.md) — formal spec (COEVAL-SPEC-001)
+- [Code/runner/label_eval.py](../../Code/runner/label_eval.py) — label accuracy module
+- [Code/runner/interfaces/cost_estimator.py](../../Code/runner/interfaces/cost_estimator.py) — cost/time estimation
+- [Code/runner/interfaces/probe.py](../../Code/runner/interfaces/probe.py) — model availability probe

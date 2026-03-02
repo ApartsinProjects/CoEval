@@ -1,6 +1,6 @@
-# experiments/phases/ — Pipeline Phase Implementations
+# Code/runner/phases/ — Pipeline Phase Implementations
 
-This directory contains the five core pipeline phases of CoEval, plus shared utilities. Each phase is orchestrated by [`experiments/runner.py`](../runner.py).
+This directory contains the five core pipeline phases of CoEval, plus shared utilities. Each phase is orchestrated by [`Code/runner/runner.py`](../runner.py).
 
 ## Phase Modules
 
@@ -55,6 +55,6 @@ Each phase supports four execution modes (set in `experiment.phases` config key)
 
 ## Related
 
-- [`experiments/runner.py`](../runner.py) — orchestrates all 5 phases
-- [`experiments/interfaces/`](../interfaces/) — LLM provider interfaces used by each phase
-- [`analysis/loader.py`](../../analysis/loader.py) — loads EES artifacts after all phases complete
+- [`Code/runner/runner.py`](../runner.py) — orchestrates all 5 phases
+- [`Code/runner/interfaces/`](../interfaces/) — LLM provider interfaces used by each phase
+- [`Code/analyzer/loader.py`](../../Code/analyzer/loader.py) — loads EES artifacts after all phases complete

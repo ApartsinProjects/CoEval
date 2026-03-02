@@ -6,8 +6,7 @@ Usage
 
     n = load_benchmark(
         dataset="xsum",
-        out_path="benchmark/runs/paper-eval/phase3_datapoints/text_summarization.benchmark_xsum.datapoints.jsonl",
-        attribute_map_path="benchmark/configs/xsum_attribute_map.yaml",
+        out_path="Runs/paper-eval/phase3_datapoints/text_summarization.benchmark_xsum.datapoints.jsonl",
         sample_size=620,
         split="validation",
     )
@@ -21,36 +20,39 @@ from typing import Any
 import yaml
 
 
+# Default configs directory, resolved relative to this package file.
+_CONFIGS_DIR = Path(__file__).parent.parent / "configs"
+
 # Registry: dataset name -> (loader class, default attribute_map path)
 _REGISTRY: dict[str, tuple[str, str]] = {
     "xsum": (
         "benchmark.loaders.xsum.XSumLoader",
-        "benchmark/configs/xsum_attribute_map.yaml",
+        str(_CONFIGS_DIR / "xsum_attribute_map.yaml"),
     ),
     "codesearchnet": (
         "benchmark.loaders.codesearchnet.CodeSearchNetLoader",
-        "benchmark/configs/codesearchnet_attribute_map.yaml",
+        str(_CONFIGS_DIR / "codesearchnet_attribute_map.yaml"),
     ),
     "aeslc": (
         "benchmark.loaders.aeslc.AESLCLoader",
-        "benchmark/configs/aeslc_attribute_map.yaml",
+        str(_CONFIGS_DIR / "aeslc_attribute_map.yaml"),
     ),
     "wikitablequestions": (
         "benchmark.loaders.wikitablequestions.WikiTableQuestionsLoader",
-        "benchmark/configs/wikitablequestions_attribute_map.yaml",
+        str(_CONFIGS_DIR / "wikitablequestions_attribute_map.yaml"),
     ),
     # --- Education domain ---
     "arc_challenge": (
         "benchmark.loaders.arc_challenge.ARCChallengeLoader",
-        "benchmark/configs/arc_challenge_attribute_map.yaml",
+        str(_CONFIGS_DIR / "arc_challenge_attribute_map.yaml"),
     ),
     "race": (
         "benchmark.loaders.race.RACELoader",
-        "benchmark/configs/race_attribute_map.yaml",
+        str(_CONFIGS_DIR / "race_attribute_map.yaml"),
     ),
     "sciq": (
         "benchmark.loaders.sciq.SciQLoader",
-        "benchmark/configs/sciq_attribute_map.yaml",
+        str(_CONFIGS_DIR / "sciq_attribute_map.yaml"),
     ),
 }
 

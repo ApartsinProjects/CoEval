@@ -6,8 +6,8 @@ warnings — useful as a quick health-check before or after a run.
 
 Usage
 -----
-    python -m analysis.reports.run_summary \\
-        --run benchmark/runs/medium-benchmark-v1 \\
+    python -m analyzer.reports.run_summary \\
+        --run Runs/medium-benchmark \\
         --out reports/medium-benchmark-v1_summary.html
 
 The output is a single self-contained .html file (no external assets).

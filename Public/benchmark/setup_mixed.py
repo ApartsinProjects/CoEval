@@ -11,7 +11,7 @@ Run once before starting the experiment:
 
 Then launch the experiment:
 
-    coeval run --config benchmark/mixed.yaml --continue
+    coeval run --config Runs/mixed/mixed.yaml --continue
 
 The script is idempotent: if a Phase 3 file already contains >= 10 records it is
 left untouched, and if ``meta.json`` already exists it is not overwritten.
@@ -42,7 +42,7 @@ if hasattr(sys.stderr, "reconfigure"):
 # ---------------------------------------------------------------------------
 
 EXPERIMENT_ID = "mixed"
-RUNS_DIR = Path("benchmark/runs")
+RUNS_DIR = Path("Runs")
 SAMPLE_SIZE = 10
 
 # Maps (dataset_name, loader_kwargs, task_id, teacher_name)
