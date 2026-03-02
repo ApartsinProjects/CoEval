@@ -82,7 +82,7 @@ Use pre-ingested real datasets (XSum, CodeSearchNet, AESLC, WikiTableQuestions) 
 python -m benchmark.setup_mixed
 
 # Step 2: Run Phases 4–5 with OpenAI Batch API
-coeval run --config benchmark/mixed.yaml --continue
+coeval run --config Runs/mixed/mixed.yaml --continue
 
 # Step 3: Analyze
 coeval analyze all \

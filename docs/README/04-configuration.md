@@ -46,7 +46,7 @@ models:
 
 ### Automatic Provider Selection
 
-`interface: auto` tells CoEval to select the cheapest available provider for this model at config load time. It scans `benchmark/provider_pricing.yaml`'s `auto_routing` table and picks the first interface for which credentials exist in your key file:
+`interface: auto` tells CoEval to select the cheapest available provider for this model at config load time. It scans `Config/provider_pricing.yaml`'s `auto_routing` table and picks the first interface for which credentials exist in your key file:
 
 ```yaml
 - name: deepseek-v3
@@ -107,6 +107,8 @@ tasks:
 |-------|------|-------------|
 | `target_attributes` | `dict` \| `"auto"` \| `"complete"` | Structural coverage dimensions. `auto` = LLM-generated; `complete` = full cross-product |
 | `nuanced_attributes` | `dict` \| `"auto"` | Per-item diversity dimensions; keep outputs naturalistic and varied |
+| `target_attributes_seed` | `dict` \| `null` | Seed values merged with LLM-generated attributes when `target_attributes: auto`. Seed keys/values are always preserved; teachers may extend them. |
+| `nuanced_attributes_seed` | `dict` \| `null` | Seed values merged with LLM-generated nuanced attributes when `nuanced_attributes: auto`. Useful for guaranteeing specific diversity dimensions are always present. |
 | `sampling.target` | `[min, max]` \| `"all"` | How many target attribute values to sample per item |
 | `sampling.nuance` | `[min, max]` | How many nuance attribute values to sample per item |
 | `sampling.total` | `int` | Total benchmark items per (task, teacher) pair |

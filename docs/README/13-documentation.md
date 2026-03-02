@@ -41,11 +41,11 @@ This folder (`docs/README/`) splits the project README into 13 focused, standalo
 | File | Description |
 |------|-------------|
 | [examples/local_smoke_test.yaml](../../examples/local_smoke_test.yaml) | Minimal runnable config: 5 HuggingFace models, 2 tasks, no cloud APIs required |
-| [benchmark/mixed.yaml](../../Runs/mixed/mixed.yaml) | Real benchmark data + OpenAI models; full evaluation for ~$0.03 |
-| [benchmark/education.yaml](../../Runs/education/education.yaml) | Education benchmark: 3 real-dataset tasks + 10 synthetic tasks, 6 models |
+| [Runs/mixed/mixed.yaml](../../Runs/mixed/mixed.yaml) | Real benchmark data + OpenAI models; full evaluation for ~$0.03 |
+| [Runs/education/education.yaml](../../Runs/education/education.yaml) | Education benchmark: 3 real-dataset tasks + 10 synthetic tasks, 6 models |
 | [benchmark/medium_benchmark.yaml](../../Runs/medium-benchmark/medium_benchmark.yaml) | Medium-scale benchmark: 5 models, 4 tasks, 20 items/task |
 | [benchmark/paper_benchmarks.yaml](../../Runs/paper/paper_benchmarks.yaml) | Paper evaluation config: 8 students, 3 judges, all 4 benchmark tasks |
-| [benchmark/paper_dual_track.yaml](../../Runs/paper/paper_dual_track.yaml) | Dual-track paper config: benchmark + generative teacher ablation |
+| [Runs/paper/paper_dual_track.yaml](../../Runs/paper/paper_dual_track.yaml) | Dual-track paper config: benchmark + generative teacher ablation |
 
 ---
 
@@ -62,9 +62,9 @@ All examples are self-contained HTML files — click to view rendered in browser
 
 | Example | Description |
 |---------|-------------|
-| [Education Benchmark Plan](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Public/benchmark/education_description.html) | Full experiment plan: 3 real-dataset tasks + 10 synthetic tasks, 6 models, per-phase call budget, cost table |
-| [Mixed Benchmark Plan](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Public/benchmark/mixed_description.html) | Mixed benchmark plan: real benchmark datasets + OpenAI models |
-| [Paper Dual-Track Plan](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Public/benchmark/paper_dual_track_description.html) | Paper evaluation: dual-track design with benchmark + generative teachers |
+| [Education Benchmark Plan](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/education/education_description.html) | Full experiment plan: 3 real-dataset tasks + 10 synthetic tasks, 6 models, per-phase call budget, cost table |
+| [Mixed Benchmark Plan](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/mixed/mixed_description.html) | Mixed benchmark plan: real benchmark datasets + OpenAI models |
+| [Paper Dual-Track Plan](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/paper/paper_dual_track_description.html) | Paper evaluation: dual-track design with benchmark + generative teachers |
 
 > **Generate all reports from a completed run:**
 > ```bash

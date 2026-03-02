@@ -86,7 +86,7 @@ providers:
 ### Automatic provider selection (`interface: auto`)
 
 Setting `interface: auto` on a model tells CoEval to automatically select the
-cheapest configured provider for that model, based on `benchmark/provider_pricing.yaml`:
+cheapest configured provider for that model, based on `Config/provider_pricing.yaml`:
 
 ```yaml
 - name: deepseek-v3
@@ -98,7 +98,7 @@ cheapest configured provider for that model, based on `benchmark/provider_pricin
   roles: [student]
 ```
 
-CoEval scans the `auto_routing` table in `benchmark/provider_pricing.yaml` top-to-bottom
+CoEval scans the `auto_routing` table in `Config/provider_pricing.yaml` top-to-bottom
 (cheapest first) and picks the first matching provider for which you have credentials.
 Resolution happens at config load time, before validation or probing.
 
@@ -331,7 +331,7 @@ This opens a self-contained HTML page in your browser showing:
 
 No API calls are made; the command is purely informational.
 
-> **Example planning HTML:** Open the [Education Benchmark Plan](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Public/benchmark/education_description.html) to see a real planning view for the education benchmark (3 real-dataset tasks + 10 synthetic tasks, 6 models, cost table).
+> **Example planning HTML:** Open the [Education Benchmark Plan](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/education/education_description.html) to see a real planning view for the education benchmark (3 real-dataset tasks + 10 synthetic tasks, 6 models, cost table).
 
 ### 3.5 Checking model availability
 
@@ -446,10 +446,10 @@ Then pre-ingest the data once before running:
 
 ```bash
 python -m benchmark.setup_mixed   # writes phase3_datapoints/ files
-coeval run --config benchmark/mixed.yaml --continue
+coeval run --config Runs/mixed/mixed.yaml --continue
 ```
 
-See `benchmark/mixed.yaml` and `benchmark/setup_mixed.py` for a complete working example
+See `Runs/mixed/mixed.yaml` and `Public/benchmark/setup_mixed.py` for a complete working example
 using XSum, CodeSearchNet, AESLC, and WikiTableQuestions.
 
 ### Dual-track experiments: benchmark vs. synthetic

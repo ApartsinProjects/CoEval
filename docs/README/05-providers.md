@@ -716,7 +716,7 @@ For `interface: auto`, frontier models are automatically routed to their native 
 
 Setting `interface: auto` in a model configuration tells CoEval to automatically select the **cheapest available provider** for the given model, based on:
 
-1. The `auto_routing` table in `benchmark/provider_pricing.yaml`
+1. The `auto_routing` table in `Config/provider_pricing.yaml`
 2. Which providers have credentials configured in `keys.yaml`
 
 **Example:**
@@ -734,7 +734,7 @@ CoEval scans the `auto_routing` table top-to-bottom (cheapest first), finds the 
 
 **Resolution happens at config load time** — the interface is permanently set before validation, so `coeval plan`, `coeval probe`, and `coeval run` all see the resolved interface.
 
-**How to update the routing table:** Edit `benchmark/provider_pricing.yaml` and modify the `auto_routing` section (entries are ordered cheapest-first):
+**How to update the routing table:** Edit `Config/provider_pricing.yaml` and modify the `auto_routing` section (entries are ordered cheapest-first):
 
 ```yaml
 auto_routing:
@@ -742,7 +742,7 @@ auto_routing:
   deepseek:             {interface: openrouter, notes: "default deepseek"}
 ```
 
-**To update prices:** Edit `benchmark/provider_pricing.yaml` — find the model under its `providers:` block and update `input:` / `output:` values. The cost estimator loads this file at runtime. The hardcoded `PRICE_TABLE` in `cost_estimator.py` is only a fallback if the YAML is unavailable.
+**To update prices:** Edit `Config/provider_pricing.yaml` — find the model under its `providers:` block and update `input:` / `output:` values. The cost estimator loads this file at runtime. The hardcoded `PRICE_TABLE` in `cost_estimator.py` is only a fallback if the YAML is unavailable.
 
 ---
 
@@ -820,7 +820,7 @@ A: Install Ollama from https://ollama.com, pull a model (e.g., `ollama pull llam
 A: Six interfaces support true asynchronous batch processing with a ~50% cost discount: `openai` (OpenAI Batch API), `anthropic` (Message Batches API), `azure_openai` (Azure Global Batch API), `mistral` (Mistral Batch API — same OpenAI-compatible format, no extra setup), `bedrock` (AWS Model Invocation Jobs), and `vertex` (Vertex AI Batch Prediction Jobs). `gemini` uses a concurrent thread pool (faster than sequential, but no discount). Enable batch per-phase in the `experiment.batch` config block.
 
 **Q: What is `interface: auto` and how does it pick a provider?**
-A: `interface: auto` tells CoEval to select the cheapest available provider for the given model at config load time. It scans the `auto_routing` table in `benchmark/provider_pricing.yaml` top-to-bottom and picks the first interface for which credentials exist in your key file. The resolved interface is logged at DEBUG level, and `coeval plan` shows the selected provider before any calls are made.
+A: `interface: auto` tells CoEval to select the cheapest available provider for the given model at config load time. It scans the `auto_routing` table in `Config/provider_pricing.yaml` top-to-bottom and picks the first interface for which credentials exist in your key file. The resolved interface is logged at DEBUG level, and `coeval plan` shows the selected provider before any calls are made.
 
 **Q: What is the difference between using Bedrock with a native API key vs. IAM credentials?**
 A: Bedrock's native API key mode (`api_key: BedrockAPIKey-...:...`) uses direct HTTP with an `x-amzn-bedrock-key` header and requires no extra library — it works with CoEval's core install. IAM credentials (`access_key_id` + `secret_access_key`) use the `boto3` SDK, which must be installed separately with `pip install boto3`. Native API key takes priority if both are present. **Note:** For Bedrock batch jobs, IAM credentials are always required — the native API key cannot be used to manage Model Invocation Jobs.

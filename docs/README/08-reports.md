@@ -27,21 +27,21 @@ coeval analyze complete-report \
     --out ./reports
 ```
 
-Using the `analysis.main` module directly:
+Using the `analyzer.main` module directly:
 
 ```bash
 # Generate all HTML reports
-python -m analysis.main \
+python -m analyzer.main \
     --run-path benchmark/runs/medium-benchmark-v1 \
     --out-dir  benchmark/runs/medium-benchmark-v1/html_reports
 
 # Generate a single report type
-python -m analysis.main \
+python -m analyzer.main \
     --run-path benchmark/runs/medium-benchmark-v1 \
     --report   student_report
 
 # Generate paper tables (requires benchmark-native scores)
-python -m analysis.paper_tables --run-id paper-eval-v1 --out-dir paper/tables
+python -m analyzer.paper_tables --run-id paper-eval-v1 --out-dir paper/tables
 ```
 
 ---
@@ -268,7 +268,7 @@ for task, val in icc.items():
 Excel export:
 
 ```bash
-python -m analysis.main \
+python -m analyzer.main \
     --run-path benchmark/runs/medium-benchmark-v1 \
     --format excel \
     --out-file benchmark/runs/medium-benchmark-v1/analysis.xlsx
@@ -303,7 +303,7 @@ The result is cached in `paper/tables/calibration_params.json`.
 The `analysis/paper_tables.py` module generates publication-ready tables:
 
 ```bash
-python -m analysis.paper_tables \
+python -m analyzer.paper_tables \
     --run benchmark/runs/paper-eval-v1 \
     --out paper/tables
 ```
@@ -356,7 +356,7 @@ Outputs `paper/tables/baselines.csv` with Spearman ρ for each method × task. R
 ## Comparing Multiple Runs
 
 ```bash
-python -m analysis.compare \
+python -m analyzer.compare \
     --run-a benchmark/runs/medium-benchmark-v1 \
     --run-b benchmark/runs/paper-eval-v1 \
     --out-dir paper/comparison
@@ -371,7 +371,7 @@ Generates a comparison report showing ranking differences, score delta per stude
 All analysis commands accept `--partial-ok` to run on an experiment that is still in progress:
 
 ```bash
-python -m analysis.main \
+python -m analyzer.main \
     --run-path benchmark/runs/medium-benchmark-v1 \
     --partial-ok
 ```
@@ -383,7 +383,7 @@ A warning banner is shown at the top of every report indicating the run is incom
 ## CLI Reference
 
 ```
-python -m analysis.main
+python -m analyzer.main
   --run-path PATH       Experiment folder (required)
   --out-dir  PATH       Output directory (default: {run-path}/html_reports)
   --report   TYPE       One of: student_report, teacher_report, judge_report,
@@ -394,7 +394,7 @@ python -m analysis.main
   --exclude-self-judge  Exclude self-judging records from all statistics
   --exclude-self-teach  Exclude self-teaching records from all statistics
 
-python -m analysis.paper_tables
+python -m analyzer.paper_tables
   --run-id   ID         Experiment ID (resolved under benchmark/runs/)
   --out-dir  PATH       Directory for CSV table files
   --tasks    LIST       Comma-separated task IDs (default: all)
@@ -418,9 +418,9 @@ All sample reports are self-contained HTML files — click to view rendered in b
 
 | Example | Description |
 |---------|-------------|
-| [Education Experiment Plan](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Public/benchmark/education_description.html) | Full experiment plan: 3 real-dataset tasks + 10 synthetic tasks, 6 models, per-phase call budget, cost table |
-| [Mixed Benchmark Plan](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Public/benchmark/mixed_description.html) | Mixed benchmark plan: real benchmark datasets + OpenAI models |
-| [Paper Dual-Track Plan](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Public/benchmark/paper_dual_track_description.html) | Paper evaluation: dual-track design with benchmark + generative teachers |
+| [Education Experiment Plan](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/education/education_description.html) | Full experiment plan: 3 real-dataset tasks + 10 synthetic tasks, 6 models, per-phase call budget, cost table |
+| [Mixed Benchmark Plan](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/mixed/mixed_description.html) | Mixed benchmark plan: real benchmark datasets + OpenAI models |
+| [Paper Dual-Track Plan](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/paper/paper_dual_track_description.html) | Paper evaluation: dual-track design with benchmark + generative teachers |
 
 > **Generate your own planning view:**
 > ```bash
@@ -469,16 +469,16 @@ A: Run `coeval analyze all --run ./eval_runs/my-experiment-v1 --out ./reports`. 
 A: CoEval generates eight HTML reports: `score-distribution` (judge score histograms), `teacher-report` (attribute coverage and data quality), `judge-report` (bias detection and calibration), `student-report` (per-model performance and rankings), `interaction-matrix` (teacher × student score heatmap), `judge-consistency` (inter-judge agreement and ICC), `coverage-summary` (attribute stratum coverage and surface bias), and `robust-summary` (outlier-robust rankings with confidence intervals). A `complete-report` Excel workbook is also available.
 
 **Q: Is there a programmatic API to access metrics without generating HTML?**
-A: Yes. Import `load_ees` from `analysis.loader` and the metric functions from `analysis.metrics` to work with the data directly in Python. For example, `composite_score_by_student(model)` returns a dict of mean normalized scores per student, and `judge_consistency(model)` returns ICC values per task. See the Programmatic API section above for a complete example.
+A: Yes. Import `load_ees` from `analyzer.loader` and the metric functions from `analyzer.metrics` to work with the data directly in Python. For example, `composite_score_by_student(model)` returns a dict of mean normalized scores per student, and `judge_consistency(model)` returns ICC values per task. See the Programmatic API section above for a complete example.
 
 **Q: Can I generate reports on a run that is still in progress?**
-A: Yes. Pass `--partial-ok` to any `coeval analyze` or `python -m analysis.main` command. All reports will render with a warning banner indicating the run is incomplete, and statistics are marked as preliminary.
+A: Yes. Pass `--partial-ok` to any `coeval analyze` or `python -m analyzer.main` command. All reports will render with a warning banner indicating the run is incomplete, and statistics are marked as preliminary.
 
 **Q: What is the difference between Spearman rho and Kendall tau in the reports?**
 A: Both are rank correlation metrics, but they measure slightly different things. Spearman rho measures the monotone agreement between two ranked lists (used to validate judge scores against benchmark ground-truth). Kendall tau measures pairwise concordance — the fraction of all pairs where two rankings agree on relative order. CoEval uses tau for student ranking comparisons and rho for benchmark validation.
 
 **Q: How do I export results to Excel for stakeholder review?**
-A: Run `coeval analyze complete-report --run ./eval_runs/my-experiment-v1 --out ./reports` or use `python -m analysis.main --run-path <path> --format excel --out-file analysis.xlsx`. The workbook includes Summary, StudentScores, TeacherCoverage, JudgeAgreement, and FailedRecords sheets.
+A: Run `coeval analyze complete-report --run ./eval_runs/my-experiment-v1 --out ./reports` or use `python -m analyzer.main --run-path <path> --format excel --out-file analysis.xlsx`. The workbook includes Summary, StudentScores, TeacherCoverage, JudgeAgreement, and FailedRecords sheets.
 
 ---
 

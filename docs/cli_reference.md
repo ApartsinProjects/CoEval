@@ -52,7 +52,7 @@ providers:
 #### `interface: auto`
 
 Setting `interface: auto` on a model triggers automatic provider selection at config
-load time. CoEval scans `benchmark/provider_pricing.yaml`'s `auto_routing` table and
+load time. CoEval scans `Config/provider_pricing.yaml`'s `auto_routing` table and
 selects the cheapest available provider for which credentials exist in `keys.yaml`.
 
 ```yaml
@@ -468,6 +468,7 @@ coeval describe --config PATH [options]
 | `--out PATH` | `<stem>_description.html` | Output HTML file path. Defaults to `<config_stem>_description.html` placed next to the config file. |
 | `--no-open` | off | Do not open the HTML file in the default browser after writing. |
 | `--keys PATH` | auto-discovered | Path to a provider key file (YAML). |
+| `--probe` | off | Run 1 sample API call per model to measure real latency and throughput. Results are shown in a **Provider Budget Probe** section of the HTML output. Requires live network access. |
 
 ### HTML page contents
 
@@ -482,11 +483,14 @@ coeval describe --config PATH [options]
 ### Examples
 
 ```bash
-# Write mixed_description.html next to mixed.yaml and open in browser
-coeval describe --config benchmark/mixed.yaml
+# Write mixed_description.html next to the config and open in browser
+coeval describe --config Runs/mixed/mixed.yaml
 
 # Write to a specific path without opening the browser
-coeval describe --config benchmark/mixed.yaml --out docs/mixed_overview.html --no-open
+coeval describe --config Runs/mixed/mixed.yaml --out docs/mixed_overview.html --no-open
+
+# Include a live provider budget probe section in the output
+coeval describe --config Runs/mixed/mixed.yaml --probe
 ```
 
 ---
@@ -793,14 +797,14 @@ coeval analyze <subcommand> --run PATH --out PATH [options]
 
 ### Robust filtering options
 
-Applied to `robust-summary` and `export-benchmark`:
+Applied to `robust-summary`, `export-benchmark`, and `all`:
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--judge-selection` | `top_half` | Judge selection strategy (`top_half` or `all`). |
-| `--agreement-metric` | `spa` | Agreement metric for judge ranking (`spa`, `wpa`, `kappa`). |
-| `--agreement-threshold` | `1.0` | Minimum judge-consistency fraction θ. |
-| `--teacher-score-formula` | `v1` | Teacher score formula for T* selection (`v1`, `s2`, `r3`). |
+| `--judge-selection` | `top_half` | Judge selection strategy (`top_half` — use only the top-ranked 50% of judges; `all` — use every judge). |
+| `--agreement-metric` | `spa` | Agreement metric for judge ranking (`spa` — strict pairwise agreement; `wpa` — weighted pairwise; `kappa` — Cohen's κ). |
+| `--agreement-threshold` | `1.0` | Minimum judge-consistency fraction θ (0.0–1.0). Datapoints where fewer judges agree than this threshold are excluded. |
+| `--teacher-score-formula` | `v1` | Teacher score formula for T* selection (`v1` — default weighted formula; `s2` — squared sum; `r3` — rank-cube). |
 
 ### Export options
 
@@ -808,10 +812,7 @@ Applied to `export-benchmark` only:
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--benchmark-format` | `jsonl` | Output format: `jsonl`, `parquet`, or `huggingface`. |
-| `--dataset-name` | *(exp id)* | Dataset name embedded in the HuggingFace dataset card. |
-| `--author` | — | Author/organisation for the dataset card (e.g. `my-org`). |
-| `--include-metadata` | on | Embed rubric, attribute map, evaluation model info, and suggested prompts in the export. |
+| `--benchmark-format` | `jsonl` | Output format: `jsonl` or `parquet`. |
 
 ### Examples
 
@@ -822,17 +823,15 @@ coeval analyze all --run benchmark/runs/my-exp --out benchmark/runs/my-exp/repor
 # Generate Excel workbook only
 coeval analyze complete-report --run benchmark/runs/my-exp --out my-exp-results.xlsx
 
-# Export benchmark dataset as HuggingFace-ready directory (Parquet + dataset card)
+# Export benchmark dataset as Parquet (compact columnar format)
 coeval analyze export-benchmark \
-    --run benchmark/runs/my-exp \
-    --out my-exp-hf-dataset/ \
-    --benchmark-format huggingface \
-    --dataset-name "my-org/my-benchmark" \
-    --author "My Org" \
+    --run Runs/my-exp \
+    --out my-exp-benchmark.parquet \
+    --benchmark-format parquet \
     --judge-selection top_half \
     --agreement-threshold 0.8
 
-# Export as plain JSONL (no HF card)
+# Export as plain JSONL
 coeval analyze export-benchmark \
     --run benchmark/runs/my-exp \
     --out my-exp-benchmark.jsonl \

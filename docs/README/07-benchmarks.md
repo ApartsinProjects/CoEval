@@ -198,7 +198,7 @@ This section catalogues widely-used public benchmarks by domain. CoEval can supp
 ### Mixed benchmark (XSum, CodeSearchNet, AESLC, WikiTableQuestions)
 
 ```bash
-# Run once before using benchmark/mixed.yaml
+# Run once before using Runs/mixed/mixed.yaml
 python -m benchmark.setup_mixed
 ```
 
@@ -425,7 +425,7 @@ coeval analyze all --run ./benchmark/runs/xsum-benchmark-v1 --out ./reports
 ### Example B: Mixed benchmark (public dataset teacher + OpenAI students)
 
 ```yaml
-# benchmark/mixed.yaml
+# Runs/mixed/mixed.yaml
 experiment_id: mixed-benchmark-v1
 phases: [3, 4, 5]
 
@@ -542,7 +542,7 @@ Setup and run:
 
 ```bash
 python -m benchmark.setup_education    # ingest ARC, RACE-High, SciQ (30 items each)
-coeval run --config benchmark/education.yaml --continue
+coeval run --config Runs/education/education.yaml --continue
 ```
 
 ---
@@ -705,10 +705,10 @@ tasks:
 
 | File | Description |
 |------|-------------|
-| `benchmark/mixed.yaml` | Mixed benchmark (OpenAI models + real datasets, ~$0.03) |
-| `benchmark/education.yaml` | Education benchmark: 3 real-dataset tasks + synthetic tasks, 6 models |
-| `benchmark/paper_benchmarks.yaml` | Paper evaluation config: 8 students, 3 judges, all 4 benchmark tasks |
-| `benchmark/paper_dual_track.yaml` | Dual-track paper config: benchmark + generative teacher ablation |
+| `Runs/mixed/mixed.yaml` | Mixed benchmark (OpenAI models + real datasets, ~$0.03) |
+| `Runs/education/education.yaml` | Education benchmark: 3 real-dataset tasks + synthetic tasks, 6 models |
+| `Runs/paper/paper_benchmarks.yaml` | Paper evaluation config: 8 students, 3 judges, all 4 benchmark tasks |
+| `Runs/paper/paper_dual_track.yaml` | Dual-track paper config: benchmark + generative teacher ablation |
 
 ---
 

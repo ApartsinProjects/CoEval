@@ -151,8 +151,8 @@ CoEval/
 | `experiments/interfaces/pool.py` | ModelPool: instantiates the right interface class per model |
 | `experiments/interfaces/registry.py` | Credential resolution, auto-routing, model listing |
 | `experiments/interfaces/probe.py` | Availability probe for all 18 interfaces |
-| `experiments/interfaces/cost_estimator.py` | PRICE_TABLE, batch discounts, token heuristics |
-| `benchmark/provider_pricing.yaml` | Auto-routing rules and per-model price table |
+| `Code/runner/interfaces/cost_estimator.py` | PRICE_TABLE, batch discounts, token heuristics |
+| `Config/provider_pricing.yaml` | Auto-routing rules and per-model price table |
 | `analysis/metrics.py` | Spearman ρ, Kendall τ, ACR, PFR, differentiation score |
 | `analysis/calibration.py` | OLS linear calibration (α, β) for judge score correction |
 
@@ -167,7 +167,7 @@ A: The CLI entry point is `experiments/cli.py`, which dispatches to subcommand h
 A: All provider interface classes are in `experiments/interfaces/`. Each interface has its own file (e.g., `openai_iface.py`, `anthropic_iface.py`, `gemini_iface.py`). The OpenAI-compatible providers (Groq, DeepSeek, Mistral, DeepInfra, Cerebras) all share `openai_compat_iface.py`. The `pool.py` module is the factory that instantiates the right class per model.
 
 **Q: Where does CoEval store pricing information for cost estimation?**
-A: Pricing data lives in `benchmark/provider_pricing.yaml`. This file contains both the per-model price table (input/output $/1M tokens) and the `auto_routing` table used by `interface: auto`. The cost estimator in `experiments/interfaces/cost_estimator.py` loads this file at runtime; the hardcoded `PRICE_TABLE` in that file is only a fallback.
+A: Pricing data lives in `Config/provider_pricing.yaml`. This file contains both the per-model price table (input/output $/1M tokens) and the `auto_routing` table used by `interface: auto`. The cost estimator in `Code/runner/interfaces/cost_estimator.py` loads this file at runtime; the hardcoded `PRICE_TABLE` in that file is only a fallback.
 
 **Q: Where should I add a new benchmark dataset loader?**
 A: Create a new Python module in `benchmark/loaders/` subclassing `BenchmarkLoader`, register it in `benchmark/loaders/__init__.py`, create a corresponding attribute map YAML in `benchmark/configs/`, and add the dataset ID to the `_DATASETS` dict in `benchmark/emit_datapoints.py`.
