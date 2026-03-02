@@ -12,11 +12,13 @@ from .bedrock_iface import BedrockInterface
 from .vertex_iface import VertexInterface
 from .openrouter_iface import OpenRouterInterface
 from .azure_ai_iface import AzureAIInterface
+from .openai_compat_iface import OpenAICompatInterface, supported_interfaces as _compat_ifaces
 
 # Network-based interfaces that are lightweight wrappers with no GPU footprint
 _NETWORK_INTERFACES = frozenset({
     'openai', 'anthropic', 'gemini', 'azure_openai', 'azure_ai',
     'bedrock', 'vertex', 'openrouter',
+    'groq', 'deepseek', 'mistral', 'deepinfra', 'cerebras',
 })
 
 
@@ -159,6 +161,15 @@ class ModelPool:
                     or model_cfg.access_key
                 ),
             )
+
+        # OpenAI-compatible providers (Groq, DeepSeek, Mistral, DeepInfra, Cerebras)
+        if iface in _compat_ifaces():
+            compat_cfg = pk.get(iface, {})
+            key = (
+                model_cfg.access_key
+                or (compat_cfg.get('api_key') if isinstance(compat_cfg, dict) else compat_cfg)
+            )
+            return OpenAICompatInterface(interface=iface, access_key=key)
 
         # Benchmark virtual interface — data pre-written by `coeval ingest`.
         # Phase 3 skips these teachers entirely; the pool should never be asked

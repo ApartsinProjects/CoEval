@@ -220,6 +220,20 @@ def resolve_provider_keys(keys_file: str | Path | None = None) -> dict[str, dict
     if hf_token:
         resolved['huggingface'] = {'token': hf_token}
 
+    # ── OpenAI-compatible providers ────────────────────────────────────────────
+    # Each uses a simple string API key (same pattern as openrouter)
+    _COMPAT_PROVIDERS = {
+        'groq':      'GROQ_API_KEY',
+        'deepseek':  'DEEPSEEK_API_KEY',
+        'mistral':   'MISTRAL_API_KEY',
+        'deepinfra': 'DEEPINFRA_API_KEY',
+        'cerebras':  'CEREBRAS_API_KEY',
+    }
+    for _iface, _env in _COMPAT_PROVIDERS.items():
+        _key = _str(file_keys.get(_iface)) or os.environ.get(_env)
+        if _key:
+            resolved[_iface] = {'api_key': _key}
+
     return resolved
 
 
@@ -273,6 +287,8 @@ def list_provider_models(
         return _list_openrouter_models(creds, verbose)
     if provider == 'azure_ai':
         return _list_azure_ai_models(creds, verbose)
+    if provider in ('groq', 'deepseek', 'mistral', 'deepinfra', 'cerebras'):
+        return _list_openai_compat_models(provider, creds, verbose)
     return []
 
 
@@ -448,6 +464,23 @@ def _list_openrouter_models(creds: dict, verbose: bool) -> list[dict]:
     models = [{'id': m.id, 'name': getattr(m, 'name', m.id)} for m in response.data]
     return sorted(models, key=lambda m: m['id'])
 
+
+def _list_openai_compat_models(provider: str, creds: dict, verbose: bool) -> list[dict]:
+    """List models from an OpenAI-compatible provider."""
+    from .openai_compat_iface import _REGISTRY
+    if provider not in _REGISTRY:
+        return []
+    base_url, env_key, _label = _REGISTRY[provider]
+    try:
+        from openai import OpenAI
+        key = creds.get('api_key') or os.environ.get(env_key)
+        client = OpenAI(api_key=key, base_url=base_url)
+        models = list(client.models.list())
+        if verbose:
+            return [{'id': m.id, 'owned_by': getattr(m, 'owned_by', provider)} for m in models]
+        return [{'id': m.id} for m in models]
+    except Exception:
+        return []
 
 
 # ---------------------------------------------------------------------------

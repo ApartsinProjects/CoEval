@@ -100,6 +100,55 @@ def _batch_settings(cfg) -> list[tuple[str, str]]:
 
 
 # ---------------------------------------------------------------------------
+# Provider budget probe
+# ---------------------------------------------------------------------------
+
+def _run_provider_probe(cfg, n_samples: int = 1) -> dict:
+    """Make 1 sample call per non-benchmark model; return probe results dict.
+
+    Returns a dict: model_name → {latency_s, tokens_per_second, price_input, price_output, error}
+    Benchmark models are skipped (returned as {skipped: true}).
+    """
+    try:
+        from ..interfaces.cost_estimator import (
+            _run_sample_calls, _heuristic_latency, _heuristic_tps, get_prices,
+        )
+        from ..logger import RunLogger
+        import os
+        logger = RunLogger(os.devnull, min_level='WARNING', console=False)
+    except Exception as exc:
+        return {'_error': str(exc)}
+
+    results = {}
+    for model in cfg.models:
+        if model.interface == 'benchmark':
+            results[model.name] = {'skipped': True, 'reason': 'virtual (no API)'}
+            continue
+        if model.interface == 'huggingface':
+            pi, po = get_prices(model)
+            results[model.name] = {
+                'skipped': True,
+                'reason': 'local model (no API probe)',
+                'latency_s': _heuristic_latency(model),
+                'tokens_per_second': _heuristic_tps(model),
+                'price_input': pi,
+                'price_output': po,
+            }
+            continue
+        pr = _run_sample_calls(model, n_samples, logger)
+        pi, po = get_prices(model)
+        results[model.name] = {
+            'skipped': False,
+            'latency_s': round(pr.latency_s, 3),
+            'tokens_per_second': round(pr.tokens_per_second, 1),
+            'price_input': pi,
+            'price_output': po,
+            'error': pr.error,
+        }
+    return results
+
+
+# ---------------------------------------------------------------------------
 # Cost estimate rendering helper
 # ---------------------------------------------------------------------------
 
@@ -203,10 +252,79 @@ def _render_cost_section(cost_report: dict | None) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Provider budget probe rendering helper
+# ---------------------------------------------------------------------------
+
+def _render_probe_section(probe_results: dict | None) -> str:
+    """Render the Provider Budget Probe HTML section."""
+    if not probe_results or probe_results.get('_error'):
+        err = (probe_results or {}).get('_error', 'probe not run')
+        return f'<div class="section"><div class="section-title"><span class="section-icon">📡</span> Provider Budget Probe</div><p class="cost-disclaimer">Probe unavailable: {_esc(err)}</p></div>'
+
+    rows = ""
+    for model_name, data in probe_results.items():
+        if data.get('skipped'):
+            reason = data.get('reason', 'skipped')
+            rows += (
+                f"<tr class='zero-row'>"
+                f"<td>{_esc(model_name)}</td>"
+                f"<td colspan='5' class='small-text'><em>{_esc(reason)}</em></td>"
+                f"</tr>"
+            )
+            continue
+        error = data.get('error')
+        if error:
+            status = "❌"
+            latency_str = "—"
+            tps_str = "—"
+            cost_str = "—"
+            err_str = f'<span style="color:#dc2626;font-size:0.78rem">{_esc(str(error)[:80])}</span>'
+        else:
+            status = "✅"
+            latency_str = f"{data['latency_s']:.2f}s"
+            tps_str = f"{data['tokens_per_second']:.0f}"
+            pi = data.get('price_input', 0)
+            po = data.get('price_output', 0)
+            # cost per 1000 calls with ~400 input + 200 output tokens
+            cost_per_1k = (pi * 400 + po * 200) / 1_000_000 * 1000
+            cost_str = f"${cost_per_1k:.3f}"
+            err_str = ""
+        rows += (
+            f"<tr>"
+            f"<td>{_esc(model_name)}</td>"
+            f"<td style='text-align:center'>{status}</td>"
+            f"<td class='cost-val'>{latency_str}</td>"
+            f"<td class='cost-val'>{tps_str}</td>"
+            f"<td class='cost-val'>${data.get('price_input',0):.3f} / ${data.get('price_output',0):.2f}</td>"
+            f"<td class='cost-val'>{cost_str} {err_str}</td>"
+            f"</tr>"
+        )
+
+    return f"""
+  <div class="section">
+    <div class="section-title"><span class="section-icon">📡</span> Provider Budget Probe (live)</div>
+    <p class="cost-disclaimer">
+      1 sample call made per model. Latency and throughput are real measurements.
+      Cost/1k calls = (400 input + 200 output tokens) × 1,000 × price.
+    </p>
+    <table class="cost-table" style="width:100%">
+      <thead><tr>
+        <th>Model</th><th style="text-align:center">Status</th>
+        <th style="text-align:right">Latency</th>
+        <th style="text-align:right">tok/s</th>
+        <th style="text-align:right">Price (in/out per 1M)</th>
+        <th style="text-align:right">Cost / 1k calls</th>
+      </tr></thead>
+      <tbody>{rows}</tbody>
+    </table>
+  </div>"""
+
+
+# ---------------------------------------------------------------------------
 # HTML generation
 # ---------------------------------------------------------------------------
 
-def _render_html(cfg, config_path: str) -> str:
+def _render_html(cfg, config_path: str, probe_results: dict | None = None) -> str:
     from ..config import PHASE_IDS
     try:
         from ..interfaces.cost_estimator import estimate_cost_static
@@ -689,6 +807,9 @@ def _render_html(cfg, config_path: str) -> str:
   <!-- ── Cost Estimate ── -->
   {_render_cost_section(cost_report)}
 
+  <!-- ── Provider Budget Probe ── -->
+  {_render_probe_section(probe_results) if probe_results is not None else ''}
+
   <!-- ── Batch & Quota ── -->
   <div class="section">
     <div class="section-title"><span class="section-icon">⚙️</span> Batch &amp; Quota Configuration</div>
@@ -738,8 +859,14 @@ def cmd_describe(args: argparse.Namespace) -> None:
         stem = Path(args.config).stem
         out_path = Path(args.config).parent / f"{stem}_description.html"
 
+    # Optionally probe models for real latency/throughput
+    probe_results = None
+    if getattr(args, 'probe', False):
+        print("Running provider budget probe (1 sample call per model)...")
+        probe_results = _run_provider_probe(cfg)
+
     # Render HTML
-    html_content = _render_html(cfg, config_path)
+    html_content = _render_html(cfg, config_path, probe_results=probe_results)
 
     # Write file
     out_path.parent.mkdir(parents=True, exist_ok=True)

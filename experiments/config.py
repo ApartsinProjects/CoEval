@@ -21,6 +21,8 @@ VALID_ROLES = {'student', 'teacher', 'judge'}
 VALID_INTERFACES = {
     'openai', 'anthropic', 'gemini', 'huggingface',
     'azure_openai', 'azure_ai', 'bedrock', 'vertex', 'openrouter',
+    # OpenAI-compatible providers (all use the same REST API pattern)
+    'groq', 'deepseek', 'mistral', 'deepinfra', 'cerebras',
     # Virtual interface — benchmark data pre-written by `coeval ingest`; Phase 3 is skipped
     'benchmark',
 }

@@ -371,6 +371,14 @@ def _build_parser() -> argparse.ArgumentParser:
         '--keys', metavar='PATH', default=None,
         help='Path to a provider key file (YAML); overrides default ~/.coeval/keys.yaml',
     )
+    describe_p.add_argument(
+        '--probe', action='store_true', default=False,
+        help=(
+            'Run 1 sample API call per model to measure real latency and '
+            'throughput. Results are shown in a "Provider Budget Probe" section '
+            'of the HTML output. Off by default (makes describe a live network call).'
+        ),
+    )
 
     # ---- coeval wizard ----
     wizard_p = sub.add_parser(

@@ -304,6 +304,13 @@ def _build_interface(model_cfg: 'ModelConfig'):
     if iface_name == 'gemini':
         from .gemini_iface import GeminiInterface
         return GeminiInterface(access_key=key)
+    # OpenAI-compatible providers (Groq, DeepSeek, Mistral, DeepInfra, Cerebras)
+    try:
+        from .openai_compat_iface import supported_interfaces as _compat_ifaces, OpenAICompatInterface
+        if iface_name in _compat_ifaces():
+            return OpenAICompatInterface(interface=iface_name, access_key=key)
+    except ImportError:
+        pass
     # HuggingFace: don't load weights during estimation — use heuristic only
     raise RuntimeError(
         f"HuggingFace model '{model_cfg.name}' cannot be sampled during "
@@ -753,6 +760,10 @@ def _heuristic_latency(model_cfg: 'ModelConfig') -> float:
         return 2.0
     if iface == 'openrouter':
         return 2.5
+    if iface == 'groq':
+        return 0.3   # Groq LPU: ~300ms typical TTFT
+    if iface in ('deepseek', 'mistral', 'deepinfra', 'cerebras'):
+        return 1.5
     if iface in ('bedrock', 'azure_openai', 'azure_ai', 'vertex'):
         return 2.0
     # HuggingFace: varies enormously; assume a small-to-medium GPU
@@ -770,6 +781,12 @@ def _heuristic_tps(model_cfg: 'ModelConfig') -> float:
         return 100.0
     if iface == 'openrouter':
         return 60.0
+    if iface == 'groq':
+        return 500.0   # Groq LPU: ~500 tokens/sec
+    if iface == 'cerebras':
+        return 1000.0  # Cerebras wafer-scale: ~1000+ tokens/sec
+    if iface in ('deepseek', 'mistral', 'deepinfra'):
+        return 80.0
     if iface in ('bedrock', 'azure_openai', 'azure_ai', 'vertex'):
         return 70.0
     return 15.0   # HuggingFace on typical GPU

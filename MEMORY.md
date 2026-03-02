@@ -69,6 +69,11 @@ CLI entry: `experiments.cli:main` → `coeval run/probe/plan/status/generate/mod
 | `bedrock` | None (real-time) | `api_key` OR (`AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY`) | `pip install boto3` (IAM only) |
 | `vertex` | None (real-time) | `GOOGLE_CLOUD_PROJECT` + ADC | `pip install google-cloud-aiplatform` |
 | `openrouter` | None (real-time) | `OPENROUTER_API_KEY` | pre-installed (openai) |
+| `groq` | None | `GROQ_API_KEY` | pre-installed (openai) |
+| `deepseek` | None | `DEEPSEEK_API_KEY` | pre-installed (openai) |
+| `mistral` | None | `MISTRAL_API_KEY` | pre-installed (openai) |
+| `deepinfra` | None | `DEEPINFRA_API_KEY` | pre-installed (openai) |
+| `cerebras` | None | `CEREBRAS_API_KEY` | pre-installed (openai) |
 | `benchmark` | N/A (virtual; no API calls) | none | pre-installed |
 | `auto` | resolves at config load time | — | — |
 

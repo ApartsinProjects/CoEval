@@ -226,6 +226,8 @@ def _probe_one(model: 'ModelConfig') -> None:
         _probe_openrouter(model)
     elif iface == 'azure_ai':
         _probe_azure_ai(model)
+    elif iface in ('groq', 'deepseek', 'mistral', 'deepinfra', 'cerebras'):
+        _probe_openai_compat(model, iface)
     else:
         _probe_huggingface(model)
 
@@ -445,3 +447,21 @@ def _probe_vertex(model: 'ModelConfig') -> None:
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = sa_key
     # vertexai.init() validates project/credentials; lightweight, no model calls
     vertexai.init(project=project, location=location)
+
+
+def _probe_openai_compat(model: 'ModelConfig', interface: str) -> None:
+    """Probe an OpenAI-compatible provider by calling models.list()."""
+    from .openai_compat_iface import _REGISTRY
+    try:
+        from openai import OpenAI
+    except ImportError:
+        raise RuntimeError("openai package not installed (pip install openai)")
+    base_url, env_key, label = _REGISTRY[interface]
+    key = model.access_key or os.environ.get(env_key)
+    if not key:
+        raise RuntimeError(
+            f"{label} API key not found — set {env_key} or add "
+            f"'{interface}' to the provider key file"
+        )
+    client = OpenAI(api_key=key, base_url=base_url)
+    client.models.list()

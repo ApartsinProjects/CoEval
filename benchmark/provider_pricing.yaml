@@ -145,6 +145,77 @@ providers:
       gemini-2.0-flash-001:  {input: 0.10,  output: 0.40}
       gemini-1.5-flash:      {input: 0.075, output: 0.30}
       gemini-1.5-pro:        {input: 1.25,  output: 5.00}
+
+  # --------------------------------------------------------------------------
+  # Groq  (no batch; ~500 tok/s via LPU hardware)
+  # https://console.groq.com/docs/models
+  # Best for: low-latency Phase 4/5 runs; Llama 8B at same price as OpenRouter
+  # --------------------------------------------------------------------------
+  groq:
+    interface: groq
+    batch_discount: 1.00
+    models:
+      llama-3.1-8b-instant:  {input: 0.05, output: 0.08}
+      llama-3.3-70b-specdec: {input: 0.59, output: 0.99}
+      llama-3.1-70b-versatile: {input: 0.59, output: 0.79}
+      mixtral-8x7b-32768:    {input: 0.24, output: 0.24}
+      gemma2-9b-it:          {input: 0.20, output: 0.20}
+      llama3-8b-8192:        {input: 0.05, output: 0.08}
+      llama3-70b-8192:       {input: 0.59, output: 0.79}
+
+  # --------------------------------------------------------------------------
+  # DeepSeek  (direct API; 50% cheaper inputs than OpenRouter for V3)
+  # https://platform.deepseek.com/docs/api-overview/pricing
+  # DeepSeek-V3: $0.07/$0.28 vs OpenRouter $0.14/$0.28 — 50% cheaper input
+  # --------------------------------------------------------------------------
+  deepseek:
+    interface: deepseek
+    batch_discount: 1.00
+    models:
+      deepseek-chat:      {input: 0.07, output: 0.28}   # DeepSeek-V3
+      deepseek-reasoner:  {input: 0.55, output: 2.19}   # DeepSeek-R1
+
+  # --------------------------------------------------------------------------
+  # Mistral AI  (direct API; same price as OpenRouter, avoids markup)
+  # https://mistral.ai/technology/#pricing
+  # --------------------------------------------------------------------------
+  mistral:
+    interface: mistral
+    batch_discount: 1.00
+    models:
+      mistral-small-latest:  {input: 0.10, output: 0.30}
+      mistral-large-latest:  {input: 2.00, output: 6.00}
+      codestral-latest:      {input: 0.20, output: 0.60}
+      open-mistral-nemo:     {input: 0.15, output: 0.15}
+      open-mixtral-8x22b:    {input: 2.00, output: 6.00}
+
+  # --------------------------------------------------------------------------
+  # DeepInfra  (competitive open-model hosting; OpenAI-compatible API)
+  # https://deepinfra.com/pricing
+  # --------------------------------------------------------------------------
+  deepinfra:
+    interface: deepinfra
+    batch_discount: 1.00
+    models:
+      meta-llama/Meta-Llama-3.1-8B-Instruct:   {input: 0.04, output: 0.04}
+      meta-llama/Meta-Llama-3.3-70B-Instruct:  {input: 0.12, output: 0.40}
+      deepseek-ai/DeepSeek-V3:                 {input: 0.14, output: 0.28}
+      Qwen/Qwen2.5-72B-Instruct:               {input: 0.13, output: 0.40}
+      mistralai/Mistral-Small-Instruct-2409:   {input: 0.10, output: 0.30}
+
+  # --------------------------------------------------------------------------
+  # Cerebras  (wafer-scale AI; ~1000 tok/s; ideal for latency-critical runs)
+  # https://cerebras.ai/pricing
+  # --------------------------------------------------------------------------
+  cerebras:
+    interface: cerebras
+    batch_discount: 1.00
+    models:
+      llama3.1-8b:  {input: 0.10, output: 0.10}
+      llama3.1-70b: {input: 0.60, output: 0.60}
+      llama3.3-70b: {input: 0.85, output: 1.20}
+      llama-4-scout: {input: 0.40, output: 0.40}
+
 # ─── Auto-routing table ───────────────────────────────────────────────────────────────────────────────
 #
 # Used by `interface: auto` in experiment configs.
@@ -196,16 +267,23 @@ auto_routing:
   llama-3.3-70b: {interface: openrouter, notes: "OpenRouter → $0.12/$0.40"}
   llama-3-70b:   {interface: openrouter, notes: "OpenRouter → $0.40/$0.90"}
 
+  # ── Groq-specific model IDs (use groq interface for ~500 tok/s speed) ─────────────────────
+  llama3.1-8b:       {interface: groq,       notes: "Groq LPU → $0.05/$0.08 at 500 tok/s"}
+  llama3.3-70b:      {interface: groq,       notes: "Groq LPU → $0.59/$0.99 at 500 tok/s"}
+  llama3-8b:         {interface: groq,       notes: "Groq LPU → $0.05/$0.08"}
+  llama3-70b-groq:   {interface: groq,       notes: "Groq LPU → $0.59/$0.79"}
+
   # ── Mistral models ────────────────────────────────────────────────────────────────────────────
   mistral-small:  {interface: openrouter, notes: "OpenRouter → $0.10/$0.30"}
   mistral-large:  {interface: openrouter, notes: "OpenRouter → $2.00/$6.00"}
   mixtral-8x7b:   {interface: openrouter, notes: "OpenRouter → $0.24/$0.24"}
 
-  # ── DeepSeek models ───────────────────────────────────────────────────────────────────────────
-  deepseek-chat:  {interface: openrouter, notes: "OpenRouter → $0.14/$0.28"}
-  deepseek-r1:    {interface: openrouter, notes: "OpenRouter → $0.55/$2.19"}
-  deepseek-v3:    {interface: openrouter, notes: "OpenRouter → $0.14/$0.28"}
-  deepseek:       {interface: openrouter, notes: "OpenRouter → see deepseek-chat/r1"}
+  # ── DeepSeek models (direct API cheaper: $0.07 vs OpenRouter $0.14 input) ──────────────────
+  deepseek-chat:     {interface: deepseek,    notes: "DeepSeek direct → $0.07/$0.28 (50% cheaper input vs OpenRouter)"}
+  deepseek-r1:       {interface: deepseek,    notes: "DeepSeek direct → $0.55/$2.19"}
+  deepseek-v3:       {interface: deepseek,    notes: "DeepSeek direct → $0.07/$0.28"}
+  deepseek-reasoner: {interface: deepseek,    notes: "DeepSeek direct → $0.55/$2.19"}
+  deepseek:          {interface: openrouter,  notes: "OpenRouter fallback if deepseek creds absent"}
 
   # ── Qwen models ───────────────────────────────────────────────────────────────────────────────
   qwen-2.5-72b:   {interface: openrouter, notes: "OpenRouter → $0.12/$0.39"}

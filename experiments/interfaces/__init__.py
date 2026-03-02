@@ -8,6 +8,7 @@ from .gemini_batch import GeminiBatchRunner
 from .azure_batch import AzureBatchRunner
 from .huggingface_iface import HuggingFaceInterface
 from .pool import ModelPool
+from .openai_compat_iface import OpenAICompatInterface, supported_interfaces as _openai_compat_supported
 
 __all__ = [
     'ModelInterface',
@@ -17,6 +18,7 @@ __all__ = [
     'AzureBatchRunner',
     'HuggingFaceInterface',
     'ModelPool',
+    'OpenAICompatInterface',
     'create_batch_runner',
 ]
 
