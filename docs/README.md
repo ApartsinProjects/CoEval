@@ -26,6 +26,7 @@ The [`README/`](README/) subdirectory splits the documentation into 13 focused, 
 
 | File | Description |
 |------|-------------|
+| [concepts.md](concepts.md) | Glossary of every first-class concept: teacher, student, judge, attributes, rubric, phases, wizard, and more |
 | [cli_reference.md](cli_reference.md) | Complete CLI reference for all 11 `coeval` subcommands and flags |
 | [developer_guide.md](developer_guide.md) | Architecture overview, contribution guidelines, and extension points |
 | [tutorial.md](tutorial.md) | End-to-end walkthrough: from config to analysis report |

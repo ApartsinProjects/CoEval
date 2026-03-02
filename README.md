@@ -226,6 +226,7 @@ Interactive HTML examples — click to open rendered in browser:
 
 | Guide | What it covers |
 |-------|----------------|
+| [Concepts Glossary](docs/concepts.md) | Every first-class concept explained: teacher, student, judge, attributes, rubric, datapoint, slot, phases, wizard, probing, planning, resume, repair, auto interface, batch API, and more |
 | [Evaluation Experiment Planning and Preparation Guide](docs/tutorial.md) | End-to-end walkthrough: installation, config design, probing, running, analysis, and benchmark export |
 | [Command Line Option Reference](docs/cli_reference.md) | Every `coeval` subcommand, flag, and exit code — `run`, `probe`, `plan`, `generate`, `status`, `models`, `analyze`, `describe`, `wizard`, `ingest`, `repair` |
 | [Running Experiments](docs/README/06-running.md) | Phase modes, `--continue`, batch API, quota control, cost estimation, fault recovery, use-case examples |
