@@ -460,4 +460,26 @@ All sample reports are self-contained HTML files — click to view rendered in b
 
 ---
 
+## Frequently Asked Questions
+
+**Q: How do I generate all reports at once after a run completes?**
+A: Run `coeval analyze all --run ./eval_runs/my-experiment-v1 --out ./reports`. This generates all eight HTML reports plus the Excel workbook in the specified output directory. You can also call individual report types by replacing `all` with the report name (e.g., `student-report`, `judge-report`).
+
+**Q: What reports does CoEval generate and what is each one for?**
+A: CoEval generates eight HTML reports: `score-distribution` (judge score histograms), `teacher-report` (attribute coverage and data quality), `judge-report` (bias detection and calibration), `student-report` (per-model performance and rankings), `interaction-matrix` (teacher × student score heatmap), `judge-consistency` (inter-judge agreement and ICC), `coverage-summary` (attribute stratum coverage and surface bias), and `robust-summary` (outlier-robust rankings with confidence intervals). A `complete-report` Excel workbook is also available.
+
+**Q: Is there a programmatic API to access metrics without generating HTML?**
+A: Yes. Import `load_ees` from `analysis.loader` and the metric functions from `analysis.metrics` to work with the data directly in Python. For example, `composite_score_by_student(model)` returns a dict of mean normalized scores per student, and `judge_consistency(model)` returns ICC values per task. See the Programmatic API section above for a complete example.
+
+**Q: Can I generate reports on a run that is still in progress?**
+A: Yes. Pass `--partial-ok` to any `coeval analyze` or `python -m analysis.main` command. All reports will render with a warning banner indicating the run is incomplete, and statistics are marked as preliminary.
+
+**Q: What is the difference between Spearman rho and Kendall tau in the reports?**
+A: Both are rank correlation metrics, but they measure slightly different things. Spearman rho measures the monotone agreement between two ranked lists (used to validate judge scores against benchmark ground-truth). Kendall tau measures pairwise concordance — the fraction of all pairs where two rankings agree on relative order. CoEval uses tau for student ranking comparisons and rho for benchmark validation.
+
+**Q: How do I export results to Excel for stakeholder review?**
+A: Run `coeval analyze complete-report --run ./eval_runs/my-experiment-v1 --out ./reports` or use `python -m analysis.main --run-path <path> --format excel --out-file analysis.xlsx`. The workbook includes Summary, StudentScores, TeacherCoverage, JudgeAgreement, and FailedRecords sheets.
+
+---
+
 [← Benchmarks](07-benchmarks.md) · [Resume & Recovery →](09-recovery.md)

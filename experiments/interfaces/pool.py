@@ -15,10 +15,11 @@ from .azure_ai_iface import AzureAIInterface
 from .openai_compat_iface import OpenAICompatInterface, supported_interfaces as _compat_ifaces
 
 # Network-based interfaces that are lightweight wrappers with no GPU footprint
+# (Ollama is included even though it's local — it uses the network API path, not GPU pool)
 _NETWORK_INTERFACES = frozenset({
     'openai', 'anthropic', 'gemini', 'azure_openai', 'azure_ai',
     'bedrock', 'vertex', 'openrouter',
-    'groq', 'deepseek', 'mistral', 'deepinfra', 'cerebras',
+    'groq', 'deepseek', 'mistral', 'deepinfra', 'cerebras', 'ollama',
 })
 
 
@@ -162,14 +163,20 @@ class ModelPool:
                 ),
             )
 
-        # OpenAI-compatible providers (Groq, DeepSeek, Mistral, DeepInfra, Cerebras)
+        # OpenAI-compatible providers (Groq, DeepSeek, Mistral, DeepInfra, Cerebras, Ollama)
         if iface in _compat_ifaces():
             compat_cfg = pk.get(iface, {})
             key = (
                 model_cfg.access_key
                 or (compat_cfg.get('api_key') if isinstance(compat_cfg, dict) else compat_cfg)
             )
-            return OpenAICompatInterface(interface=iface, access_key=key)
+            # Allow base_url override from model parameters (useful for Ollama on
+            # non-default host/port) or from provider key file
+            base_url = (
+                params.get('base_url')
+                or (compat_cfg.get('base_url') if isinstance(compat_cfg, dict) else None)
+            )
+            return OpenAICompatInterface(interface=iface, access_key=key, base_url=base_url)
 
         # Benchmark virtual interface — data pre-written by `coeval ingest`.
         # Phase 3 skips these teachers entirely; the pool should never be asked

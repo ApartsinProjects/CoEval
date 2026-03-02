@@ -111,4 +111,24 @@ CoEval is organized around five capability clusters that cover the full evaluati
 
 ---
 
+## Frequently Asked Questions
+
+**Q: What is CoEval and what problem does it solve?**
+A: CoEval is a declarative LLM benchmarking framework that orchestrates a fleet of language models as teachers, students, and judges. It addresses the core problems of LLM evaluation at scale — prompt brittleness, rubric subjectivity, single-judge bias, fragile pipelines, and vendor lock-in — through a structured five-phase pipeline driven entirely by a single YAML config.
+
+**Q: Who is CoEval designed for?**
+A: CoEval is built for LLM developers stress-testing fine-tunes, ML engineers validating RAG pipelines, researchers producing reproducible benchmarks, and platform teams running recurring evaluation suites. Essentially anyone who needs rigorous, auditable model comparisons without rebuilding evaluation infrastructure from scratch.
+
+**Q: Do I need to write code to run an evaluation?**
+A: No. The entire experiment is described in a single YAML file — models, tasks, rubrics, sampling, and prompts. The `coeval wizard` command can even generate this config interactively from a plain-English description of your evaluation goal.
+
+**Q: How does CoEval reduce API costs?**
+A: CoEval integrates with OpenAI, Anthropic, and Azure OpenAI Batch APIs, which provide a 50% per-token discount on Phases 4 and 5. The `coeval plan` command runs a pre-run cost estimate (with optional live sample calls) so you know the cost before committing. Setting a `quota` block per model prevents runaway spending.
+
+**Q: What happens if my evaluation run crashes mid-way?**
+A: Each JSONL record is written atomically, so a crash loses at most one in-flight record. Running `coeval run --config my.yaml --continue` resumes from exactly where the run stopped, reading `phases_completed` from `meta.json` and skipping all already-completed work.
+
+**Q: How does CoEval handle vendor lock-in?**
+A: CoEval abstracts over 15 model interfaces — OpenAI, Anthropic, Gemini, Azure, Bedrock, Vertex, OpenRouter, Groq, DeepSeek, Mistral, Ollama, HuggingFace, and more. Switching providers requires changing a single `interface:` field in the YAML; no pipeline code changes are needed.
+
 [Installation →](02-installation.md)

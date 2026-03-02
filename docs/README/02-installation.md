@@ -91,4 +91,26 @@ pytest experiments/tests/ analysis/tests/ -v
 
 ---
 
+## Frequently Asked Questions
+
+**Q: What is the minimum Python version required?**
+A: CoEval requires Python 3.10 or later. This is enforced at import time — earlier versions will fail with a clear error.
+
+**Q: Do I need to install all provider SDKs upfront?**
+A: No. The core install includes the OpenAI SDK and PyYAML, which covers all OpenAI-compatible providers (Groq, DeepSeek, Mistral, DeepInfra, Cerebras, OpenRouter) out of the box. Install only the SDKs you actually need: `pip install anthropic` for Anthropic, `pip install google-genai` for Gemini, `pip install boto3` for Bedrock IAM auth, and `pip install google-cloud-aiplatform` for Vertex AI.
+
+**Q: Do I need a GPU to run CoEval?**
+A: Only if you want to run local HuggingFace models. All cloud interfaces (OpenAI, Anthropic, Gemini, etc.) work on any machine with a network connection. For HuggingFace, a CUDA GPU is strongly recommended — CPU inference is very slow for models above ~360M parameters.
+
+**Q: What does `pip install -e ".[huggingface]"` install?**
+A: The `huggingface` extra pulls in `transformers`, `torch`, and `accelerate` — everything needed to load and run instruction-tuned models locally via the HuggingFace Hub. The `parquet` extra adds `pyarrow` for Parquet export in the analysis package.
+
+**Q: How do I verify that my installation is working?**
+A: Run `coeval --help` to confirm the CLI is installed, then `coeval models --keys ~/.coeval/keys.yaml` to verify that at least one provider is reachable. You can also run the full test suite with `pytest experiments/tests/ analysis/tests/ -v`.
+
+**Q: How do I install the Playwright browser needed for HTML report tests?**
+A: After installing `pytest playwright` via pip, run `playwright install chromium`. This downloads the headless Chromium binary used by the 55 Playwright integration tests in `analysis/tests/test_reports_playwright.py`.
+
+---
+
 [← Overview](01-overview.md) · [Quick Start →](03-quick-start.md)

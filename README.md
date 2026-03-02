@@ -3,8 +3,12 @@
 [![Python ≥3.10](https://img.shields.io/badge/python-%E2%89%A53.10-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![Version 0.3.0](https://img.shields.io/badge/version-0.3.0-informational)](CHANGELOG.md)
 [![Tests 557 passing](https://img.shields.io/badge/tests-557%20passing-brightgreen)](docs/README/11-testing.md)
-[![Interfaces 15+](https://img.shields.io/badge/interfaces-15%2B-orange)](docs/README/05-providers.md)
+[![Interfaces 16+](https://img.shields.io/badge/interfaces-16%2B-orange)](docs/README/05-providers.md)
 [![License MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
+
+<p align="center">
+  <img src="docs/coeval_banner.jpg" alt="CoEval — Teacher · Student · Judge evaluation ensemble" width="860"/>
+</p>
 
 ---
 
@@ -18,7 +22,7 @@ Teachers use attribute-driven prompt generation to produce realistic, diverse te
 
 Ranking reliability is improved by automatically weighting (or selecting) a robust subset of teachers that best differentiates students and a robust subset of judges that most consistently agree with the ensemble majority.
 
-CoEval supports both local and remote models, with connectors for OpenAI, Hugging Face, Azure, AWS Bedrock, Anthropic, and others, plus cost-aware experiment planning and batch inference where providers support it. Results and run plans are delivered as rich HTML reports for efficient control over definitions, costs, and outcomes, and the system includes documentation for both users and developers.
+CoEval supports both local and remote models, with connectors for OpenAI, Hugging Face, Azure, AWS Bedrock, Anthropic, Ollama, and others, plus cost-aware experiment planning and batch inference where providers support it. Results and run plans are delivered as rich HTML reports for efficient control over definitions, costs, and outcomes, and the system includes documentation for both users and developers.
 
 ---
 
@@ -134,22 +138,25 @@ YAML Config  →  Phase 1: Attribute Mapping   (teachers infer task dimensions)
              →  coeval analyze all            (8 HTML reports + Excel workbook)
 ```
 
-### 15 Model Interfaces
+### 16 Model Interfaces
 
-| Cloud — Batch ✅ | Cloud — Real-time | OpenAI-Compatible | Local / Virtual |
+| Cloud — Async Batch ✅ | Cloud — Real-time | OpenAI-Compatible | Local / Virtual |
 |:---:|:---:|:---:|:---:|
-| `openai` | `azure_openai` | `groq` | `huggingface` |
-| `anthropic` | `azure_ai` | `deepseek` | `benchmark` |
-| `gemini` | `bedrock` | `mistral` | |
+| `openai` | `azure_openai`¹ | `groq` | `huggingface` |
+| `anthropic` | `azure_ai` | `deepseek` | `ollama` |
+| `gemini`² | `bedrock` | `mistral` | `benchmark` |
 | | `vertex` | `deepinfra` | |
 | | `openrouter` | `cerebras` | |
+
+> ¹ `azure_openai` supports Azure Global Batch API (50% discount) — enable via `batch: azure_openai:` in config.
+> ² `gemini` uses concurrent requests (pseudo-batch) — no async discount.
 
 ### Key Capabilities
 
 | Capability | Detail |
 |-----------|--------|
 | **Cost estimation** | Itemised call budget and cost table before any phases run; Batch API discounts modelled |
-| **Batch API** | 50 % discount for OpenAI and Anthropic on Phases 4 and 5 |
+| **Batch API** | 50% async discount for OpenAI, Anthropic, and Azure OpenAI; Gemini uses concurrent mode (no discount) |
 | **Resume** | `--continue` resumes at exact JSONL record; no duplicate API calls |
 | **Auto attributes** | Teachers infer task dimensions from a description; no hand-labelling required |
 | **Auto rubric** | Teachers propose rubric factors; merge-and-deduplicate across N teachers |

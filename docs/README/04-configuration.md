@@ -646,4 +646,26 @@ A model can hold any combination of `teacher`, `student`, and `judge` roles. Use
 
 ---
 
+## Frequently Asked Questions
+
+**Q: What are the three required top-level sections of a CoEval YAML config?**
+A: Every config must have `models` (list of model entries with interface, parameters, and roles), `tasks` (list of task definitions with description, attributes, rubric, and sampling), and `experiment` (pipeline settings including `id` and `storage_folder`). All other fields are optional.
+
+**Q: What does `role_parameters` do, and how does it differ from `parameters`?**
+A: `parameters` sets the default generation settings for a model across all roles. `role_parameters` contains per-role overrides that are merged on top of `parameters` — only the keys you specify are changed. This lets you use `temperature: 0.0` for judging and `temperature: 0.8` for generation in the same model entry without duplicating the model definition.
+
+**Q: When should I use `rubric: auto` vs. providing a static rubric?**
+A: Use `rubric: auto` when you want teacher models to infer appropriate evaluation criteria from the task description — useful for exploratory evaluations or when you are unsure which dimensions matter. Use a static rubric (a dict of `{key: "criterion"}` pairs) when you have well-defined criteria and want to skip Phase 2 entirely, saving LLM calls.
+
+**Q: What is the difference between `target_attributes` and `nuanced_attributes`?**
+A: `target_attributes` define the structural coverage dimensions of the benchmark — the pipeline ensures all combinations are represented (e.g., every domain × length combination). `nuanced_attributes` are sampled randomly per item to add naturalistic variation (e.g., writing style, register) that prevents distribution collapse without requiring full coverage.
+
+**Q: How do I prevent a model from accidentally making too many API calls?**
+A: Add a `quota` block to the `experiment` section with a `max_calls` ceiling per model name. When a model reaches its ceiling during a phase, it stops making new calls gracefully and leaves gaps that can be filled later with `--continue` after adjusting the quota.
+
+**Q: What is `label_attributes` and when should I use it?**
+A: `label_attributes` enables judge-free exact-match evaluation for classification and information-extraction tasks. List the attribute names whose values should be compared directly (e.g., `label_attributes: [sentiment]`). Phase 5 then uses exact-match comparison for those attributes instead of calling a judge model, making evaluation free and deterministic.
+
+---
+
 [← Quick Start](03-quick-start.md) · [Providers →](05-providers.md)

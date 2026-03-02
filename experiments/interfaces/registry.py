@@ -234,6 +234,14 @@ def resolve_provider_keys(keys_file: str | Path | None = None) -> dict[str, dict
         if _key:
             resolved[_iface] = {'api_key': _key}
 
+    # ── Ollama — local model server; no API key required ──────────────────────
+    # Supports optional base_url override (e.g. remote Ollama server)
+    ollama_cfg = file_keys.get('ollama', {})
+    if isinstance(ollama_cfg, dict) and ollama_cfg:
+        resolved['ollama'] = ollama_cfg   # may contain base_url
+    elif os.environ.get('OLLAMA_HOST'):
+        resolved['ollama'] = {'base_url': os.environ['OLLAMA_HOST']}
+
     return resolved
 
 

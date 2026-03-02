@@ -559,4 +559,26 @@ tasks:
 
 ---
 
+## Frequently Asked Questions
+
+**Q: What benchmark datasets are available out of the box?**
+A: The `benchmark/setup_mixed.py` script ingests four datasets: XSum (BBC news summarization), CodeSearchNet (Python code explanation), AESLC (email subject-line composition), and WikiTableQuestions (table data interpretation). Additional datasets — including MMLU, HellaSwag, TruthfulQA, HumanEval, MedQA, GSM8K, ARC-Challenge, RACE, and SciQ — are available via `coeval ingest`.
+
+**Q: What does `coeval ingest` do?**
+A: `coeval ingest` converts an external JSONL dataset into Phase 3 datapoint format, writing files to `benchmark/runs/{run-id}/phase3_datapoints/`. The input JSONL must have at minimum `prompt` and `reference_response` fields. Once ingested, the dataset can be used as a virtual teacher with `interface: benchmark` — no LLM API calls are made for Phase 3.
+
+**Q: How does the `interface: benchmark` virtual teacher work?**
+A: A model with `interface: benchmark` is skipped entirely during Phase 3. Instead of generating datapoints via LLM calls, CoEval loads pre-ingested JSONL files from the `phase3_datapoints/` folder. Phases 4 and 5 then run normally — only student responses and judge evaluations require API calls.
+
+**Q: What is stratified sampling and why does it matter?**
+A: When emitting datapoints from a large benchmark, CoEval applies stratified sampling across all attribute value combinations. This ensures that the selected items cover the full difficulty/domain distribution of the dataset rather than clustering at the most common values. For example, 620 XSum items are drawn from 24 strata (4 complexity levels × 6 domain values) with roughly equal representation per stratum.
+
+**Q: How do I reproduce someone else's published benchmark results?**
+A: Place their exported Phase 3 JSONL files in your `phase3_datapoints/` folder, create a config with `interface: benchmark` as the teacher, and run `coeval run` with phases set to skip Phase 3 (`attribute_mapping: Keep`, `rubric_mapping: Keep`, `data_generation: Keep`). Your student and judge models run against the original benchmark items without regenerating anything.
+
+**Q: How do I write a custom dataset loader for a new benchmark?**
+A: Create a Python module in `benchmark/loaders/` that subclasses `BenchmarkLoader` and implements `_load_dataset()` and `_to_record()`. Register it in `benchmark/loaders/__init__.py` with a dataset ID and attribute map path, then add it to `benchmark/emit_datapoints.py`'s `_DATASETS` dict. The loader is then available to `coeval ingest` and `benchmark/emit_datapoints.py`.
+
+---
+
 [← Running](06-running.md) · [Reports →](08-reports.md)

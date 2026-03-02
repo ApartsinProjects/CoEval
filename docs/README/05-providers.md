@@ -12,7 +12,7 @@ CoEval supports **15 model interfaces** spanning every major cloud provider, Ope
 |-----------|-------------------|:---------:|:------------:|------|
 | `openai` | OpenAI (GPT-4o, o3, o1, GPT-3.5, …) | ✅ OpenAI Batch API | ✅ | `OPENAI_API_KEY` |
 | `anthropic` | Anthropic (Claude 3.5 Sonnet/Haiku, Claude 3 Opus) | ✅ Message Batches API | ✅ | `ANTHROPIC_API_KEY` |
-| `gemini` | Google Gemini 2.0 Flash, 1.5 Pro/Flash | ✅ Gemini Batch API | ✅ | `GEMINI_API_KEY` or `GOOGLE_API_KEY` |
+| `gemini` | Google Gemini 2.0 Flash, 1.5 Pro/Flash | ⚡ Concurrent¹ | — | `GEMINI_API_KEY` or `GOOGLE_API_KEY` |
 | `azure_openai` | Azure OpenAI deployments (any GPT model) | ✅ Azure Batch API | ✅ | `AZURE_OPENAI_API_KEY` + `AZURE_OPENAI_ENDPOINT` |
 | `azure_ai` | Azure AI Foundry / GitHub Models | — | — | `AZURE_AI_API_KEY` or `GITHUB_TOKEN` |
 | `bedrock` | AWS Bedrock — all foundation models | — | — | Native API key **or** IAM |
@@ -23,8 +23,11 @@ CoEval supports **15 model interfaces** spanning every major cloud provider, Ope
 | `mistral` | Mistral AI | — | — | `MISTRAL_API_KEY` |
 | `deepinfra` | DeepInfra | — | — | `DEEPINFRA_API_KEY` |
 | `cerebras` | Cerebras (ultra-fast inference) | — | — | `CEREBRAS_API_KEY` |
+| `ollama` | Ollama — local model server | — | — | none (no key needed) |
 | `huggingface` | Any HuggingFace model (local GPU) | — | — | `HF_TOKEN` or `HUGGINGFACE_HUB_TOKEN` |
 | `benchmark` | Virtual — pre-ingested dataset responses | N/A | N/A | none |
+
+> ¹ **Gemini concurrent mode**: Google's Generative AI API does not offer a native asynchronous batch endpoint. CoEval submits all Gemini requests concurrently via a thread pool (`GeminiBatchRunner`). This is faster than sequential calls but does **not** provide a 50% batch discount — you pay standard per-token rates.
 
 ---
 
@@ -56,7 +59,7 @@ Supports Anthropic's Message Batches API with a 50% batch discount. Requires `pi
 
 ### `gemini`
 
-Supports Google Gemini Batch API with 50% discount. Requires `pip install google-genai`.
+Submits requests concurrently via a thread pool (pseudo-batch mode). Google's Generative AI API does **not** offer a native async batch endpoint — there is no 50% batch discount. Requires `pip install google-genai`.
 
 ```yaml
 - name: gemini-2.0-flash
@@ -139,6 +142,55 @@ Runs any instruction-tuned HuggingFace model locally. Requires `pip install -e "
   roles: [teacher, student, judge]
 ```
 
+### `ollama` — Local Model Server
+
+Ollama runs any supported open-weight model locally using a lightweight server that exposes an OpenAI-compatible REST API. No API key is required. Ideal for privacy-sensitive experiments or air-gapped environments.
+
+**Install Ollama:** https://ollama.com — then pull a model:
+```bash
+ollama pull llama3.2
+ollama pull phi4
+ollama pull gemma3
+```
+
+**Minimal config (default localhost):**
+```yaml
+- name: llama3.2-local
+  interface: ollama
+  parameters:
+    model: llama3.2
+    temperature: 0.7
+    max_tokens: 512
+  roles: [student]
+```
+
+**Custom host (remote Ollama server or non-default port):**
+```yaml
+- name: llama3.2-remote
+  interface: ollama
+  parameters:
+    model: llama3.2
+    base_url: http://192.168.1.50:11434/v1   # overrides default localhost
+  roles: [student]
+```
+
+Alternatively, set `OLLAMA_HOST=http://192.168.1.50:11434` in your environment.
+
+**Key file entry (optional base_url override):**
+```yaml
+providers:
+  ollama:
+    base_url: http://192.168.1.50:11434/v1
+```
+
+**Notes:**
+- Ollama is treated as a network interface (no GPU pool management in CoEval)
+- No batching — requests are sent concurrently via the standard sequential path
+- Cost estimation returns $0 for Ollama models (no per-token cost)
+- `coeval probe` calls `models.list()` on the Ollama server to verify connectivity
+
+---
+
 ### `benchmark` — Virtual Teacher
 
 The `benchmark` interface is a zero-cost virtual teacher that replays pre-ingested responses from real datasets. Phase 3 is skipped entirely for benchmark models — data was already ingested by `coeval ingest` or `benchmark/setup_mixed.py`.
@@ -180,14 +232,14 @@ phase3_datapoints/{task_id}.{model_name}.datapoints.jsonl
 
 ## Batch API
 
-Four interfaces support asynchronous batch processing with a 50% discount:
+Three interfaces support **true asynchronous batch processing** with a 50% cost discount. Gemini uses a concurrent runner (faster than sequential, no discount):
 
 | Interface | Batch Mode | Discount |
 |-----------|-----------|---------|
-| `openai` | OpenAI Batch API — async, 24h window | 50% |
-| `anthropic` | Message Batches API — async, 24h window | 50% |
-| `gemini` | Gemini Batch API — async | 50% |
-| `azure_openai` | Azure Batch API — async | 50% |
+| `openai` | OpenAI Batch API — async, 24h window | ✅ 50% |
+| `anthropic` | Message Batches API — async, 24h window | ✅ 50% |
+| `azure_openai` | Azure Global Batch API — async | ✅ 50% |
+| `gemini` | Concurrent thread pool (pseudo-batch) | ❌ none |
 
 Enable per provider and per phase in the experiment config:
 
@@ -200,34 +252,34 @@ experiment:
     anthropic:
       response_collection: true
       evaluation: true
-    gemini:
+    azure_openai:
       response_collection: true
       evaluation: true
-    azure_openai:          # also supported
+    gemini:          # concurrent mode — no discount, but faster than sequential
       response_collection: true
       evaluation: true
 ```
 
 Batch jobs are submitted at the start of each phase and polled automatically. Use `coeval status --fetch-batches` to check completion status manually.
 
-**How batch works:**
+**How async batch works (OpenAI / Anthropic / Azure):**
 1. At the start of a batch-enabled phase, CoEval submits all requests as a batch job
 2. The process polls the provider API at intervals until the job completes
 3. Results are downloaded and processed identically to real-time responses
 4. Batch mode is transparent to the rest of the pipeline — no changes to output format or downstream analysis
 
-**Full batch API status:**
+**Full batch status:**
 
-| Interface | Batch API | CoEval Status | Discount |
+| Interface | Batch Mode | CoEval Status | Discount |
 |-----------|-----------|--------------|---------|
-| `openai` | OpenAI Batch API | ✅ Implemented | 50% |
-| `anthropic` | Message Batches API | ✅ Implemented | 50% |
-| `gemini` | Gemini Batch API | ✅ Implemented | 50% |
-| `azure_openai` | Azure Global Batch | ✅ Implemented (`AzureBatchRunner`) | 50% |
+| `openai` | OpenAI Batch API (async) | ✅ Implemented (`OpenAIBatchRunner`) | 50% |
+| `anthropic` | Message Batches API (async) | ✅ Implemented (`AnthropicBatchRunner`) | 50% |
+| `azure_openai` | Azure Global Batch (async) | ✅ Implemented (`AzureBatchRunner`) | 50% |
+| `gemini` | Concurrent thread pool | ✅ Implemented (`GeminiBatchRunner`) | ❌ none |
 | `bedrock` | AWS Bedrock Batch Inference | ❌ Not yet (native API exists) | ~50% when added |
 | `openrouter` | None (real-time) | N/A | — |
-| `vertex` | Vertex Batch (via Gemini) | Routes to `gemini` | — |
-| `huggingface` | None (local) | N/A | — |
+| `vertex` | None (real-time via Gemini API) | N/A | — |
+| `huggingface` | None (local GPU) | N/A | — |
 
 ---
 
@@ -278,15 +330,15 @@ providers:
 
 | Model | Input ($/1M) | Output ($/1M) | Batch (50% off) |
 |-------|-------------|--------------|-----------------|
-| gemini-2.0-flash | $0.10 | $0.40 | ✅ $0.05 / $0.20 |
-| gemini-2.0-flash-lite | $0.075 | $0.30 | ✅ $0.0375 / $0.15 |
-| gemini-2.5-flash | $0.15 | $0.60 | ✅ $0.075 / $0.30 |
-| gemini-2.5-flash-lite | $0.075 | $0.30 | ✅ $0.0375 / $0.15 |
-| gemini-1.5-flash | $0.075 | $0.30 | ✅ $0.0375 / $0.15 |
-| gemini-1.5-pro | $1.25 | $5.00 | ✅ $0.625 / $2.50 |
-| gemini-2.5-pro | $1.25 | $10.00 | ✅ $0.625 / $5.00 |
+| gemini-2.0-flash | $0.10 | $0.40 | — |
+| gemini-2.0-flash-lite | $0.075 | $0.30 | — |
+| gemini-2.5-flash | $0.15 | $0.60 | — |
+| gemini-2.5-flash-lite | $0.075 | $0.30 | — |
+| gemini-1.5-flash | $0.075 | $0.30 | — |
+| gemini-1.5-pro | $1.25 | $5.00 | — |
+| gemini-2.5-pro | $1.25 | $10.00 | — |
 
-**Batch discount:** 50% via Gemini Batch API (async; available for Flash and Pro tiers).
+**No batch discount.** CoEval uses concurrent requests (thread pool) for Gemini — you pay standard per-token rates. Google does not expose a batch discount API comparable to OpenAI or Anthropic.
 
 **Configuration:**
 ```yaml
@@ -473,6 +525,10 @@ providers:
   deepinfra:   di-...
   cerebras:    csk-...
 
+  # Ollama — no key needed; only set if using a non-default host
+  ollama:
+    base_url: http://192.168.1.50:11434/v1   # optional
+
   azure_openai:
     api_key:     ...
     endpoint:    https://my-resource.openai.azure.com/
@@ -499,6 +555,28 @@ model.access_key (in YAML)  →  provider entry in keys.yaml  →  environment v
 ```
 
 > **Security:** `keys.yaml`, `*.keys.yaml`, and `.coeval/` are included in `.gitignore` by default. Never commit credentials to version control.
+
+---
+
+## Frequently Asked Questions
+
+**Q: Does Gemini get a 50% batch discount like OpenAI and Anthropic?**
+A: No. Google's Generative AI API does not expose a native asynchronous batch endpoint comparable to OpenAI's Batch API or Anthropic's Message Batches API. CoEval's `GeminiBatchRunner` submits all Gemini requests concurrently via a thread pool — this is faster than sequential calls but you pay standard per-token rates. There is no batch discount for Gemini.
+
+**Q: How do I use Ollama for local models without any API key?**
+A: Install Ollama from https://ollama.com, pull a model (e.g., `ollama pull llama3.2`), and set `interface: ollama` in your config with `model: llama3.2`. No API key is required. If your Ollama server is on a different host or port, set `base_url: http://<host>:11434/v1` either in the model parameters or in `keys.yaml` under `providers.ollama.base_url`.
+
+**Q: Which providers support the 50% batch discount?**
+A: Four interfaces support true asynchronous batch processing with a 50% cost discount: `openai` (OpenAI Batch API), `anthropic` (Message Batches API), `azure_openai` (Azure Global Batch API), and `gemini` (concurrent thread pool — faster but no discount). Enable batch per-phase in the `experiment.batch` config block.
+
+**Q: What is `interface: auto` and how does it pick a provider?**
+A: `interface: auto` tells CoEval to select the cheapest available provider for the given model at config load time. It scans the `auto_routing` table in `benchmark/provider_pricing.yaml` top-to-bottom and picks the first interface for which credentials exist in your key file. The resolved interface is logged at DEBUG level, and `coeval plan` shows the selected provider before any calls are made.
+
+**Q: What is the difference between using Bedrock with a native API key vs. IAM credentials?**
+A: Bedrock's native API key mode (`api_key: BedrockAPIKey-...:...`) uses direct HTTP with an `x-amzn-bedrock-key` header and requires no extra library — it works with CoEval's core install. IAM credentials (`access_key_id` + `secret_access_key`) use the `boto3` SDK, which must be installed separately with `pip install boto3`. Native API key takes priority if both are present.
+
+**Q: Can I access open-weight models like Llama or Mistral without managing individual provider accounts?**
+A: Yes — use `interface: openrouter`. OpenRouter provides a single OpenAI-compatible API and a single key covering 300+ models including Llama, Mistral, Qwen, DeepSeek, Cohere, and Gemma. It is the recommended interface for open-weight models when you want broad model access without juggling multiple API keys.
 
 ---
 

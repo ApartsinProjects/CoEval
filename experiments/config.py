@@ -22,7 +22,7 @@ VALID_INTERFACES = {
     'openai', 'anthropic', 'gemini', 'huggingface',
     'azure_openai', 'azure_ai', 'bedrock', 'vertex', 'openrouter',
     # OpenAI-compatible providers (all use the same REST API pattern)
-    'groq', 'deepseek', 'mistral', 'deepinfra', 'cerebras',
+    'groq', 'deepseek', 'mistral', 'deepinfra', 'cerebras', 'ollama',
     # Virtual interface — benchmark data pre-written by `coeval ingest`; Phase 3 is skipped
     'benchmark',
 }
@@ -32,7 +32,8 @@ VALID_PHASE_MODES = {'New', 'Keep', 'Extend', 'Model'}
 # Phases that support native or pseudo-batch processing
 VALID_BATCH_PHASES = {'data_generation', 'response_collection', 'evaluation'}
 # Interfaces that support batch runners (HuggingFace is always sequential)
-BATCH_CAPABLE_INTERFACES = {'openai', 'anthropic', 'gemini'}
+# gemini uses a concurrent thread-pool runner (pseudo-batch; no async discount)
+BATCH_CAPABLE_INTERFACES = {'openai', 'anthropic', 'gemini', 'azure_openai'}
 # Valid probe modes and fail behaviours
 VALID_PROBE_MODES = {'disable', 'full', 'resume'}
 VALID_PROBE_FAIL_MODES = {'abort', 'warn'}

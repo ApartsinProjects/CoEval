@@ -165,4 +165,26 @@ Run failed or was interrupted?
 
 ---
 
+## Frequently Asked Questions
+
+**Q: How much data do I lose if a run crashes mid-phase?**
+A: At most one record. CoEval writes each JSONL record atomically as it completes. The worst case is one in-flight batch item that was being processed when the crash occurred. All previously written records are intact and are read back on resume.
+
+**Q: What is the difference between `--continue` and `--resume`?**
+A: `--continue` restarts the same experiment in-place — it reads `meta.json`, skips completed phases, and fills gaps in in-progress phases using the same experiment ID and config. `--resume PATH` forks a new experiment from an existing one by copying Phases 1 and 2 artifacts (attributes and rubric) from the source run, then running Phases 3–5 fresh with the new config's models. Use `--continue` to restart after a crash; use `--resume` to build on top of an existing benchmark with different student or judge models.
+
+**Q: How do I add a new model to an experiment that has already finished?**
+A: Use `--continue --only-models new-model-name`. This re-runs only Phases 4 and 5 for the specified model while leaving all other models' data untouched. Alternatively, set the affected phases to `Model` mode in the config, which skips (task, model) pairs whose JSONL file already exists.
+
+**Q: What should I do if I see malformed or corrupted JSONL records?**
+A: Run `coeval repair --run ./eval_runs/my-experiment --dry-run --stats` first to preview what would be repaired. If the output looks right, run `coeval repair --run ./eval_runs/my-experiment` to apply the fixes — malformed records are marked as failed and the phase checkpoint is cleared from `meta.json`. Then run `coeval run --config my-experiment.yaml --continue` to regenerate only the failed items.
+
+**Q: Can I re-use the attribute mapping and rubric from one experiment in another?**
+A: Yes. Set `resume_from: path/to/source-experiment` in the new experiment's `experiment` block. Phases 1 and 2 artifacts are copied from the source run, and you can set those phases to `Keep` in the new config to skip them entirely. This is useful when running evaluation ablations that share the same task definitions.
+
+**Q: How do I check what is left to complete in a partially finished run?**
+A: Run `coeval status --run ./eval_runs/my-experiment` to see a progress dashboard showing phase artifact counts, pending batch jobs, and recent log errors. For a cost estimate of remaining work only, run `coeval plan --config my-experiment.yaml --continue`.
+
+---
+
 [← Reports](08-reports.md) · [Architecture →](10-architecture.md)

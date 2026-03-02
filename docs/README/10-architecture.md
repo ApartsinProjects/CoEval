@@ -146,4 +146,26 @@ Each experiment writes to `{storage_folder}/{experiment_id}/`:
 
 ---
 
+## Frequently Asked Questions
+
+**Q: What are the five phases of the CoEval pipeline?**
+A: The five phases are: (1) Attribute Mapping — teachers infer task dimensions; (2) Rubric Mapping — teachers build evaluation criteria; (3) Data Generation — teachers produce (prompt, reference_response) pairs; (4) Response Collection — students answer Phase 3 prompts; (5) Evaluation — judges score student responses against the rubric. Each phase is independently checkpointed and resumable.
+
+**Q: Can Phases 1 and 2 be skipped entirely?**
+A: Yes. If you supply static `target_attributes` (a dict rather than `"auto"`) and a static `rubric` (a dict rather than `"auto"`), Phases 1 and 2 make zero LLM calls. Set both phases to `Keep` in the `experiment.phases` block and they are skipped on every run, saving time and API cost.
+
+**Q: Can one model serve as teacher, student, and judge at the same time?**
+A: Yes. Role assignment is fully flexible — any model can hold any combination of the three roles in a single experiment. A minimal single-model experiment has one model in all three roles. Use `role_parameters` to apply different temperature and token budgets per role without duplicating the model entry.
+
+**Q: How does the pipeline handle the Batch API?**
+A: For Phase 4 and Phase 5 with batch-enabled interfaces (OpenAI, Anthropic, Azure OpenAI), CoEval submits all requests as a single batch job at the start of the phase and polls the provider API at intervals until completion. Results are downloaded and processed identically to real-time responses — the rest of the pipeline is unaware of whether batch or real-time was used.
+
+**Q: Where are all the phase output files stored?**
+A: All artifacts are written under `{storage_folder}/{experiment_id}/`. Phase 1 outputs are `{task}.attributes.json`; Phase 2 is `{task}.rubric.json`; Phase 3 is `{task}__{teacher}.datapoints.jsonl`; Phase 4 is `{task}__{teacher}__{student}.responses.jsonl`; Phase 5 is `{task}__{teacher}__{judge}.evaluations.jsonl`. A `meta.json` file tracks phase completion state and a `run.log` contains structured logs.
+
+**Q: How does `evaluation_mode: per_factor` differ from `single`?**
+A: In `single` mode, the judge makes one API call per student response and returns scores for all rubric dimensions at once — lower cost, but dimensions are scored together. In `per_factor` mode, the judge makes one API call per rubric dimension per response — N times more calls, but each dimension is scored in isolation, enabling finer-grained analysis and reducing inter-dimension influence on scoring.
+
+---
+
 [← Recovery](09-recovery.md) · [Testing →](11-testing.md)

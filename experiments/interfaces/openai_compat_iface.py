@@ -7,9 +7,15 @@ Covers any provider that exposes an OpenAI chat-completions REST API, including:
   - Mistral   (https://api.mistral.ai/v1)              — direct; avoids OpenRouter markup
   - DeepInfra (https://api.deepinfra.com/v1/openai)   — competitive open-model pricing
   - Cerebras  (https://api.cerebras.ai/v1)             — 1000+ tok/s wafer-scale hardware
+  - Ollama    (http://localhost:11434/v1)              — local models; no API key needed
 
 All providers share the same OpenAI-SDK-compatible interface. Credentials are
 resolved from: model-level access_key → provider key file → environment variable.
+
+For Ollama, no API key is required. The base URL defaults to
+``http://localhost:11434/v1`` and can be overridden via the ``base_url``
+parameter in the model config or the ``OLLAMA_HOST`` environment variable
+(e.g. ``OLLAMA_HOST=http://192.168.1.10:11434``).
 
 Key file format (keys.yaml)::
 
@@ -31,13 +37,17 @@ from .base import ModelInterface
 # Provider registry
 # ---------------------------------------------------------------------------
 
-#: interface_name → (base_url, env_var_name, display_label)
-_REGISTRY: dict[str, tuple[str, str, str]] = {
+#: interface_name → (default_base_url, env_var_name_or_None, display_label)
+#: env_var_name is None for providers that do not require an API key (e.g. Ollama).
+_REGISTRY: dict[str, tuple[str, str | None, str]] = {
     'groq':      ('https://api.groq.com/openai/v1',      'GROQ_API_KEY',      'Groq'),
     'deepseek':  ('https://api.deepseek.com/v1',          'DEEPSEEK_API_KEY',  'DeepSeek'),
     'mistral':   ('https://api.mistral.ai/v1',            'MISTRAL_API_KEY',   'Mistral'),
     'deepinfra': ('https://api.deepinfra.com/v1/openai',  'DEEPINFRA_API_KEY', 'DeepInfra'),
     'cerebras':  ('https://api.cerebras.ai/v1',           'CEREBRAS_API_KEY',  'Cerebras'),
+    # Ollama — local model server; no API key needed; base URL configurable
+    # via model parameters.base_url or OLLAMA_HOST environment variable
+    'ollama':    ('http://localhost:11434/v1',             None,                'Ollama'),
 }
 
 _TRANSIENT = ('rate limit', 'timeout', 'connection', '502', '503', '504', '529')
@@ -60,14 +70,20 @@ class OpenAICompatInterface(ModelInterface):
     ----------
     interface:
         One of ``'groq'``, ``'deepseek'``, ``'mistral'``, ``'deepinfra'``,
-        ``'cerebras'``.
+        ``'cerebras'``, ``'ollama'``.
     access_key:
         Optional API key override; falls back to the provider's env var.
+        Not required for ``'ollama'``.
+    base_url:
+        Optional base URL override. Useful for Ollama when the server is
+        running on a non-default host or port (e.g. a remote machine).
+        Overrides the registry default and ``OLLAMA_HOST``.
 
     Raises
     ------
     ValueError
-        If ``interface`` is not registered or no API key is available.
+        If ``interface`` is not registered or no API key is available
+        (for providers that require one).
     ImportError
         If the ``openai`` package is not installed.
     """
@@ -76,26 +92,40 @@ class OpenAICompatInterface(ModelInterface):
         self,
         interface: str,
         access_key: str | None = None,
+        base_url: str | None = None,
     ) -> None:
         if interface not in _REGISTRY:
             raise ValueError(
                 f"Unknown OpenAI-compat interface '{interface}'. "
                 f"Registered providers: {sorted(_REGISTRY)}"
             )
-        base_url, env_key, label = _REGISTRY[interface]
+        default_url, env_key, label = _REGISTRY[interface]
         try:
             from openai import OpenAI
         except ImportError:
             raise ImportError("openai package is required: pip install openai")
 
-        key = access_key or os.environ.get(env_key)
-        if not key:
-            raise ValueError(
-                f"{label} API key not found. "
-                f"Set the {env_key} environment variable or add "
-                f"'{interface}' to your provider key file."
-            )
-        self._client = OpenAI(api_key=key, base_url=base_url)
+        # Resolve base URL: explicit override → env var (Ollama) → registry default
+        resolved_url = (
+            base_url
+            or (os.environ.get('OLLAMA_HOST') if interface == 'ollama' else None)
+            or default_url
+        )
+
+        # Resolve API key — optional for Ollama (uses placeholder so OpenAI SDK is happy)
+        if env_key is not None:
+            key = access_key or os.environ.get(env_key)
+            if not key:
+                raise ValueError(
+                    f"{label} API key not found. "
+                    f"Set the {env_key} environment variable or add "
+                    f"'{interface}' to your provider key file."
+                )
+        else:
+            # No API key required (e.g. Ollama); use a placeholder for the SDK
+            key = access_key or 'ollama'
+
+        self._client = OpenAI(api_key=key, base_url=resolved_url)
         self._label  = label
 
     def generate(self, prompt: str, parameters: dict) -> str:

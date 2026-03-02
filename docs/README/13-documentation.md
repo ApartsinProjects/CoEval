@@ -99,4 +99,26 @@ All examples are self-contained HTML files — click to view rendered in browser
 
 ---
 
+## Frequently Asked Questions
+
+**Q: Where do I find the complete reference for all CLI flags and subcommands?**
+A: The full CLI reference is in `docs/cli_reference.md`. It covers all 11 subcommands (`run`, `probe`, `plan`, `status`, `generate`, `models`, `analyze`, `describe`, `wizard`, `repair`, `ingest`) with every flag, its default value, and usage examples.
+
+**Q: Is there a step-by-step tutorial for someone new to CoEval?**
+A: Yes — `docs/tutorial.md` is a step-by-step walkthrough from installation through your first published report. It follows a single experiment from config drafting with `coeval wizard` through analysis with `coeval analyze all`.
+
+**Q: Where can I find documentation on adding a new model interface or phase?**
+A: The developer guide is in `docs/developer_guide.md`. It covers adding new interfaces (subclassing the base interface, registering in `pool.py` and `registry.py`), adding new phase types, and adding new HTML report types to the `analysis/reports/` package.
+
+**Q: Which doc section covers the YAML configuration schema?**
+A: Section 04 — `docs/README/04-configuration.md` — covers the complete YAML schema including `models`, `tasks`, `experiment`, `rubric`, `sampling`, `role_parameters`, `prompt_library`, `label_attributes`, and the `quota` and `batch` blocks, with five complete example configs.
+
+**Q: How do I find documentation about a specific provider like Bedrock or Ollama?**
+A: Section 05 — `docs/README/05-providers.md` — covers all 15 interfaces with authentication details, code examples, pricing tables, and batch support status. Bedrock covers both native API key and IAM auth modes; Ollama covers local setup, custom host configuration, and no-API-key usage.
+
+**Q: Where can I see sample reports without running an experiment myself?**
+A: The `docs/README/08-reports.md` and `docs/README/13-documentation.md` pages both link to rendered HTML examples hosted on GitHub. These include student reports, judge consistency reports, robust summaries, score distributions, teacher reports, interaction matrices, coverage summaries, and judge reports from two demo experiment runs (`coeval-demo-v1` and `coeval-demo-v2`).
+
+---
+
 [← Repository](12-repository.md) · [Back to README →](../../README.md)

@@ -121,4 +121,26 @@ This config uses five small instruction-tuned models (SmolLM2 135M/360M/1.7B, Qw
 
 ---
 
+## Frequently Asked Questions
+
+**Q: What is the fastest way to run a first experiment?**
+A: Option A is the quickest path if you have a cloud API key — add your key to `~/.coeval/keys.yaml`, then run `coeval probe`, `coeval plan`, and `coeval run` against `examples/local_smoke_test.yaml`. The whole process takes about five minutes and costs a few cents.
+
+**Q: Can I use the wizard to generate my config instead of writing YAML by hand?**
+A: Yes. Run `coeval wizard --out my-experiment.yaml` and describe your evaluation goal in plain English. The wizard uses an LLM to draft the config, which you can then refine conversationally or edit directly. Follow up with `coeval generate` to materialize any `auto` placeholders into concrete values.
+
+**Q: What does `coeval probe` do and should I always run it first?**
+A: `coeval probe` calls each provider's model-listing endpoint to verify that all configured models are reachable before any generation tokens are spent. It's strongly recommended as a first step — a misconfigured API key or unavailable model is caught here rather than mid-run.
+
+**Q: How cheap is the real benchmark quick start (Option B)?**
+A: The mixed benchmark quick start costs approximately $0.02 for 240 batch-discounted API calls using `gpt-4o-mini` and `gpt-3.5-turbo`. Phase 3 data generation is free because the benchmark teacher (`interface: benchmark`) replays pre-ingested dataset responses rather than calling an LLM.
+
+**Q: Can I run entirely without any API keys using local GPU models?**
+A: Yes — Option C uses five small HuggingFace models (SmolLM2 and Qwen2.5 variants) entirely on a local GPU with no cloud API calls or API keys. Install with `pip install -e ".[huggingface]"` and ensure you have a CUDA-capable GPU available.
+
+**Q: What is the recommended workflow for production evaluations?**
+A: The eight-step typical workflow covers the full cycle: `coeval wizard` to draft the config, `coeval generate` to materialize placeholders, `coeval describe` to preview the design as HTML, `coeval plan` to estimate cost, `coeval probe` to verify models, `coeval run` to execute, `coeval status` to monitor, and `coeval analyze all` to generate reports.
+
+---
+
 [← Installation](02-installation.md) · [Configuration →](04-configuration.md)

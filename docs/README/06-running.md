@@ -559,4 +559,26 @@ Output: model list with roles/interfaces, task sampling settings, per-phase mode
 
 ---
 
+## Frequently Asked Questions
+
+**Q: What does `--continue` actually do when I restart a run?**
+A: `--continue` reads `phases_completed` from `meta.json` and skips any fully completed phases entirely. For phases that were in progress, it reads existing JSONL records and only submits API calls for items not yet written. No data is duplicated and no extra API calls are made for completed items. Validation checks that the config ID matches the existing `meta.json` experiment ID.
+
+**Q: How do I estimate the cost before running a large experiment?**
+A: Use `coeval plan --config my.yaml` to run a standalone cost estimate. By default it makes 2 live sample API calls per model to measure real latency and token throughput, then extrapolates to the full experiment size with batch discounts applied automatically. Use `--estimate-samples 0` for pure heuristics with no API calls, or `--estimate-only` as a flag on `coeval run` to print the cost table and exit before any phases run.
+
+**Q: What is the difference between `Keep`, `Extend`, and `Model` phase modes?**
+A: `Keep` skips the entire phase if any artifact already exists — useful for reusing completed phases across runs. `Extend` reads the existing JSONL file and only generates records for items not yet present, making it safe to use when a phase is partially complete. `Model` is like `Extend` but scoped to (task, model) pairs — it skips pairs whose JSONL file already exists and generates only absent combinations.
+
+**Q: How many API calls will my experiment make?**
+A: The formula is: Phase 3 = `n_teachers × n_tasks × datapoints_per_task`; Phase 4 = `n_students × Phase3_calls`; Phase 5 = `n_judges × Phase4_calls`. For `evaluation_mode: per_factor`, multiply Phase 5 by the number of rubric dimensions. `coeval plan` computes this for you with real token estimates.
+
+**Q: What happens when a model hits its API quota ceiling?**
+A: The pipeline records a warning in the log, stops making new calls for that model in the current phase, and continues processing other models. The quota-reached model's remaining items are left as gaps in the JSONL file. After adjusting `max_calls` in the config, `coeval run --continue` fills those gaps.
+
+**Q: Can I run a dry-run to validate my config without making any LLM calls?**
+A: Yes. `coeval run --config my-experiment.yaml --dry-run` validates the config, prints the execution plan (model list with roles and interfaces, per-phase mode, and estimated LLM call counts), and exits without making any API calls or writing any files.
+
+---
+
 [← Providers](05-providers.md) · [Benchmarks →](07-benchmarks.md)

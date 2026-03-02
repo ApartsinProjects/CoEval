@@ -229,7 +229,7 @@ def _probe_one(model: 'ModelConfig', provider_keys: dict) -> None:
         _probe_openrouter(model, provider_keys)
     elif iface == 'azure_ai':
         _probe_azure_ai(model, provider_keys)
-    elif iface in ('groq', 'deepseek', 'mistral', 'deepinfra', 'cerebras'):
+    elif iface in ('groq', 'deepseek', 'mistral', 'deepinfra', 'cerebras', 'ollama'):
         _probe_openai_compat(model, iface, provider_keys)
     else:
         _probe_huggingface(model, provider_keys)
@@ -507,17 +507,32 @@ def _probe_openai_compat(model: 'ModelConfig', interface: str, provider_keys: di
         from openai import OpenAI
     except ImportError:
         raise RuntimeError("openai package not installed (pip install openai)")
-    base_url, env_key, label = _REGISTRY[interface]
+    default_url, env_key, label = _REGISTRY[interface]
     pk = provider_keys.get(interface, {})
-    key = (
-        model.access_key
-        or pk.get('api_key')
-        or os.environ.get(env_key)
-    )
-    if not key:
-        raise RuntimeError(
-            f"{label} API key not found — set {env_key} or add "
-            f"'{interface}' to the provider key file"
+
+    # Resolve base URL (Ollama may override via params, key file, or env var)
+    base_url = (
+        model.parameters.get('base_url') if model.parameters else None
+    ) or (
+        pk.get('base_url') if isinstance(pk, dict) else None
+    ) or (
+        os.environ.get('OLLAMA_HOST') if interface == 'ollama' else None
+    ) or default_url
+
+    # Resolve API key — optional for Ollama
+    if env_key is not None:
+        key = (
+            model.access_key
+            or (pk.get('api_key') if isinstance(pk, dict) else pk)
+            or os.environ.get(env_key)
         )
+        if not key:
+            raise RuntimeError(
+                f"{label} API key not found — set {env_key} or add "
+                f"'{interface}' to the provider key file"
+            )
+    else:
+        key = model.access_key or 'ollama'
+
     client = OpenAI(api_key=key, base_url=base_url)
     client.models.list()
