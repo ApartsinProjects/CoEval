@@ -15,7 +15,7 @@ Usage
         --sample-size 300
 
 All output files follow the Phase 3 naming convention:
-    {task_id}.benchmark_{dataset_id}.datapoints.jsonl
+    {task_id}.{teacher_id}.datapoints.jsonl
 
 so they can be placed directly in a CoEval experiment's
 ``phase3_datapoints/`` folder.
@@ -33,24 +33,28 @@ _DATASETS: dict[str, dict] = {
     "xsum": {
         "task_id": "text_summarization",
         "loader_kwargs": {},
+        "teacher_id": "xsum",
     },
     "codesearchnet": {
         "task_id": "code_explanation",
         "loader_kwargs": {"language": "python"},
+        "teacher_id": "codesearchnet-python",
     },
     "aeslc": {
         "task_id": "email_composition",
         "loader_kwargs": {},
+        "teacher_id": "aeslc",
     },
     "wikitablequestions": {
         "task_id": "data_interpretation",
         "loader_kwargs": {},
+        "teacher_id": "wikitablequestions",
     },
 }
 
 
-def _out_filename(task_id: str, dataset: str) -> str:
-    return f"{task_id}.benchmark_{dataset}.datapoints.jsonl"
+def _out_filename(task_id: str, teacher_id: str) -> str:
+    return f"{task_id}.{teacher_id}.datapoints.jsonl"
 
 
 def emit_dataset(
@@ -65,9 +69,10 @@ def emit_dataset(
 
     info = _DATASETS[dataset]
     task_id = info["task_id"]
+    teacher_id = info["teacher_id"]
     loader_kwargs = info["loader_kwargs"].copy()
 
-    out_file = out_dir / _out_filename(task_id, dataset)
+    out_file = out_dir / _out_filename(task_id, teacher_id)
 
     print(f"  [{dataset}] -> {out_file}")
     n = load_benchmark(

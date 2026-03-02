@@ -9,7 +9,7 @@ Record schema (same as teacher-generated Phase 3 output):
     {
         "id":                       "xsum__benchmark__00001",
         "task_id":                  "text_summarization",
-        "teacher_model_id":         "benchmark:xsum",
+        "teacher_model_id":         "xsum",
         "sampled_target_attributes": {"complexity": "...", ...},
         "prompt":                   "[source text / code / table]",
         "reference_response":       "[gold output]",
@@ -37,6 +37,17 @@ class BenchmarkLoader(ABC):
     benchmark_id: str = ""
     task_id: str = ""
     default_split: str = "validation"
+
+    @property
+    def teacher_id(self) -> str:
+        """The model name used as ``teacher_model_id`` in Phase 3 records.
+
+        Defaults to ``self.benchmark_id``.  Subclasses that have multiple
+        variants (e.g. CodeSearchNet has per-language splits) should override
+        this property to return a more specific name such as
+        ``"codesearchnet-python"``.
+        """
+        return self.benchmark_id
 
     def __init__(
         self,

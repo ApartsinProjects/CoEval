@@ -211,18 +211,18 @@
   <div class="exp-id">experiment: <b>paper-dual-track-v1</b></div>
   <div class="meta">
     Config: <code style="background:rgba(255,255,255,.15);color:#fff">E:\Projects\CoEval\main\benchmark\paper_dual_track.yaml</code>
-    &nbsp;&nbsp;|&nbsp;&nbsp;Generated: 2026-03-02 02:20 UTC
+    &nbsp;&nbsp;|&nbsp;&nbsp;Generated: 2026-03-02 02:48 UTC
     &nbsp;&nbsp;|&nbsp;&nbsp;Storage: <code style="background:rgba(255,255,255,.15);color:#fff">./benchmark/runs</code>
   </div>
 </div>
 
 <div class="stats-bar">
   <div class="stat">
-    <div class="val">11</div>
+    <div class="val">14</div>
     <div class="lbl">Models</div>
   </div>
   <div class="stat">
-    <div class="val">4 LLM + 1 benchmark</div>
+    <div class="val">4 LLM + 4 benchmark</div>
     <div class="lbl">Teachers</div>
   </div>
   <div class="stat">
@@ -238,10 +238,10 @@
     <div class="lbl">Tasks</div>
   </div>
   <div class="stat">
-    <div class="val">121,600</div>
+    <div class="val">193,600</div>
     <div class="lbl">LLM Calls (est.)</div>
   </div>
-  <div class="stat"><div class="val">$71.54</div><div class="lbl">Est. Cost (USD)</div></div>
+  <div class="stat"><div class="val">$113.99</div><div class="lbl">Est. Cost (USD)</div></div>
 </div>
 
 <div class="container">
@@ -258,11 +258,35 @@
       </thead>
       <tbody>
         <tr>
-          <td class="model-name">📊 benchmark_data</td>
+          <td class="model-name">📊 xsum</td>
           <td><code>benchmark</code></td>
           <td><code class="model-id">pre-ingested</code></td>
           <td><span class="role-badge" style="background:#dbeafe;color:#2563eb">teacher</span> </td>
+          <td class="small-text">description=XSum BBC news article summarisation benchmark (EdinburghNLP/xsum), homepage=https://huggingface.co/datasets/EdinburghNLP/xsum, task=text_summarization</td>
           <td class="small-text">—</td>
+        </tr>
+        <tr>
+          <td class="model-name">📊 codesearchnet-python</td>
+          <td><code>benchmark</code></td>
+          <td><code class="model-id">pre-ingested</code></td>
+          <td><span class="role-badge" style="background:#dbeafe;color:#2563eb">teacher</span> </td>
+          <td class="small-text">description=CodeSearchNet Python function-to-docstring benchmark, homepage=https://huggingface.co/datasets/code-search-net/code_search_net, task=code_explanation</td>
+          <td class="small-text">—</td>
+        </tr>
+        <tr>
+          <td class="model-name">📊 aeslc</td>
+          <td><code>benchmark</code></td>
+          <td><code class="model-id">pre-ingested</code></td>
+          <td><span class="role-badge" style="background:#dbeafe;color:#2563eb">teacher</span> </td>
+          <td class="small-text">description=AESLC Annotated Enron Subject Line Corpus email benchmark, homepage=https://huggingface.co/datasets/Yale-LILY/aeslc, task=email_composition</td>
+          <td class="small-text">—</td>
+        </tr>
+        <tr>
+          <td class="model-name">📊 wikitablequestions</td>
+          <td><code>benchmark</code></td>
+          <td><code class="model-id">pre-ingested</code></td>
+          <td><span class="role-badge" style="background:#dbeafe;color:#2563eb">teacher</span> </td>
+          <td class="small-text">description=WikiTableQuestions structured table QA benchmark (Stanford), homepage=https://huggingface.co/datasets/Stanford/wikitablequestions, task=data_interpretation</td>
           <td class="small-text">—</td>
         </tr>
         <tr>
@@ -505,18 +529,18 @@
         <tr>
           <td class="phase-name">Response Collection</td>
           <td><span class="mode-badge mode-new">New</span></td>
-          <td class="calls-count"><b>20,000</b></td>
-          <td class="phase-note">2000 datapoints × 10 students <span class="batch-badge">batch: openai, anthropic, gemini</span></td>
+          <td class="calls-count"><b>32,000</b></td>
+          <td class="phase-note">3200 datapoints × 10 students <span class="batch-badge">batch: openai, anthropic, gemini</span></td>
         </tr>
         <tr>
           <td class="phase-name">Evaluation</td>
           <td><span class="mode-badge mode-new">New</span></td>
-          <td class="calls-count"><b>100,000</b></td>
-          <td class="phase-note">20000 responses × 5 judges <span class="batch-badge">batch: openai, anthropic, gemini</span></td>
+          <td class="calls-count"><b>160,000</b></td>
+          <td class="phase-note">32000 responses × 5 judges <span class="batch-badge">batch: openai, anthropic, gemini</span></td>
         </tr>
         <tr class="total-row">
           <td colspan="2">Total LLM Calls</td>
-          <td class="calls-count"><b>121,600</b></td>
+          <td class="calls-count"><b>193,600</b></td>
           <td class="phase-note">Upper-bound estimate across all models</td>
         </tr>
       </tbody>
@@ -531,7 +555,7 @@
       Estimates use average token-count heuristics and current prices from
       <code>benchmark/provider_pricing.yaml</code>. Actual cost may vary by ±30%.
     </p>
-    <p class="savings-note">💚 Batch API saves an estimated <b>$70.75</b> vs. real-time pricing (50% discount applied).</p>
+    <p class="savings-note">💚 Batch API saves an estimated <b>$112.76</b> vs. real-time pricing (50% discount applied).</p>
     <div class="cost-grid">
       <div class="cost-col">
         <h4>Per Phase</h4>
@@ -541,11 +565,11 @@
             <th style="text-align:right">Cost</th>
             <th style="text-align:right">Batch saving</th>
           </tr></thead>
-          <tbody><tr class="zero-row"><td class='phase-name'>Attribute Mapping</td><td class='calls-count'>—</td><td class='cost-val'>—</td><td class='saving-val'>—</td></tr><tr class="zero-row"><td class='phase-name'>Rubric Mapping</td><td class='calls-count'>—</td><td class='cost-val'>—</td><td class='saving-val'>—</td></tr><tr><td class='phase-name'>Data Generation</td><td class='calls-count'>1,600</td><td class='cost-val'>$0.80</td><td class='saving-val'><span class='saving'>−$0.74</span></td></tr><tr><td class='phase-name'>Response Collection</td><td class='calls-count'>20,000</td><td class='cost-val'>$7.44</td><td class='saving-val'><span class='saving'>−$6.71</span></td></tr><tr><td class='phase-name'>Evaluation</td><td class='calls-count'>100,000</td><td class='cost-val'>$63.30</td><td class='saving-val'><span class='saving'>−$63.30</span></td></tr></tbody>
+          <tbody><tr class="zero-row"><td class='phase-name'>Attribute Mapping</td><td class='calls-count'>—</td><td class='cost-val'>—</td><td class='saving-val'>—</td></tr><tr class="zero-row"><td class='phase-name'>Rubric Mapping</td><td class='calls-count'>—</td><td class='cost-val'>—</td><td class='saving-val'>—</td></tr><tr><td class='phase-name'>Data Generation</td><td class='calls-count'>1,600</td><td class='cost-val'>$0.80</td><td class='saving-val'><span class='saving'>−$0.74</span></td></tr><tr><td class='phase-name'>Response Collection</td><td class='calls-count'>32,000</td><td class='cost-val'>$11.91</td><td class='saving-val'><span class='saving'>−$10.74</span></td></tr><tr><td class='phase-name'>Evaluation</td><td class='calls-count'>160,000</td><td class='cost-val'>$101.28</td><td class='saving-val'><span class='saving'>−$101.28</span></td></tr></tbody>
           <tfoot><tr class="total-row">
             <td colspan="2"><b>Total</b></td>
-            <td class="cost-val"><b>$71.54</b></td>
-            <td class="saving-val"><span class="saving">−$70.75</span></td>
+            <td class="cost-val"><b>$113.99</b></td>
+            <td class="saving-val"><span class="saving">−$112.76</span></td>
           </tr></tfoot>
         </table>
       </div>
@@ -557,7 +581,7 @@
             <th style="text-align:right">Cost</th>
             <th>Models</th>
           </tr></thead>
-          <tbody><tr><td>🟠 <b>anthropic</b> <span class="batch-badge" style="font-size:0.72rem">batch</span></td><td class='calls-count'>44,000</td><td class='cost-val'>$42.18</td><td class='small-text'>claude-sonnet-4-6, claude-3-5-haiku</td></tr><tr><td>🟢 <b>openai</b> <span class="batch-badge" style="font-size:0.72rem">batch</span></td><td class='calls-count'>44,800</td><td class='cost-val'>$27.53</td><td class='small-text'>gpt-4o, gpt-4o-mini</td></tr><tr><td>🔵 <b>gemini</b> <span class="batch-badge" style="font-size:0.72rem">batch</span></td><td class='calls-count'>22,400</td><td class='cost-val'>$1.04</td><td class='small-text'>gemini-2.0-flash</td></tr><tr><td>🔴 <b>openrouter</b> </td><td class='calls-count'>10,400</td><td class='cost-val'>$0.79</td><td class='small-text'>llama-3.3-70b, llama-3.1-8b, mistral-small, deepseek-v3, qwen2.5-72b</td></tr></tbody>
+          <tbody><tr><td>🟠 <b>anthropic</b> <span class="batch-badge" style="font-size:0.72rem">batch</span></td><td class='calls-count'>70,400</td><td class='cost-val'>$67.49</td><td class='small-text'>claude-sonnet-4-6, claude-3-5-haiku</td></tr><tr><td>🟢 <b>openai</b> <span class="batch-badge" style="font-size:0.72rem">batch</span></td><td class='calls-count'>71,200</td><td class='cost-val'>$43.62</td><td class='small-text'>gpt-4o, gpt-4o-mini</td></tr><tr><td>🔵 <b>gemini</b> <span class="batch-badge" style="font-size:0.72rem">batch</span></td><td class='calls-count'>35,600</td><td class='cost-val'>$1.65</td><td class='small-text'>gemini-2.0-flash</td></tr><tr><td>🔴 <b>openrouter</b> </td><td class='calls-count'>16,400</td><td class='cost-val'>$1.23</td><td class='small-text'>llama-3.3-70b, llama-3.1-8b, mistral-small, deepseek-v3, qwen2.5-72b</td></tr></tbody>
         </table>
       </div>
     </div>

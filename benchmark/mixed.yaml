@@ -8,8 +8,9 @@
 #             AESLC           → email_composition
 #             WikiTableQs     → data_interpretation
 #
-# Teacher : `benchmark` (interface: benchmark) — Phase 3 is entirely skipped;
-#           data is pre-ingested by setup_mixed.py using the benchmark loaders.
+# Teachers: 4 virtual benchmark models (xsum, codesearchnet-python, aeslc,
+#           wikitablequestions) — Phase 3 is entirely skipped; data is
+#           pre-ingested by setup_mixed.py using the benchmark loaders.
 #
 # Students / Judges : gpt-4o-mini + gpt-3.5-turbo (OpenAI Batch API, 50% off)
 #
@@ -31,12 +32,39 @@
 models:
 
   # --------------------------------------------------------------------------
-  # benchmark: virtual teacher — 40 real-world items pre-ingested by setup.
+  # Virtual benchmark teachers — 40 real-world items pre-ingested by setup.
   # Phase 3 is automatically skipped for interface: benchmark.
   # --------------------------------------------------------------------------
-  - name: benchmark
+  - name: xsum
     interface: benchmark
-    parameters: {}
+    parameters:
+      description: "XSum BBC news article summarisation benchmark (EdinburghNLP/xsum)"
+      homepage: "https://huggingface.co/datasets/EdinburghNLP/xsum"
+      task: text_summarization
+    roles: [teacher]
+
+  - name: codesearchnet-python
+    interface: benchmark
+    parameters:
+      description: "CodeSearchNet Python function-to-docstring benchmark"
+      homepage: "https://huggingface.co/datasets/code-search-net/code_search_net"
+      task: code_explanation
+    roles: [teacher]
+
+  - name: aeslc
+    interface: benchmark
+    parameters:
+      description: "AESLC Annotated Enron Subject Line Corpus email benchmark"
+      homepage: "https://huggingface.co/datasets/Yale-LILY/aeslc"
+      task: email_composition
+    roles: [teacher]
+
+  - name: wikitablequestions
+    interface: benchmark
+    parameters:
+      description: "WikiTableQuestions structured table QA benchmark (Stanford)"
+      homepage: "https://huggingface.co/datasets/Stanford/wikitablequestions"
+      task: data_interpretation
     roles: [teacher]
 
   # --------------------------------------------------------------------------

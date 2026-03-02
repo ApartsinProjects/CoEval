@@ -739,10 +739,10 @@ class TestDualTrackConfig:
     def test_config_loads(self, dual_cfg):
         assert isinstance(dual_cfg, CoEvalConfig)
 
-    def test_has_11_models(self, dual_cfg):
-        """Should have 11 models: 10 real + 1 benchmark_data virtual teacher."""
-        assert len(dual_cfg.models) == 11, (
-            f"Expected 11 models, got {len(dual_cfg.models)}"
+    def test_has_14_models(self, dual_cfg):
+        """Should have 14 models: 10 real + 4 virtual benchmark teachers."""
+        assert len(dual_cfg.models) == 14, (
+            f"Expected 14 models, got {len(dual_cfg.models)}"
         )
 
     def test_has_4_tasks(self, dual_cfg):
@@ -752,11 +752,21 @@ class TestDualTrackConfig:
         assert 'email_composition' in task_names
         assert 'data_interpretation' in task_names
 
-    def test_benchmark_data_model_is_teacher(self, dual_cfg):
-        bm = next((m for m in dual_cfg.models if m.name == 'benchmark_data'), None)
-        assert bm is not None, "benchmark_data model not found"
-        assert bm.interface == 'benchmark'
-        assert 'teacher' in bm.roles
+    def test_benchmark_teachers_present(self, dual_cfg):
+        """All 4 virtual benchmark teachers should be present with correct interface."""
+        expected_names = {'xsum', 'codesearchnet-python', 'aeslc', 'wikitablequestions'}
+        benchmark_models = {
+            m.name for m in dual_cfg.models if m.interface == 'benchmark'
+        }
+        assert expected_names == benchmark_models, (
+            f"Benchmark teachers mismatch. Missing: {expected_names - benchmark_models}, "
+            f"extra: {benchmark_models - expected_names}"
+        )
+        for m in dual_cfg.models:
+            if m.interface == 'benchmark':
+                assert 'teacher' in m.roles, (
+                    f"Benchmark model '{m.name}' should have teacher role"
+                )
 
     def test_all_student_models_present(self, dual_cfg):
         student_models = {
@@ -786,11 +796,14 @@ class TestDualTrackConfig:
             f"extra: {judge_names - expected_judges}"
         )
 
-    def test_teachers_include_gpt4o_and_llama(self, dual_cfg):
+    def test_teachers_include_gpt4o_llama_and_benchmarks(self, dual_cfg):
         teacher_names = {m.name for m in dual_cfg.models if 'teacher' in m.roles}
         assert 'gpt-4o' in teacher_names
         assert 'llama-3.3-70b' in teacher_names
-        assert 'benchmark_data' in teacher_names
+        assert 'xsum' in teacher_names
+        assert 'codesearchnet-python' in teacher_names
+        assert 'aeslc' in teacher_names
+        assert 'wikitablequestions' in teacher_names
 
     def test_each_task_has_100_items(self, dual_cfg):
         for task in dual_cfg.tasks:

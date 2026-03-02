@@ -85,6 +85,11 @@ class CodeSearchNetLoader(BenchmarkLoader):
         super().__init__(**kwargs)
         self.language = language
 
+    @property
+    def teacher_id(self) -> str:
+        """Return a language-specific teacher name, e.g. ``"codesearchnet-python"``."""
+        return f"codesearchnet-{self.language}"
+
     def _load_dataset(self) -> list[dict[str, Any]]:
         from datasets import load_dataset  # type: ignore
 
@@ -130,7 +135,7 @@ class CodeSearchNetLoader(BenchmarkLoader):
         return {
             "id": self._make_id(seq),
             "task_id": self.task_id,
-            "teacher_model_id": f"benchmark:{self.benchmark_id}",
+            "teacher_model_id": self.teacher_id,
             "sampled_target_attributes": item["_inferred_attrs"],
             "prompt": prompt,
             "reference_response": item["_docstring"],

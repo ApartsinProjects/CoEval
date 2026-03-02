@@ -512,7 +512,7 @@ class TestIngestCmd:
         data_dir = self._make_mmlu_data(tmp_path)
         n = ingest_benchmark(run, 'mmlu', data_dir)
         assert n == 5
-        dp_path = run / 'phase3_datapoints' / 'mmlu.mmlu-benchmark.datapoints.jsonl'
+        dp_path = run / 'phase3_datapoints' / 'mmlu.mmlu.datapoints.jsonl'
         assert dp_path.exists()
         lines = [json.loads(l) for l in dp_path.read_text().splitlines() if l.strip()]
         assert len(lines) == 5
@@ -522,10 +522,10 @@ class TestIngestCmd:
         run = self._make_run(tmp_path)
         data_dir = self._make_mmlu_data(tmp_path)
         ingest_benchmark(run, 'mmlu', data_dir)
-        dp_path = run / 'phase3_datapoints' / 'mmlu.mmlu-benchmark.datapoints.jsonl'
+        dp_path = run / 'phase3_datapoints' / 'mmlu.mmlu.datapoints.jsonl'
         record = json.loads(dp_path.read_text().splitlines()[0])
         assert record['task_id'] == 'mmlu'
-        assert record['teacher_model_id'] == 'mmlu-benchmark'
+        assert record['teacher_model_id'] == 'mmlu'
         assert 'sampled_target_attributes' in record
         assert record['sampled_target_attributes']['correct_answer'] == 'D'
         assert 'prompt' in record
@@ -548,7 +548,7 @@ class TestIngestCmd:
         with open(run / 'config.yaml') as f:
             cfg = yaml.safe_load(f)
         model_names = [m['name'] for m in cfg['models']]
-        assert 'mmlu-benchmark' in model_names
+        assert 'mmlu' in model_names
         task_names = [t['name'] for t in cfg['tasks']]
         assert 'mmlu' in task_names
 
@@ -571,7 +571,7 @@ class TestIngestCmd:
         n2 = ingest_benchmark(run, 'mmlu', data_dir)
         assert n1 == 5
         assert n2 == 0  # all items already present → nothing new written
-        dp_path = run / 'phase3_datapoints' / 'mmlu.mmlu-benchmark.datapoints.jsonl'
+        dp_path = run / 'phase3_datapoints' / 'mmlu.mmlu.datapoints.jsonl'
         lines = dp_path.read_text().splitlines()
         assert len(lines) == 5  # not doubled
 
@@ -600,7 +600,7 @@ class TestIngestCmd:
         ingest_benchmark(run, 'mmlu', data_dir)
         with open(run / 'config.yaml') as f:
             cfg = yaml.safe_load(f)
-        bm_model = next(m for m in cfg['models'] if m['name'] == 'mmlu-benchmark')
+        bm_model = next(m for m in cfg['models'] if m['name'] == 'mmlu')
         assert bm_model['interface'] == 'benchmark'
         assert 'teacher' in bm_model['roles']
 

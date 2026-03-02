@@ -24,9 +24,10 @@ Workflow
 
 Design decisions
 ----------------
-* Teacher model name in EES: ``<benchmark_name>-benchmark``
-  (e.g. ``mmlu-benchmark``).  This is stable and doesn't collide with real
-  model IDs.
+* Teacher model name in EES: ``<benchmark_name>``
+  (e.g. ``mmlu``).  This is stable and doesn't collide with real
+  model IDs.  The ``interface: benchmark`` field in the YAML already
+  conveys that this is a benchmark source.
 * The virtual model is added to the config with ``interface: benchmark`` and
   ``roles: [teacher]``.  Phase 3 skips benchmark teachers; Phases 4–5 treat
   them identically to real teachers.
@@ -129,7 +130,7 @@ def ingest_benchmark(
 
     adapter = get_adapter(benchmark_name)
     effective_task_name = task_name or adapter.task_name
-    teacher_id = f'{benchmark_name}-benchmark'
+    teacher_id = benchmark_name
 
     print(f"[ingest] Benchmark : {benchmark_name}")
     print(f"[ingest] Task name : {effective_task_name}")

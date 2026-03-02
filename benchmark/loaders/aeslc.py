@@ -131,7 +131,7 @@ class AESLCLoader(BenchmarkLoader):
         return {
             "id": self._make_id(seq),
             "task_id": self.task_id,
-            "teacher_model_id": f"benchmark:{self.benchmark_id}",
+            "teacher_model_id": self.benchmark_id,
             "sampled_target_attributes": item["_inferred_attrs"],
             "prompt": prompt,
             "reference_response": item["_body"],

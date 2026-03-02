@@ -1,7 +1,8 @@
 """Setup script for the 'mixed' CoEval experiment.
 
 Downloads 4 public benchmark datasets (10 items each) and places them into
-the experiment's ``phase3_datapoints/`` folder as a virtual 'benchmark' teacher,
+the experiment's ``phase3_datapoints/`` folder as virtual benchmark teachers
+(xsum, codesearchnet-python, aeslc, wikitablequestions),
 then creates the skeleton folders and ``meta.json`` required by ``--continue``.
 
 Run once before starting the experiment:
@@ -44,16 +45,13 @@ EXPERIMENT_ID = "mixed"
 RUNS_DIR = Path("benchmark/runs")
 SAMPLE_SIZE = 10
 
-# Maps (dataset_name, loader_kwargs) → CoEval task_id
-_INGESTION_PLAN: list[tuple[str, dict, str]] = [
-    ("xsum",               {},                  "text_summarization"),
-    ("codesearchnet",      {"language": "python"}, "code_explanation"),
-    ("aeslc",              {},                  "email_composition"),
-    ("wikitablequestions", {},                  "data_interpretation"),
+# Maps (dataset_name, loader_kwargs, task_id, teacher_name)
+_INGESTION_PLAN: list[tuple[str, dict, str, str]] = [
+    ("xsum",               {},                      "text_summarization",  "xsum"),
+    ("codesearchnet",      {"language": "python"},  "code_explanation",    "codesearchnet-python"),
+    ("aeslc",              {},                      "email_composition",   "aeslc"),
+    ("wikitablequestions", {},                      "data_interpretation", "wikitablequestions"),
 ]
-
-# The model name in mixed.yaml that holds teacher role
-_BENCHMARK_MODEL_NAME = "benchmark"
 
 
 # ---------------------------------------------------------------------------
@@ -95,11 +93,11 @@ def main(argv: list[str] | None = None) -> int:
         (exp_dir / subdir).mkdir(parents=True, exist_ok=True)
     print(f"[setup] Experiment directory: {exp_dir.resolve()}")
 
-    # 2. Ingest each benchmark dataset → phase3_datapoints/{task_id}.benchmark.datapoints.jsonl
+    # 2. Ingest each benchmark dataset → phase3_datapoints/{task_id}.{teacher_name}.datapoints.jsonl
     from benchmark.loaders import load_benchmark
 
-    for dataset, loader_kwargs, task_id in _INGESTION_PLAN:
-        dst_path = phase3_dir / f"{task_id}.{_BENCHMARK_MODEL_NAME}.datapoints.jsonl"
+    for dataset, loader_kwargs, task_id, teacher_name in _INGESTION_PLAN:
+        dst_path = phase3_dir / f"{task_id}.{teacher_name}.datapoints.jsonl"
         existing = _count_jsonl_lines(dst_path)
 
         if existing >= SAMPLE_SIZE:
@@ -153,8 +151,8 @@ def main(argv: list[str] | None = None) -> int:
     print("=" * 65)
     print()
     print(" Phase 3 datapoints ingested:")
-    for _, _, task_id in _INGESTION_PLAN:
-        p = phase3_dir / f"{task_id}.{_BENCHMARK_MODEL_NAME}.datapoints.jsonl"
+    for _, _, task_id, teacher_name in _INGESTION_PLAN:
+        p = phase3_dir / f"{task_id}.{teacher_name}.datapoints.jsonl"
         n = _count_jsonl_lines(p)
         print(f"   {p.name:55s}  {n:3d} records")
     print()
