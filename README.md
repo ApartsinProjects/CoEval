@@ -235,6 +235,7 @@ Interactive HTML examples — click to open rendered in browser:
 | [Analytics & Reports](docs/README/08-reports.md) | 11 interactive HTML dashboards, paper-quality result tables, programmatic API, Excel workbook export |
 | [Configuration Guide](docs/README/04-configuration.md) | YAML config schema: models, tasks, attributes, rubric, sampling, prompt overrides, experiment settings |
 | [Benchmark Datasets](docs/README/07-benchmarks.md) | Pre-ingested datasets, `coeval ingest`, `interface: benchmark` virtual teacher, reproducing published results |
+| [Testing Guide](docs/testing.md) | All 20 test files, how to run each suite, interpreting failures, CI/CD setup |
 
 ---
 

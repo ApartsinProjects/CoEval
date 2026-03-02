@@ -30,6 +30,7 @@ The [`README/`](README/) subdirectory splits the documentation into 13 focused, 
 | [cli_reference.md](cli_reference.md) | Complete CLI reference for all 11 `coeval` subcommands and flags |
 | [developer_guide.md](developer_guide.md) | Architecture overview, contribution guidelines, and extension points |
 | [tutorial.md](tutorial.md) | End-to-end walkthrough: from config to analysis report |
+| [testing.md](testing.md) | Complete test guide: all 20 test files, how to run each suite, interpreting results, CI/CD notes |
 
 ## Related
 

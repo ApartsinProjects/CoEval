@@ -32,6 +32,7 @@ This folder (`docs/README/`) splits the project README into 13 focused, standalo
 |----------|----------|
 | [docs/cli_reference.md](../cli_reference.md) | Complete flag reference for all 11 subcommands with examples |
 | [docs/tutorial.md](../tutorial.md) | Step-by-step walkthrough from install to first published report |
+| [docs/testing.md](../testing.md) | Complete test guide: all 20 test files, suites, interpretation, CI/CD notes |
 | [docs/developer_guide.md](../developer_guide.md) | Adding new interfaces, phases, and report types; contributing guide |
 
 ---
