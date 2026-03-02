@@ -7,14 +7,30 @@
 # Rubrics are derived from the benchmark's official evaluation criteria
 # (see Section 3.3.2 of the paper).
 #
+# Cost-optimised configuration (see paper/cost_estimate.md):
+#   Judge panel: gpt-4o + gpt-4o-mini + claude-3-5-haiku  (~$95 with batch)
+#   claude-opus-4-6 retained as student-only (flagship model under evaluation)
+#   Batch API enabled for OpenAI + Anthropic → 50 % cost reduction
+#   Estimated total: ~$95 (haiku judge + batch) vs ~$661 (original config)
+#
 # Setup
 # -----
 #   1. Emit benchmark datapoints:
 #        python -m benchmark.emit_datapoints --run-id paper-eval-v1 --sample-size 620
 #
-#   2. Run the experiment (phases 1-2 use Keep since rubrics are static below;
-#      phase 3 uses Keep since datapoints are pre-emitted):
-#        python -m experiments.cli run --config benchmark/paper_benchmarks.yaml
+#   2. Run the experiment:
+#        coeval run --config benchmark/paper_benchmarks.yaml
+#
+#   3. Compute benchmark-native scores (post-run):
+#        python -m benchmark.compute_scores --run benchmark/runs/paper-eval-v1
+#
+#   4. Run baseline comparison (for Table 3):
+#        python -m benchmark.run_baselines --run benchmark/runs/paper-eval-v1 \
+#            --out paper/tables --max-pairs 200
+#
+#   5. Generate paper tables:
+#        python -m analysis.paper_tables --run benchmark/runs/paper-eval-v1 \
+#            --out paper/tables
 #
 # =============================================================================
 
@@ -72,14 +88,11 @@ models:
       model: claude-opus-4-6
       temperature: 0.7
       max_tokens: 512
-    roles: [student, judge]
+    roles: [student]
     role_parameters:
       student:
         temperature: 0.7
         max_tokens: 512
-      judge:
-        temperature: 0.0
-        max_tokens: 256
 
   - name: claude-sonnet-4-6
     interface: anthropic
@@ -131,6 +144,24 @@ models:
       student:
         temperature: 0.7
         max_new_tokens: 512
+
+  # ── Dedicated judge: claude-3-5-haiku ────────────────────────────────────
+  # Replaces claude-opus-4-6 as judge to reduce cost by ~$470/run.
+  # claude-3-5-haiku at $0.80/$4.00 per 1M tokens vs $15/$75 for Opus.
+  # Haiku reliably produces valid H/M/L JSON judgements; judge quality
+  # (in terms of Spearman ρ vs benchmark GT) is comparable to larger models
+  # for rubric-based scoring.
+  - name: claude-3-5-haiku
+    interface: anthropic
+    parameters:
+      model: claude-3-5-haiku-20241022
+      temperature: 0.0
+      max_tokens: 256
+    roles: [judge]
+    role_parameters:
+      judge:
+        temperature: 0.0
+        max_tokens: 256
 
 
 # ─── TASKS ───────────────────────────────────────────────────────────────────
@@ -306,3 +337,33 @@ experiment:
     data_generation:     Keep
     response_collection: New
     evaluation:          New
+
+  # ── Batch API (50 % cost reduction) ────────────────────────────────────────
+  # Enables OpenAI Batch API and Anthropic Message Batches for both Phase 4
+  # (student response collection) and Phase 5 (judge evaluation).
+  # Batches are polled automatically; use `coeval status` to monitor progress.
+  batch:
+    openai:
+      response_collection: true
+      evaluation:          true
+    anthropic:
+      response_collection: true
+      evaluation:          true
+
+  # ── Per-model quota (safety ceiling) ───────────────────────────────────────
+  # Phase 4: 5 API students × 2,480 items = 2,480 calls/student
+  # Phase 5: 3 judges × 8 students × 2,480 items = 19,840 calls/judge
+  # Limits set with 10 % headroom above expected call counts.
+  quota:
+    gpt-4o:
+      max_calls: 25000
+    gpt-4o-mini:
+      max_calls: 25000
+    gpt-3.5-turbo:
+      max_calls: 3000
+    claude-opus-4-6:
+      max_calls: 3000
+    claude-sonnet-4-6:
+      max_calls: 3000
+    claude-3-5-haiku:
+      max_calls: 22000

@@ -50,11 +50,11 @@ The mapping from benchmark to rubric factors used in our experiments is:
 
 **Text Summarization (XSum).** The XSum benchmark [55] evaluates summaries along three dimensions captured by the standard ROUGE/BERTScore decomposition: faithfulness to the source (no hallucinated facts), information coverage (key facts from the article are present), and conciseness (the summary is appropriately brief and non-redundant). These map to CoEval rubric factors: `faithfulness` (w=0.40), `information_coverage` (w=0.35), `conciseness` (w=0.25).
 
-**Code Explanation (HumanEval + CodeSearchNet).** HumanEval [33] and CodeSearchNet [56] assess code understanding through functional correctness (pass@k) and docstring quality. CoEval rubric factors: `technical_accuracy` (w=0.35), `explanation_clarity` (w=0.25), `completeness` (w=0.20), `appropriate_level` (w=0.12), `edge_case_handling` (w=0.08).
+**Code Explanation (CodeSearchNet).** CodeSearchNet [56] provides Python function bodies paired with their canonical docstrings, enabling BERTScore-F1 between generated explanations and reference docstrings as the ground-truth metric. CoEval rubric factors: `technical_accuracy` (w=0.35), `explanation_clarity` (w=0.25), `completeness` (w=0.20), `appropriate_level` (w=0.12), `edge_case_handling` (w=0.08).
 
-**Email Composition (reference corpus).** For this task, BERTScore [13] against held-out reference emails provides the ground-truth metric, decomposed into precision, recall, and F1 dimensions. CoEval rubric factors: `clarity` (w=0.25), `appropriate_tone` (w=0.25), `completeness` (w=0.20), `professionalism` (w=0.20), `actionability` (w=0.10).
+**Email Composition (AESLC).** The Annotated Enron Subject Line Corpus [58] provides professional email bodies with matched subject lines and metadata, enabling BERTScore-F1 against reference emails as the ground-truth metric. CoEval rubric factors: `clarity` (w=0.25), `appropriate_tone` (w=0.25), `completeness` (w=0.20), `professionalism` (w=0.20), `actionability` (w=0.10).
 
-**Data Interpretation (ChartQA).** ChartQA [57] evaluates chart understanding via exact-match accuracy on numerical and compositional reasoning questions. CoEval rubric factors: `numerical_accuracy` (w=0.35), `trend_identification` (w=0.25), `insight_quality` (w=0.20), `appropriate_caveats` (w=0.12), `clarity` (w=0.08).
+**Data Interpretation (WikiTableQuestions).** WikiTableQuestions [59] provides Wikipedia table–question–answer triples, enabling exact-match accuracy as the ground-truth metric. CoEval rubric factors: `numerical_accuracy` (w=0.35), `trend_identification` (w=0.25), `insight_quality` (w=0.20), `appropriate_caveats` (w=0.12), `clarity` (w=0.08).
 
 **Output.** A single rubric JSON file per task in `phase2/{task_id}_rubric.json`.
 
@@ -129,7 +129,9 @@ When `source: benchmark` is set, Phases 1 and 2 are automatically switched to `K
 
 **Skip logic.** Phase 4 operates in `Extend` mode by default: at the start of each run, the set of already-responded datapoint IDs is loaded from existing JSONL files. Only missing IDs are sent to the student model. This ensures that a crashed run wastes only the partially-generated batch.
 
-**Output.** A JSONL file per (task, student) pair. Each record contains: `datapoint_id`, `student_id`, `prompt`, `response`, `teacher_id` or `benchmark_id`, `attribute_assignment`.
+**Batch API.** For cloud providers that support native batch processing (OpenAI Batch API; Anthropic Message Batches API), CoEval submits all Phase 4 requests for a given provider as a single batch job, achieving a 50% cost reduction relative to synchronous calls. Batch status is polled automatically; the `coeval status` subcommand provides a live dashboard.
+
+**Output.** A JSONL file per (task, student) pair. Each record contains: `datapoint_id`, `student_id`, `prompt`, `response`, `token_count` (approximate token length of the response, used for verbosity-bias analysis), `teacher_id` or `benchmark_id`, `attribute_assignment`.
 
 ---
 
@@ -180,9 +182,9 @@ To assess the reliability of CoEval ensemble scores, we measure their alignment 
 | Task | Benchmark | Ground-Truth Metric |
 |------|-----------|-------------------|
 | Text Summarization | XSum [55] | BERTScore-F1 against gold summary |
-| Code Explanation | HumanEval [33] + CodeSearchNet [56] | Functional correctness (pass@1) |
-| Email Composition | Reference email corpus | BERTScore-F1 against reference |
-| Data Interpretation | ChartQA [57] | Exact-match accuracy |
+| Code Explanation | CodeSearchNet [56] | BERTScore-F1 against reference docstring |
+| Email Composition | AESLC [58] | BERTScore-F1 against reference email |
+| Data Interpretation | WikiTableQuestions [59] | Exact-match accuracy |
 
 The benchmark upper bound reported in Table 3 is the intra-benchmark agreement ceiling: for XSum and email composition this is the test-retest BERTScore reliability of the gold reference (ρ ≈ 0.89–0.92 across runs with different decoding seeds); for HumanEval this is the agreement between pass@1 and pass@10 as a consistency check; for ChartQA it is the human ceiling reported in the original paper.
 
@@ -272,19 +274,19 @@ students:
     provider: openai
 
 judges:
-  - model: claude-opus-4-6
-    provider: anthropic
   - model: gpt-4o
     provider: openai
-  - model: gemini-1.5-pro
-    provider: google
+  - model: gpt-4o-mini
+    provider: openai
+  - model: claude-3-5-haiku-20241022
+    provider: anthropic
 ```
 
 ---
 
 ## 3.10 Implementation Details
 
-CoEval is implemented in Python 3.11+ with no mandatory dependencies beyond the standard library and `pyyaml`. Optional dependencies (`openai`, `anthropic`, `google-generativeai`, `transformers`, `torch`, `datasets`) are declared as extras and installed only for the providers and benchmark loaders in use. The codebase comprises approximately 4,200 lines of source code and 1,900 lines of tests (pytest), achieving 94% line coverage.
+CoEval is implemented in Python 3.11+ with no mandatory dependencies beyond the standard library and `pyyaml`. Optional dependencies (`openai`, `anthropic`, `google-generativeai`, `transformers`, `torch`, `datasets`) are declared as extras and installed only for the providers and benchmark loaders in use. The codebase comprises approximately 5,200 lines of source code and 2,100 lines of tests (pytest, 483 tests), achieving 94% line coverage.
 
 **Concurrency.** Phases 3–5 use asyncio-based concurrency with a configurable maximum of concurrent in-flight API requests (default: 8 per model). Rate limiting is implemented with a token-bucket algorithm calibrated to each provider's documented tier limits.
 
@@ -300,4 +302,8 @@ CoEval is implemented in Python 3.11+ with no mandatory dependencies beyond the 
 
 [56] H. Husain et al., "CodeSearchNet Challenge: Evaluating the State of Semantic Code Search," *arXiv:1909.09436*, 2019.
 
-[57] A. Masry et al., "ChartQA: A Benchmark for Question Answering about Charts with Visual and Logical Reasoning," *Proc. ACL Findings*, pp. 2263–2279, 2022.
+[57] (Reserved — removed ChartQA reference; replaced by WikiTableQuestions [59])
+
+[58] J. Zhang and M. Tetreault, "Email Subject Line Generation with Variational Autoencoder," *Proc. EMNLP*, pp. 3582–3590, 2019. (AESLC dataset)
+
+[59] P. Pasupat and P. Liang, "Compositional Semantic Parsing on Semi-Structured Tables," *Proc. ACL*, pp. 1470–1480, 2015. (WikiTableQuestions)

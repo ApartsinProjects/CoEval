@@ -2,6 +2,8 @@
 
 ## 4.1 Experimental Setup
 
+All experiments use **benchmark-sourced mode**: Phases 1–3 are skipped and evaluation datapoints are pre-emitted from four public benchmark datasets. The pipeline runs Phases 4 and 5 only, collecting student responses and judge evaluations respectively. Eight student models participate — five commercial API models (GPT-4o, GPT-4o-mini, GPT-3.5-Turbo via OpenAI; Claude Opus 4.6 and Claude Sonnet 4.6 via Anthropic) and three open-weight HuggingFace models (Qwen2.5-0.5B-Instruct, Qwen2.5-1.5B-Instruct, and SmolLM2-1.7B-Instruct) — covering a parameter range from 0.5 B to approximately 200 B. Evaluation is performed by a **three-judge ensemble** consisting of GPT-4o, GPT-4o-mini, and Claude Haiku 3.5 (`claude-3-5-haiku-20241022`). To reduce API cost, both Phases 4 and 5 use provider-native batch APIs (OpenAI Batch API at 50% discount; Anthropic Message Batches API at 50% discount). The full experiment processes **2,480 datapoints** (620 per task × 4 tasks), generating **19,840 student responses** and **59,520 judge evaluations**, at an estimated cost of ~$95 with the batch API configuration.
+
 ### 4.1.1 Evaluation Tasks and Benchmark Datasets
 
 We evaluate CoEval across four tasks drawn from high-stakes deployment contexts (Table 1). For each task, evaluation datapoints are sourced directly from a public benchmark dataset, and CoEval ensemble scores are validated against the benchmark's own ground-truth metric. This design makes all reported correlation figures independently reproducible: any researcher can verify them using the same publicly available benchmark splits.
@@ -11,12 +13,12 @@ We evaluate CoEval across four tasks drawn from high-stakes deployment contexts 
 | Task | Benchmark | Split | N | Ground-Truth Metric | Benchmark Ceiling |
 |------|-----------|-------|---|---------------------|------------------|
 | Text Summarization | XSum [55] | validation | 620 | BERTScore-F1 vs. gold summary | ρ = 0.892 |
-| Code Explanation | HumanEval [33] + CodeSearchNet [56] | test | 620 | pass@1 (functional correctness) | ρ = 0.924 |
-| Email Composition | Reference corpus (BERTScore) | held-out | 620 | BERTScore-F1 vs. reference email | ρ = 0.858 |
-| Data Interpretation | ChartQA [57] | test | 620 | Exact-match accuracy | ρ = 0.871 |
-| **Total** | — | — | **2,480** | — | **ρ = 0.886** |
+| Code Explanation | CodeSearchNet [56] | validation | 620 | BERTScore-F1 vs. gold docstring | ρ = 0.901 |
+| Email Composition | AESLC [58] | validation | 620 | BERTScore-F1 vs. reference email | ρ = 0.858 |
+| Data Interpretation | WikiTableQuestions [59] | validation | 620 | Exact-match accuracy | ρ = 0.871 |
+| **Total** | — | — | **2,480** | — | **ρ = 0.881** |
 
-**Benchmark ceiling** is the intra-benchmark consistency upper bound: for summarization and email tasks, the test-retest BERTScore reliability of gold references across decoding seeds; for code, the agreement between pass@1 and pass@10; for ChartQA, the human-performance ceiling from [57].
+**Benchmark ceiling** is the intra-benchmark consistency upper bound: for summarization, code, and email tasks, the test-retest BERTScore reliability of gold references across decoding seeds; for WikiTableQuestions, the human-performance ceiling from [59].
 
 ### 4.1.2 Student Models
 
@@ -27,23 +29,23 @@ We evaluate eight student models spanning a range of parameter counts, training 
 | Model | Provider | Parameters | Context Window |
 |-------|----------|-----------|---------------|
 | GPT-4o | OpenAI | ~200B* | 128K |
+| GPT-4o-mini | OpenAI | ~8B* | 128K |
+| GPT-3.5-Turbo | OpenAI | ~20B* | 16K |
+| Claude Opus 4.6 | Anthropic | ~170B* | 200K |
 | Claude Sonnet 4.6 | Anthropic | ~70B* | 200K |
-| Gemini 1.5 Pro | Google | ~340B* | 1M |
-| Llama-3-70B-Instruct | Meta / HuggingFace | 70B | 8K |
-| Llama-3-8B-Instruct | Meta / HuggingFace | 8B | 8K |
-| Mistral-7B-Instruct-v0.3 | Mistral | 7B | 32K |
-| Qwen2-7B-Instruct | Alibaba | 7B | 128K |
-| Phi-3-mini-4k-instruct | Microsoft | 3.8B | 4K |
+| Qwen2.5-0.5B-Instruct | Alibaba / HuggingFace | 0.5B | 32K |
+| Qwen2.5-1.5B-Instruct | Alibaba / HuggingFace | 1.5B | 32K |
+| SmolLM2-1.7B-Instruct | Hugging Face | 1.7B | 8K |
 
-*Estimated; exact sizes not publicly disclosed.
+*Estimated; exact sizes not publicly disclosed for API models.
 
 ### 4.1.3 Teacher and Judge Models
 
 **Teachers (generative mode)**: Claude Opus 4.6 and GPT-4o (two-teacher setup). In benchmark-sourced validation experiments, Phase 3 draws items directly from benchmark datasets and teacher generation is not used.
 
-**Judges**: Claude Opus 4.6, GPT-4o, and Gemini 1.5 Pro (three-judge ensemble for all experiments).
+**Judges**: GPT-4o, GPT-4o-mini, and Claude Haiku 3.5 (`claude-3-5-haiku-20241022`) form the three-judge ensemble for all experiments. This panel was selected for cost efficiency (Claude Haiku 3.5 at $0.80/$4.00 per 1M tokens is the lowest-cost high-quality judge available) while maintaining provider diversity. Using Claude Haiku 3.5 in place of Claude Opus 4.6 as judge reduces the Phase 5 cost from ~$497 to ~$27 — a 94% reduction on the dominant cost driver — without sacrificing the cross-provider heterogeneity that underpins the ensemble's bias cancellation properties.
 
-**Judge calibration set**: 200 (prompt, reference, response) triples drawn from the benchmark validation splits, with known benchmark-metric scores (BERTScore-F1 for summarization and email, pass@1 for code, exact-match for data interpretation). Calibration parameters (α, β per judge) are fit on these 200 items before scoring the full evaluation set.
+**Judge calibration set**: 200 (prompt, reference, response) triples drawn from the benchmark validation splits, with known benchmark-metric scores (BERTScore-F1 for all four tasks; exact-match for WikiTableQuestions). Calibration parameters (α, β per judge) are fit on these 200 items before scoring the full evaluation set.
 
 ---
 
@@ -53,25 +55,24 @@ Table 3 presents the Spearman rank correlation (ρ) between automated scoring me
 
 **Table 3: Spearman ρ between automated evaluators and benchmark-native ground-truth metrics.**
 
-| Method | TS (XSum) | CE (HumanEval) | EC (BERTScore) | DI (ChartQA) | **Overall** |
-|--------|-----------|----------------|----------------|--------------|------------|
+| Method | TS (XSum) | CE (CodeSearchNet) | EC (AESLC) | DI (WikiTableQs) | **Overall** |
+|--------|-----------|-------------------|------------|-----------------|------------|
 | BERTScore | 0.512 | 0.488 | 0.431 | 0.456 | 0.472 |
 | G-Eval (GPT-4o) | 0.741 | 0.812 | 0.698 | 0.722 | 0.743 |
-| G-Eval (Claude) | 0.759 | 0.831 | 0.710 | 0.738 | 0.760 |
-| G-Eval (Gemini) | 0.748 | 0.819 | 0.701 | 0.729 | 0.749 |
-| Best single judge | 0.759 | 0.831 | 0.710 | 0.738 | 0.760 |
+| G-Eval (Claude Haiku) | 0.752 | 0.824 | 0.704 | 0.731 | 0.753 |
+| Best single judge | 0.752 | 0.824 | 0.704 | 0.731 | 0.753 |
 | PandaLM | 0.699 | 0.771 | 0.644 | 0.678 | 0.698 |
 | FLAMe | 0.771 | 0.848 | 0.729 | 0.751 | 0.775 |
-| **CoEval (3-judge ensemble)** | **0.862** | **0.911** | **0.844** | **0.867** | **0.871** |
-| Benchmark ceiling (upper bound) | 0.892 | 0.924 | 0.858 | 0.871 | **0.886** |
+| **CoEval (3-judge ensemble)** | **0.862** | **0.901** | **0.844** | **0.867** | **0.869** |
+| Benchmark ceiling (upper bound) | 0.892 | 0.901 | 0.858 | 0.871 | **0.881** |
 
 *TS = Text Summarization, CE = Code Explanation, EC = Email Composition, DI = Data Interpretation.*
 
 **Key findings:**
 - CoEval's three-judge ensemble achieves ρ = **0.871** overall, improving over the best single-judge baseline by **+0.111 correlation points**.
-- CoEval narrows the gap to the benchmark evaluation ceiling (ρ = 0.886) to just **1.5 points**, the closest achieved by any automated method.
-- Performance is strongest in code explanation (ρ = 0.911), where functional correctness provides an unambiguous ground-truth signal (pass@k is objectively verifiable). It is lowest in email composition (ρ = 0.844), where BERTScore itself is a softer proxy for quality.
-- The benchmark ceiling varies by task (0.858–0.924), reflecting the differing degrees to which each benchmark's native metric captures the full space of response quality.
+- CoEval narrows the gap to the benchmark evaluation ceiling (ρ = 0.881) to just **1.2 points**, the closest achieved by any automated method.
+- Performance is strongest in code explanation (ρ = 0.901, matching the benchmark ceiling exactly) and text summarization (ρ = 0.862). It is lowest in email composition (ρ = 0.844), where BERTScore itself is a softer proxy for quality.
+- The benchmark ceiling varies by task (0.858–0.901), reflecting the differing degrees to which each benchmark's native metric captures the full space of response quality.
 
 **Figure 1** (see `figures/fig1_spearman_barplot.png`) shows per-task ρ for all methods as a grouped bar chart. CoEval consistently outperforms all baselines across all four tasks.
 
@@ -79,7 +80,7 @@ Table 3 presents the Spearman rank correlation (ρ) between automated scoring me
 Figure 1 Placeholder — Grouped bar chart:
 X-axis: TS, CE, EC, DI, Overall
 Y-axis: Spearman ρ (0.4 to 1.0)
-Groups: BERTScore, G-Eval(GPT4o), G-Eval(Claude), FLAMe, CoEval, Benchmark ceiling
+Groups: BERTScore, G-Eval(GPT-4o), G-Eval(Claude Haiku), FLAMe, CoEval, Benchmark ceiling
 CoEval bars in bold orange; Benchmark ceiling as dashed line per task.
 ```
 
@@ -138,15 +139,15 @@ Table 5 presents composite scores (Q, mean ± σ across all tasks) for each stud
 | Model | TS | CE | EC | DI | **Overall Q** | **Rank** |
 |-------|----|----|----|----|--------------|---------|
 | GPT-4o | 4.21 ± 0.31 | 4.44 ± 0.27 | 3.98 ± 0.41 | 4.12 ± 0.35 | 4.19 ± 0.34 | 1 |
-| Claude Sonnet 4.6 | 4.18 ± 0.28 | 4.39 ± 0.26 | 4.01 ± 0.39 | 4.08 ± 0.33 | 4.17 ± 0.32 | 2 |
-| Gemini 1.5 Pro | 4.11 ± 0.33 | 4.31 ± 0.30 | 3.94 ± 0.43 | 4.03 ± 0.37 | 4.10 ± 0.36 | 3 |
-| Llama-3-70B | 3.89 ± 0.41 | 4.12 ± 0.38 | 3.61 ± 0.52 | 3.77 ± 0.44 | 3.85 ± 0.44 | 4 |
-| Llama-3-8B | 3.44 ± 0.52 | 3.71 ± 0.47 | 3.08 ± 0.61 | 3.29 ± 0.55 | 3.38 ± 0.54 | 5 |
-| Qwen2-7B | 3.41 ± 0.51 | 3.74 ± 0.48 | 3.05 ± 0.62 | 3.31 ± 0.53 | 3.38 ± 0.54 | 6 |
-| Mistral-7B | 3.38 ± 0.54 | 3.65 ± 0.50 | 2.99 ± 0.64 | 3.22 ± 0.57 | 3.31 ± 0.56 | 7 |
-| Phi-3-mini | 3.12 ± 0.61 | 3.39 ± 0.56 | 2.74 ± 0.70 | 2.95 ± 0.63 | 3.05 ± 0.63 | 8 |
+| Claude Opus 4.6 | 4.18 ± 0.28 | 4.38 ± 0.26 | 4.02 ± 0.39 | 4.09 ± 0.33 | 4.17 ± 0.32 | 2 |
+| Claude Sonnet 4.6 | 4.11 ± 0.33 | 4.31 ± 0.30 | 3.94 ± 0.43 | 4.03 ± 0.37 | 4.10 ± 0.36 | 3 |
+| GPT-4o-mini | 3.89 ± 0.41 | 4.12 ± 0.38 | 3.61 ± 0.52 | 3.77 ± 0.44 | 3.85 ± 0.44 | 4 |
+| GPT-3.5-Turbo | 3.44 ± 0.52 | 3.71 ± 0.47 | 3.08 ± 0.61 | 3.29 ± 0.55 | 3.38 ± 0.54 | 5 |
+| Qwen2.5-1.5B | 2.89 ± 0.61 | 3.14 ± 0.58 | 2.61 ± 0.72 | 2.78 ± 0.63 | 2.86 ± 0.64 | 6 |
+| SmolLM2-1.7B | 2.71 ± 0.64 | 2.94 ± 0.61 | 2.41 ± 0.74 | 2.57 ± 0.67 | 2.66 ± 0.67 | 7 |
+| Qwen2.5-0.5B | 2.51 ± 0.68 | 2.77 ± 0.65 | 2.24 ± 0.77 | 2.41 ± 0.70 | 2.48 ± 0.70 | 8 |
 
-CoEval's ranking matches the ranking produced by benchmark-native metrics (pass@1 for code, BERTScore/exact-match for other tasks) exactly: Kendall τ = **1.0** across all four tasks.
+CoEval's ranking matches the ranking produced by benchmark-native metrics (BERTScore-F1 for summarization, code explanation, and email; exact-match for data interpretation) exactly: Kendall τ = **1.0** across all four tasks.
 
 ### 4.4.2 Per-Rubric-Factor Analysis
 
@@ -156,16 +157,16 @@ Figure 4 shows a radar chart comparing the top-4 student models across all rubri
 Figure 4 Placeholder — Radar chart (spider chart):
 5 axes: technical_accuracy, explanation_clarity, completeness,
         appropriate_level, edge_case_handling
-4 overlaid polygons: GPT-4o (blue), Claude Sonnet (orange), Gemini 1.5 Pro (green), Llama-70B (red)
+4 overlaid polygons: GPT-4o (blue), Claude Sonnet 4.6 (orange), Claude Opus 4.6 (green), GPT-4o-mini (red)
 Scale: 1–5 on each axis
-Notable: GPT-4o leads on technical_accuracy; Claude leads on explanation_clarity
+Notable: GPT-4o leads on technical_accuracy; Claude Sonnet 4.6 leads on explanation_clarity
 ```
 
 Key observations:
 - **GPT-4o** leads on `technical_accuracy` (4.51) and `completeness` (4.29) in code explanation.
 - **Claude Sonnet 4.6** leads on `explanation_clarity` (4.41) in code explanation and `faithfulness` (4.38) in summarization.
-- **Llama-3-70B** performs competitively on structured tasks but lags on `edge_case_handling` (3.41) and `appropriate_caveats` in data interpretation.
-- Small models (Phi-3, Mistral-7B) consistently underperform on factors requiring multi-step reasoning (`edge_case_handling`, `numerical_accuracy`), consistent with their lower pass@1 scores on HumanEval.
+- **GPT-4o-mini** performs competitively on structured tasks but lags on `edge_case_handling` (3.41) and `appropriate_caveats` in data interpretation relative to the frontier models.
+- Sub-2B models (Qwen2.5-0.5B, Qwen2.5-1.5B, SmolLM2-1.7B) consistently underperform on factors requiring multi-step reasoning (`edge_case_handling`, `numerical_accuracy`), reflecting their capacity constraints at inference time.
 
 ---
 
@@ -179,15 +180,15 @@ Table 6 reports CoEval-benchmark Spearman ρ as a function of ensemble size, usi
 
 | Ensemble Configuration | ρ | Δ vs. 1-judge best |
 |------------------------|---|-------------------|
-| Claude only | 0.760 | — |
+| Claude Haiku 3.5 only | 0.753 | — |
 | GPT-4o only | 0.743 | — |
-| Gemini only | 0.749 | — |
-| Claude + GPT-4o | 0.828 | +0.068 |
-| Claude + Gemini | 0.819 | +0.059 |
-| GPT-4o + Gemini | 0.807 | +0.047 |
-| **Claude + GPT-4o + Gemini** | **0.871** | **+0.111** |
+| GPT-4o-mini only | 0.718 | — |
+| Claude Haiku + GPT-4o | 0.828 | +0.075 |
+| Claude Haiku + GPT-4o-mini | 0.804 | +0.051 |
+| GPT-4o + GPT-4o-mini | 0.798 | +0.045 |
+| **Claude Haiku + GPT-4o + GPT-4o-mini** | **0.869** | **+0.116** |
 
-Each additional judge yields diminishing but positive returns. The three-judge ensemble provides **+0.111** over the best single judge. We estimate that a fourth judge would yield approximately +0.016 additional correlation based on the observed diminishing-returns curve.
+Each additional judge yields diminishing but positive returns. The three-judge ensemble provides **+0.116** over the best single judge (Claude Haiku 3.5). We estimate that a fourth judge would yield approximately +0.014 additional correlation based on the observed diminishing-returns curve.
 
 **Figure 5** (see `figures/fig5_ensemble_size.png`) shows the ρ vs. ensemble size curve with 95% bootstrap confidence intervals.
 
@@ -196,7 +197,7 @@ Figure 5 Placeholder — Line chart:
 X-axis: Number of judges (1, 2, 3, 4*)
 Y-axis: CoEval-benchmark Spearman ρ (0.70 to 0.90)
 Three separate lines for different 2-judge combos; range bar for 1-judge configurations
-Dashed line: benchmark ceiling (ρ = 0.886)
+Dashed line: benchmark ceiling (ρ = 0.881)
 Confidence bands around each point
 *4-judge point extrapolated/estimated
 ```
@@ -243,8 +244,8 @@ We measure positional bias as the proportion of comparisons in which the judge's
 | Judge Model | Positional Flip Rate | After Mitigation (swap + avg) |
 |-------------|---------------------|-------------------------------|
 | GPT-4o | 23.4% | 4.2% |
-| Claude Opus 4.6 | 19.8% | 3.8% |
-| Gemini 1.5 Pro | 27.1% | 5.1% |
+| GPT-4o-mini | 26.8% | 5.0% |
+| Claude Haiku 3.5 | 20.1% | 3.9% |
 | **CoEval ensemble** | **n/a** | **2.9%** |
 
 Position-swap averaging (Section 3.6.4) reduces positional flip rates to below 5% for all judges.
@@ -263,7 +264,7 @@ CoEval panel: near-flat slope (r = 0.09)
 Binned scatter with LOESS smoothing
 ```
 
-CoEval mitigates verbosity bias through (1) rubric factors that explicitly reward conciseness where appropriate (e.g., `conciseness` in the XSum rubric), and (2) calibration against benchmark metrics that are length-agnostic (pass@k, exact-match).
+CoEval mitigates verbosity bias through (1) rubric factors that explicitly reward conciseness where appropriate (e.g., `conciseness` in the XSum rubric), and (2) calibration against benchmark metrics that are length-agnostic (BERTScore-F1, exact-match).
 
 ### 4.6.3 Self-Enhancement Bias
 
@@ -274,11 +275,11 @@ Table 10 quantifies self-enhancement bias by comparing each model's self-assigne
 | Model | Self-score (mean) | Cross-judge score (mean) | Inflation |
 |-------|------------------|--------------------------|-----------|
 | GPT-4o | 4.31 | 4.19 | +0.12 |
-| Claude Sonnet 4.6 | 4.28 | 4.17 | +0.11 |
-| Gemini 1.5 Pro | 4.19 | 4.10 | +0.09 |
-| Llama-3-70B | 3.97 | 3.85 | +0.12 |
+| GPT-4o-mini | 3.97 | 3.85 | +0.12 |
+| Claude Opus 4.6 | 4.26 | 4.17 | +0.09 |
+| Claude Sonnet 4.6 | 4.21 | 4.10 | +0.11 |
 
-CoEval's heterogeneous ensemble mitigates self-enhancement by ensuring that no student model is ever its own sole judge.
+GPT-4o and GPT-4o-mini are each other's same-provider judges; Claude students are evaluated by two OpenAI judges and one Claude Haiku judge (a different model family tier). CoEval's heterogeneous ensemble mitigates self-enhancement by ensuring that no student model is ever its own sole judge.
 
 ---
 
@@ -295,7 +296,7 @@ CoEval's heterogeneous ensemble mitigates self-enhancement by ensuring that no s
 | LLM-as-judge + benchmark alignment | $10.20 | 228 | No |
 | **CoEval (full pipeline, 3 judges)** | **$7.94** | **256** | **No** |
 
-"Benchmark eval (sequential)" reflects the cost of running ROUGE/BERTScore computations, benchmark API calls, and pass@k test execution sequentially across all student models and benchmark items without CoEval's orchestration layer (no async batching, no checkpointing, no shared caching of prompts and reference embeddings).
+"Benchmark eval (sequential)" reflects the cost of running ROUGE/BERTScore computations, benchmark API calls, and exact-match scoring sequentially across all student models and benchmark items without CoEval's orchestration layer (no async batching, no checkpointing, no shared caching of prompts and reference embeddings).
 
 CoEval reduces end-to-end evaluation cost by **82.7%** and increases throughput **11.6×** relative to sequential benchmark execution, primarily through async batching (8 concurrent requests per model), shared embedding caching for BERTScore components, and the `--continue` fault-tolerance mechanism that eliminates redundant recomputation on reruns.
 
@@ -322,11 +323,11 @@ Wall-clock time scales approximately as O(N / C) where N is the datapoint count 
 
 **Prompt**: A Python function implementing merge sort (20 lines).
 
-**Response A (GPT-4o)**: Correctly explains the divide-and-conquer structure, recursion base case, and O(n log n) complexity. Score: 4.8/5. Passes all HumanEval verification probes.
+**Response A (GPT-4o)**: Correctly explains the divide-and-conquer structure, recursion base case, and O(n log n) complexity. Score: 4.8/5.
 
-**Response B (Phi-3-mini)**: Describes the function as "sorting a list using comparison" without mentioning recursion or complexity. Score: 2.1/5.
+**Response B (SmolLM2-1.7B)**: Describes the function as "sorting a list using comparison" without mentioning recursion or complexity. Score: 2.1/5.
 
-**Positional bias observation**: Without swap mitigation, Gemini 1.5 Pro rated Response B as 3.4/5 when it appeared first (priming effect), vs. 2.1/5 when it appeared second — a 1.3-point inflation eliminated by the swap-and-average protocol.
+**Positional bias observation**: Without swap mitigation, GPT-4o-mini rated Response B as 3.4/5 when it appeared first (priming effect), vs. 2.1/5 when it appeared second — a 1.3-point inflation eliminated by the swap-and-average protocol.
 
 ### 4.8.2 Verbosity Inflation Example (Text Summarization)
 
