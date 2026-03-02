@@ -43,7 +43,7 @@ This folder (`docs/README/`) splits the project README into 13 focused, standalo
 | [examples/local_smoke_test.yaml](../../examples/local_smoke_test.yaml) | Minimal runnable config: 5 HuggingFace models, 2 tasks, no cloud APIs required |
 | [Runs/mixed/mixed.yaml](../../Runs/mixed/mixed.yaml) | Real benchmark data + OpenAI models; full evaluation for ~$0.03 |
 | [Runs/education/education.yaml](../../Runs/education/education.yaml) | Education benchmark: 3 real-dataset tasks + 10 synthetic tasks, 6 models |
-| [benchmark/medium_benchmark.yaml](../../Runs/medium-benchmark/medium_benchmark.yaml) | Medium-scale benchmark: 5 models, 4 tasks, 20 items/task |
+| [Runs/medium-benchmark/medium_benchmark.yaml](../../Runs/medium-benchmark/medium_benchmark.yaml) | Medium-scale benchmark: 5 models, 4 tasks, 20 items/task |
 | [benchmark/paper_benchmarks.yaml](../../Runs/paper/paper_benchmarks.yaml) | Paper evaluation config: 8 students, 3 judges, all 4 benchmark tasks |
 | [Runs/paper/paper_dual_track.yaml](../../Runs/paper/paper_dual_track.yaml) | Dual-track paper config: benchmark + generative teacher ablation |
 
@@ -71,31 +71,19 @@ All examples are self-contained HTML files — click to view rendered in browser
 > coeval analyze all --run ./eval_runs/my-experiment-v1 --out ./reports
 > ```
 
-### Analysis Reports — coeval-demo-v2
+### Analysis Reports — medium-benchmark
 
 | Report | Description |
 |--------|-------------|
-| [Student Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_student_report.html) | Per-student score breakdowns, task rankings, rubric factor heatmaps |
-| [Judge Consistency](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_judge_consistency.html) | Inter-judge ICC agreement, calibration drift, flagged uncertain items |
-| [Robust Summary](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_robust_summary.html) | Final model rankings with confidence intervals and robust ensemble weights |
-| [Score Distribution](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_score_distribution.html) | High / Medium / Low histograms filterable by task, teacher, student, and judge |
-| [Teacher Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_teacher_report.html) | Per-teacher source quality, attribute stratum coverage, data consistency |
-| [Interaction Matrix](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_interaction_matrix.html) | Teacher × Student pair quality heatmap |
-| [Coverage Summary](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_coverage_summary.html) | Attribute Coverage Ratio (ACR) and rare-attribute recall per task |
-| [Judge Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_judge_report.html) | Judge-level bias rates, score calibration, inter-rater reliability |
-
-### Analysis Reports — coeval-demo-v1
-
-| Report | Description |
-|--------|-------------|
-| [Student Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v1/coeval-demo-v1_student_report.html) | Per-student score breakdowns, task rankings, rubric factor heatmaps |
-| [Judge Consistency](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v1/coeval-demo-v1_judge_consistency.html) | Inter-judge ICC agreement, calibration drift, flagged uncertain items |
-| [Robust Summary](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v1/coeval-demo-v1_robust_summary.html) | Final model rankings with confidence intervals |
-| [Score Distribution](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v1/coeval-demo-v1_score_distribution.html) | Score histograms filterable by task, teacher, student, and judge |
-| [Teacher Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v1/coeval-demo-v1_teacher_report.html) | Per-teacher source quality and attribute stratum coverage |
-| [Interaction Matrix](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v1/coeval-demo-v1_interaction_matrix.html) | Teacher × Student pair quality heatmap |
-| [Coverage Summary](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v1/coeval-demo-v1_coverage_summary.html) | Attribute Coverage Ratio (ACR) and rare-attribute recall |
-| [Judge Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v1/coeval-demo-v1_judge_report.html) | Judge-level bias rates, score calibration, inter-rater reliability |
+| [Dashboard](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/medium-benchmark/reports/index.html) | Overview dashboard — all reports in one place with top-line rankings and navigation |
+| [Student Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/medium-benchmark/reports/student_report/index.html) | Per-student score breakdowns, task rankings, rubric factor heatmaps |
+| [Judge Consistency](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/medium-benchmark/reports/judge_consistency/index.html) | Inter-judge ICC agreement, calibration drift, flagged uncertain items |
+| [Robust Summary](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/medium-benchmark/reports/summary/index.html) | Final model rankings with confidence intervals and robust ensemble weights |
+| [Score Distribution](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/medium-benchmark/reports/score_distribution/index.html) | High / Medium / Low histograms filterable by task, teacher, student, and judge |
+| [Teacher Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/medium-benchmark/reports/teacher_report/index.html) | Per-teacher source quality, attribute stratum coverage, data consistency |
+| [Interaction Matrix](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/medium-benchmark/reports/interaction_matrix/index.html) | Teacher × Student pair quality heatmap |
+| [Coverage Summary](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/medium-benchmark/reports/coverage_summary/index.html) | Attribute Coverage Ratio (ACR) and rare-attribute recall per task |
+| [Judge Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/medium-benchmark/reports/judge_report/index.html) | Judge-level bias rates, score calibration, inter-rater reliability |
 
 ---
 
@@ -108,7 +96,7 @@ A: The full CLI reference is in `docs/cli_reference.md`. It covers all 11 subcom
 A: Yes — `docs/tutorial.md` is a step-by-step walkthrough from installation through your first published report. It follows a single experiment from config drafting with `coeval wizard` through analysis with `coeval analyze all`.
 
 **Q: Where can I find documentation on adding a new model interface or phase?**
-A: The developer guide is in `docs/developer_guide.md`. It covers adding new interfaces (subclassing the base interface, registering in `pool.py` and `registry.py`), adding new phase types, and adding new HTML report types to the `analysis/reports/` package.
+A: The developer guide is in `docs/developer_guide.md`. It covers adding new interfaces (subclassing the base interface, registering in `pool.py` and `registry.py`), adding new phase types, and adding new HTML report types to the `Code/analyzer/reports/` package.
 
 **Q: Which doc section covers the YAML configuration schema?**
 A: Section 04 — `docs/README/04-configuration.md` — covers the complete YAML schema including `models`, `tasks`, `experiment`, `rubric`, `sampling`, `role_parameters`, `prompt_library`, `label_attributes`, and the `quota` and `batch` blocks, with five complete example configs.
@@ -117,7 +105,7 @@ A: Section 04 — `docs/README/04-configuration.md` — covers the complete YAML
 A: Section 05 — `docs/README/05-providers.md` — covers all 15 interfaces with authentication details, code examples, pricing tables, and batch support status. Bedrock covers both native API key and IAM auth modes; Ollama covers local setup, custom host configuration, and no-API-key usage.
 
 **Q: Where can I see sample reports without running an experiment myself?**
-A: The `docs/README/08-reports.md` and `docs/README/13-documentation.md` pages both link to rendered HTML examples hosted on GitHub. These include student reports, judge consistency reports, robust summaries, score distributions, teacher reports, interaction matrices, coverage summaries, and judge reports from two demo experiment runs (`coeval-demo-v1` and `coeval-demo-v2`).
+A: The `docs/README/08-reports.md` and `docs/README/13-documentation.md` pages both link to rendered HTML examples hosted on GitHub. These include student reports, judge consistency reports, robust summaries, score distributions, teacher reports, interaction matrices, coverage summaries, and judge reports from the medium-benchmark run.
 
 ---
 

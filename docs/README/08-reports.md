@@ -429,34 +429,22 @@ All sample reports are self-contained HTML files — click to view rendered in b
 
 > **Generate all reports from a completed run:**
 > ```bash
-> coeval analyze all --run ./eval_runs/my-experiment-v1 --out ./reports
+> coeval analyze all --run ./Runs/my-experiment-v1 --out ./reports
 > ```
 
-### Analysis Reports — coeval-demo-v2
+### Analysis Reports — medium-benchmark
 
 | Report | Description |
 |--------|-------------|
-| [Student Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_student_report.html) | Per-student score breakdowns, task rankings, rubric factor heatmaps |
-| [Judge Consistency](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_judge_consistency.html) | Inter-judge ICC agreement, calibration drift, flagged uncertain items |
-| [Robust Summary](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_robust_summary.html) | Final model rankings with confidence intervals and robust ensemble weights |
-| [Score Distribution](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_score_distribution.html) | High / Medium / Low histograms filterable by task, teacher, student, and judge |
-| [Teacher Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_teacher_report.html) | Per-teacher source quality, attribute stratum coverage, data consistency |
-| [Interaction Matrix](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_interaction_matrix.html) | Teacher × Student pair quality heatmap |
-| [Coverage Summary](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_coverage_summary.html) | Attribute Coverage Ratio (ACR) and rare-attribute recall per task |
-| [Judge Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v2/coeval-demo-v2_judge_report.html) | Judge-level bias rates, score calibration, inter-rater reliability |
-
-### Analysis Reports — coeval-demo-v1
-
-| Report | Description |
-|--------|-------------|
-| [Student Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v1/coeval-demo-v1_student_report.html) | Per-student score breakdowns, task rankings, rubric factor heatmaps |
-| [Judge Consistency](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v1/coeval-demo-v1_judge_consistency.html) | Inter-judge ICC agreement, calibration drift, flagged uncertain items |
-| [Robust Summary](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v1/coeval-demo-v1_robust_summary.html) | Final model rankings with confidence intervals |
-| [Score Distribution](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v1/coeval-demo-v1_score_distribution.html) | Score histograms filterable by task, teacher, student, and judge |
-| [Teacher Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v1/coeval-demo-v1_teacher_report.html) | Per-teacher source quality and attribute stratum coverage |
-| [Interaction Matrix](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v1/coeval-demo-v1_interaction_matrix.html) | Teacher × Student pair quality heatmap |
-| [Coverage Summary](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v1/coeval-demo-v1_coverage_summary.html) | Attribute Coverage Ratio (ACR) and rare-attribute recall |
-| [Judge Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/docs/samples/analysis/coeval-demo-v1/coeval-demo-v1_judge_report.html) | Judge-level bias rates, score calibration, inter-rater reliability |
+| [Dashboard](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/medium-benchmark/reports/index.html) | Overview dashboard — all reports in one place with top-line rankings and navigation |
+| [Student Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/medium-benchmark/reports/student_report/index.html) | Per-student score breakdowns, task rankings, rubric factor heatmaps |
+| [Judge Consistency](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/medium-benchmark/reports/judge_consistency/index.html) | Inter-judge ICC agreement, calibration drift, flagged uncertain items |
+| [Robust Summary](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/medium-benchmark/reports/summary/index.html) | Final model rankings with confidence intervals and robust ensemble weights |
+| [Score Distribution](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/medium-benchmark/reports/score_distribution/index.html) | High / Medium / Low histograms filterable by task, teacher, student, and judge |
+| [Teacher Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/medium-benchmark/reports/teacher_report/index.html) | Per-teacher source quality, attribute stratum coverage, data consistency |
+| [Interaction Matrix](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/medium-benchmark/reports/interaction_matrix/index.html) | Teacher × Student pair quality heatmap |
+| [Coverage Summary](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/medium-benchmark/reports/coverage_summary/index.html) | Attribute Coverage Ratio (ACR) and rare-attribute recall per task |
+| [Judge Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/medium-benchmark/reports/judge_report/index.html) | Judge-level bias rates, score calibration, inter-rater reliability |
 
 ---
 
