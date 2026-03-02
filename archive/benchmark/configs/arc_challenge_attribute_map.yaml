@@ -1,9 +1,0 @@
-grade_band:
-  - grade_3_5
-  - grade_6_8
-  - grade_9_10
-
-knowledge_type:
-  - factual
-  - conceptual
-  - procedural

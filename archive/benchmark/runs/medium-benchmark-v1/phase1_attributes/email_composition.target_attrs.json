@@ -1,1 +1,0 @@
-{"tone": ["formal", "semi_formal", "casual", "assertive", "empathetic"], "purpose": ["information_request", "project_update", "complaint_resolution", "proposal", "follow_up"], "urgency": ["low", "medium", "high", "critical"], "length": ["brief", "standard", "detailed"], "formality": ["peer_to_peer", "manager_to_report", "report_to_manager", "external_client", "executive"]}

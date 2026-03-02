@@ -1,9 +1,0 @@
-passage_type:
-  - narrative
-  - expository
-  - argumentative
-
-question_type:
-  - factual
-  - inferential
-  - vocabulary
