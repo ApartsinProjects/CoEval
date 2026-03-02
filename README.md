@@ -1,4 +1,4 @@
-# CoEval: A fine-grained LLM benchmarking and ranking framework powered by self-evaluating ensembles.
+# CoEval: Ensemble-Based Self-Evaluation for LLMs
 
 [![Python ≥3.10](https://img.shields.io/badge/python-%E2%89%A53.10-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![Version 0.3.0](https://img.shields.io/badge/version-0.3.0-informational)](CHANGELOG.md)
@@ -12,17 +12,118 @@
 
 ---
 
-## Introduction
+## 🚨 The Challenge
 
-The need: Comparing off-the-shelf and fine-tuned models is hard. Public benchmarks rarely match a specific use case in data or metrics, and building a dedicated benchmark is often too costly. Running evaluations across many variants is also operationally heavy, and results can be skewed by benchmark leakage when test data (or near-duplicates) leaks into training or fine-tuning.
+**Evaluating and selecting off-the-shelf or fine-tuned models for a specific use case is difficult.**
 
-CoEval is a framework for self-evaluation of LLMs using model ensembles. In each run, state-of-the-art models jointly serve as teachers (generating questions and reference answers), students (the candidate models being compared), and judges (scoring student outputs against the reference).
+Choosing the right LLM means navigating a minefield of hidden pitfalls:
 
-Teachers use attribute-driven prompt generation to produce realistic, diverse test items from a user-defined or auto-generated space of targets and nuanced attributes. Judges apply rich scoring rubrics (user-specified, auto-generated, or mixed) to evaluate answers and produce comparable rankings across models.
+|     | Challenge                                                      | Why It Hurts                                                                                                          |
+|:---:|:-------------------------------------------------------------- |:--------------------------------------------------------------------------------------------------------------------- |
+| 🎯  | **Generic benchmarks don't transfer**                          | Public data and metrics often miss the nuances of *your* real-world requirements.                                     |
+| 🧩  | **Custom benchmarks are hard to design**                       | Defining representative tasks, building rubrics, and choosing robustness variations is non-trivial.                   |
+| 💸  | **Multi-model multi-task benchmarks are expensive to execute** | Running every candidate model across every task and rubric quickly multiplies cost and compute.                       |
+| 🕳️ | **Leakage biases results**                                     | Public and private benchmark items (or near-duplicates) may lurk in training data, inflating scores via memorization. |
+| ⚙️  | **Ops and cost are complex**                                   | Running evaluations across providers, inference modes, and scoring criteria demands careful orchestration.            |
 
-Ranking reliability is improved by automatically weighting (or selecting) a robust subset of teachers that best differentiates students and a robust subset of judges that most consistently agree with the ensemble majority.
+> **Bottom line:** You can't trust a leaderboard number, and building your own eval is a project in itself.
 
-CoEval supports both local and remote models, with connectors for OpenAI, Hugging Face, Azure, AWS Bedrock, Anthropic, Ollama, and others, plus cost-aware experiment planning and batch inference where providers support it. Results and run plans are delivered as rich HTML reports for efficient control over definitions, costs, and outcomes, and the system includes documentation for both users and developers.
+---
+
+## 💡 The Concept
+
+**Ensemble-based synthetic self-evaluation benchmarking** — let the models evaluate *each other*.
+
+CoEval generates a synthetic evaluation suite spanning multiple domain-specific tasks and scoring rubrics, then assembles an **ensemble of models** that rotate through three roles:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     MODEL  ENSEMBLE                         │
+│                                                             │
+│   ┌───────────┐    ┌───────────┐    ┌───────────┐          │
+│   │  Model A   │    │  Model B   │    │  Model C   │  ...   │
+│   └─────┬─────┘    └─────┬─────┘    └─────┬─────┘          │
+│         │                │                │                 │
+│         ▼                ▼                ▼                 │
+│   ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓     │
+│   ┃          ROTATING  ROLE  ASSIGNMENT               ┃     │
+│   ┗━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━┛     │
+│              ▼                ▼                  ▼           │
+│      🎓 TEACHER        📝 STUDENT          ⚖️ JUDGE        │
+│   Generate synthetic   Models under       Score outputs     │
+│   challenges &         evaluation take    against the       │
+│   reference answers    the challenges     rubric            │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Reliability through selection
+
+Not all teachers and judges are created equal. CoEval improves signal quality by identifying:
+
+| Role           | Selection Criterion                                                         | Intuition                                    |
+|:--------------:|:--------------------------------------------------------------------------- |:-------------------------------------------- |
+| 🎓 **Teacher** | **Differentiating** — produces challenges that separate student performance | A good exam question reveals who studied.    |
+| ⚖️ **Judge**   | **Consensus** — high agreement with ensemble majority                       | A reliable judge aligns with peer consensus. |
+
+### Flexible provisioning
+
+```
+  Fully Automatic          Semi-Automatic               Manual
+  ┌────────────┐          ┌────────────────┐        ┌──────────────┐
+  │ Tasks       │          │ Tasks ✏️       │        │ Tasks ✏️      │
+  │ Rubrics     │  ──►     │ Rubrics        │  ──►   │ Rubrics ✏️    │
+  │ Attr. Space │          │ Attr. Space ✏️ │        │ Attr. Space ✏️│
+  └────────────┘          └────────────────┘        └──────────────┘
+   AI-generated            Human-guided               Human-defined
+```
+
+Tasks, rubrics, and diversity/attribute spaces can be provisioned **fully automatically**, **semi-automatically** (human-in-the-loop), or **manually** — choose the level of control that fits your workflow.
+
+---
+
+## 🏗️ The Framework
+
+**CoEval is an end-to-end system** — from benchmark design to interactive reporting.
+
+```
+  ╔══════════════════════════════════════════════════════════════╗
+  ║                        C o E v a l                          ║
+  ╠══════════════════════════════════════════════════════════════╣
+  ║                                                              ║
+  ║   📦 Multi-Vendor Support                                   ║
+  ║   ├── Multiple LLM providers & interfaces out of the box    ║
+  ║   └── Plug in proprietary / self-hosted models              ║
+  ║                                                              ║
+  ║   🗺️ Benchmark Design & Planning                            ║
+  ║   ├── Automated task & rubric provisioning                  ║
+  ║   └── Run orchestration with cost optimization              ║
+  ║                                                              ║
+  ║   📊 Interactive Visual Reports                             ║
+  ║   ├── Side-by-side model comparison                         ║
+  ║   └── Drill-down into tasks, rubrics & scores               ║
+  ║                                                              ║
+  ║   🔄 Experiment Tracking                                    ║
+  ║   ├── Easy reruns & parameter sweeps                        ║
+  ║   └── Repair & resume after interruptions                   ║
+  ║                                                              ║
+  ║   📚 Complete Documentation                                 ║
+  ║   ├── User guides & tutorials                               ║
+  ║   └── Developer API reference                               ║
+  ║                                                              ║
+  ╚══════════════════════════════════════════════════════════════╝
+```
+
+### At a glance
+
+| Feature                | Description                                                              |
+|:---------------------- |:------------------------------------------------------------------------ |
+| **Multi-vendor**       | Swap providers without changing your eval pipeline.                      |
+| **Auto-provisioning**  | Generate tasks, rubrics, and attribute spaces from a domain description. |
+| **Orchestration**      | Schedule and parallelize runs; optimize for cost and latency.            |
+| **Visual reports**     | Interactive dashboards for deep-dive analysis.                           |
+| **Resilient tracking** | Resume interrupted experiments; repair partial results.                  |
+| **Docs-first**         | Comprehensive guides for users and contributors alike.                   |
 
 ---
 
