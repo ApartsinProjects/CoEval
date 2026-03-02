@@ -194,6 +194,9 @@ def load_config(path: str, keys_file: str | None = None) -> CoEvalConfig:
     cfg = _parse_config(raw)
     cfg._raw = raw
     cfg._provider_keys = resolve_provider_keys(keys_file=keys_file)
+    # Resolve interface: auto -> cheapest available provider (must run after
+    # _provider_keys are populated so we know which interfaces are configured).
+    _resolve_auto_interfaces(cfg)
     return cfg
 
 
@@ -263,6 +266,38 @@ def _parse_experiment(raw: dict) -> ExperimentConfig:
         estimate_samples=int(raw.get('estimate_samples', 2)),
     )
 
+
+
+def _resolve_auto_interfaces(cfg: 'CoEvalConfig') -> None:
+    """Replace ``interface: auto`` with the cheapest available provider.
+
+    Scans ``benchmark/provider_pricing.yaml`` ``auto_routing`` table and
+    selects the first matching entry whose interface has credentials
+    available in ``cfg._provider_keys``.
+
+    Modifies ``cfg.models`` in place.  Called from :func:`load_config`
+    after ``_provider_keys`` are populated.
+
+    Raises
+    ------
+    ValueError
+        If ``interface: auto`` is used but no matching provider with
+        available credentials can be found for the model.
+    """
+    from .interfaces.registry import resolve_auto_interface
+    for model in cfg.models:
+        if model.interface != 'auto':
+            continue
+        model_id = model.parameters.get('model', model.name)
+        resolved = resolve_auto_interface(model_id, cfg._provider_keys)
+        if resolved is None:
+            raise ValueError(
+                f"interface: auto — cannot resolve cheapest provider for "
+                f"model '{model.name}' (parameters.model='{model_id}'). "
+                f"Add credentials for the required provider in keys.yaml "
+                f"or specify the interface explicitly."
+            )
+        model.interface = resolved
 
 # ---------------------------------------------------------------------------
 # Validation

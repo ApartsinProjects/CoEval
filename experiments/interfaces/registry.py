@@ -449,6 +449,86 @@ def _list_openrouter_models(creds: dict, verbose: bool) -> list[dict]:
     return sorted(models, key=lambda m: m['id'])
 
 
+
+# ---------------------------------------------------------------------------
+# Provider pricing and auto-interface resolution
+# ---------------------------------------------------------------------------
+
+#: Path to the shared provider pricing YAML (two levels up from this file)
+_PRICING_YAML_PATH = Path(__file__).parent.parent.parent / 'benchmark' / 'provider_pricing.yaml'
+
+
+def load_provider_pricing(path: str | Path | None = None) -> dict:
+    """Load the shared provider pricing YAML.
+
+    Lookup order:
+    1. ``path`` argument
+    2. ``benchmark/provider_pricing.yaml`` at the project root
+
+    Returns an empty dict if the file is not found or cannot be parsed.
+    """
+    try:
+        import yaml
+    except ImportError:
+        return {}
+
+    candidates = []
+    if path:
+        candidates.append(Path(path))
+    candidates.append(_PRICING_YAML_PATH)
+
+    for candidate in candidates:
+        if candidate.is_file():
+            try:
+                with open(candidate, encoding='utf-8') as fh:
+                    return yaml.safe_load(fh) or {}
+            except Exception:
+                return {}
+    return {}
+
+
+def resolve_auto_interface(
+    model_id: str,
+    provider_keys: dict,
+    pricing_path: str | Path | None = None,
+) -> str | None:
+    """Return the cheapest available interface for *model_id*.
+
+    Scans the ``auto_routing`` table in ``benchmark/provider_pricing.yaml``
+    for the first fragment (case-insensitive substring match) that:
+
+    1. Matches ``model_id``
+    2. Maps to an interface for which credentials exist in *provider_keys*
+
+    Returns the interface name (e.g. ``'openai'``, ``'openrouter'``) or
+    ``None`` if no matching interface with credentials is found.
+
+    Parameters
+    ----------
+    model_id:
+        The model's ``parameters.model`` string from the experiment YAML.
+    provider_keys:
+        Resolved provider credentials from :func:`resolve_provider_keys`.
+    pricing_path:
+        Optional override path for ``provider_pricing.yaml``.
+    """
+    pricing = load_provider_pricing(pricing_path)
+    routing = pricing.get('auto_routing', {})
+
+    model_lower = model_id.lower()
+
+    for fragment, route in routing.items():
+        if fragment.lower() not in model_lower:
+            continue
+        interface = route.get('interface')
+        if interface is None:
+            continue
+        # 'benchmark' virtual interface has no credentials requirement
+        if interface == 'benchmark' or interface in provider_keys:
+            return interface
+
+    return None
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

@@ -2,7 +2,9 @@
 
 ## 3.1 Framework Overview
 
-CoEval is organized as a five-phase pipeline (Figure 1) in which benchmark *construction* and benchmark *scoring* are unified under a single configurable framework. All five phases share a common storage layer with per-item incremental writes, a common model abstraction supporting cloud APIs and local HuggingFace models, and a common checkpointing mechanism that enables fine-grained resumption from any point of failure.
+CoEval is organized as a five-phase pipeline (Figure 1) in which benchmark *construction* and benchmark *scoring* are unified under a single configurable framework. All five phases share a common storage layer with per-item incremental writes, a common model abstraction supporting eight cloud provider interfaces, and a common checkpointing mechanism that enables fine-grained resumption from any point of failure.
+
+The experiments reported in this paper use **ten SOTA API-only models** spanning five providers, each potentially serving as teacher, student, and/or judge within the same experiment (a *dual-role* or *all-role* design). Models are not segregated into separate teacher/student/judge pools; instead, each model's configuration declares all roles it occupies, enabling CoEval to schedule work accordingly. This design maximizes data on model-pair cross-evaluation while minimizing marginal API cost through batch-API discounts (50% for OpenAI and Anthropic; native Gemini pseudo-batching).
 
 CoEval supports two complementary modes for benchmark construction: (1) **generative mode**, in which teacher LLMs produce (prompt, reference-response) pairs from scratch guided by attribute-controlled sampling (Section 3.4.1–3.4.3), and (2) **benchmark-sourced mode**, in which existing public benchmark datasets supply the (prompt, reference-response) pairs directly (Section 3.4.4). Both modes feed into the same Phases 4 and 5, making the evaluation pipeline fully reusable regardless of how the benchmark was constructed.
 
@@ -55,6 +57,18 @@ The mapping from benchmark to rubric factors used in our experiments is:
 **Email Composition (AESLC).** The Annotated Enron Subject Line Corpus [58] provides professional email bodies with matched subject lines and metadata, enabling BERTScore-F1 against reference emails as the ground-truth metric. CoEval rubric factors: `clarity` (w=0.25), `appropriate_tone` (w=0.25), `completeness` (w=0.20), `professionalism` (w=0.20), `actionability` (w=0.10).
 
 **Data Interpretation (WikiTableQuestions).** WikiTableQuestions [59] provides Wikipedia table–question–answer triples, enabling exact-match accuracy as the ground-truth metric. CoEval rubric factors: `numerical_accuracy` (w=0.35), `trend_identification` (w=0.25), `insight_quality` (w=0.20), `appropriate_caveats` (w=0.12), `clarity` (w=0.08).
+
+### 3.3.3 Benchmark-Aligned Rubric Dimension
+
+Regardless of whether the rubric is constructed generatively (Section 3.3.1) or derived from a benchmark (Section 3.3.2), each task rubric includes exactly one dimension designated as **benchmark-aligned** and annotated with the tag [BA]. The [BA] dimension is chosen to mechanistically correspond to the benchmark's native evaluation metric, so that a perfect score on [BA] implies alignment with the benchmark's ground-truth signal.
+
+For example:
+- **Text Summarization (XSum):** [BA] = `faithfulness` — high scores on this dimension correspond to high BERTScore-F1 against the gold summary, because BERTScore-F1 rewards semantic overlap with the reference, which is the primary operationalization of factual faithfulness.
+- **Data Interpretation (WikiTableQuestions):** [BA] = `numerical_accuracy` — this dimension requires judges to verify exact numerical claims against the table, directly paralleling the exact-match accuracy metric used by the benchmark.
+- **Code Explanation (CodeSearchNet):** [BA] = `technical_accuracy` — judges verify that the explanation correctly characterizes the function's behavior, aligning with BERTScore-F1 against the canonical docstring.
+- **Email Composition (AESLC):** [BA] = `clarity` — the dimension most predictive of BERTScore-F1 against the reference email, as measured by ablation on the calibration set.
+
+The [BA] dimension anchors the rubric to independently validated ground truth while the remaining dimensions (3–4 additional factors) capture quality axes not captured by the benchmark metric alone—such as stylistic appropriateness, edge-case handling, or audience calibration. This hybrid structure is what enables CoEval to both *validate* against benchmark metrics (Section 3.7) and *generalize beyond* them.
 
 **Output.** A single rubric JSON file per task in `phase2/{task_id}_rubric.json`.
 
@@ -192,7 +206,21 @@ This protocol makes CoEval's reliability claims fully reproducible: any research
 
 ---
 
-## 3.8 Fault Tolerance and Resumption
+## 3.8 Dual-Track Validation
+
+To cross-validate that student rankings are stable across data sources rather than an artifact of any particular datapoint collection strategy, CoEval evaluates each student on two parallel tracks:
+
+**Track A (benchmark-sourced).** Evaluation datapoints are drawn from the held-out splits of public benchmark datasets using the `benchmark` virtual interface (Section 3.4.4). Because these items are independently validated and their ground-truth labels are determined by established benchmark protocols, Track A scores serve as the primary reliability reference.
+
+**Track B (synthetic).** Evaluation datapoints are generated by teacher LLMs (GPT-4o, GPT-4o-mini, Gemini 2.0 Flash, and Llama 3.3 70B in the reported experiments) using the attribute-controlled sampling procedure of Section 3.4.1. Track B scores reflect a student's capability on LLM-generated prompts, which may have different distributional properties (stylistic, difficulty) than benchmark items.
+
+**Stability measurement.** For each task, we compute Kendall's τ between the student rankings produced by Track A composite scores and Track B composite scores. High τ (≥ 0.85) indicates that CoEval's rankings are robust to the data source: the same models rank highly regardless of whether items come from curated benchmark splits or from synthetic generation. Divergence (τ < 0.70) flags task-specific data-source sensitivity and is reported alongside the main results.
+
+This dual-track design serves a second purpose: it separates the *evaluation pipeline's reliability* (verified by Track A vs. benchmark-native metrics) from the *benchmark's coverage* (verified by Track B's generative diversity). Both dimensions are necessary for a benchmark framework to be trustworthy.
+
+---
+
+## 3.9 Fault Tolerance and Resumption
 
 A central engineering goal of CoEval is the ability to resume any interrupted run with minimal repeated work. The system implements two layers of fault tolerance:
 
@@ -207,9 +235,9 @@ coeval run --config experiment.yaml --continue
 
 ---
 
-## 3.9 Configuration Interface
+## 3.10 Configuration Interface
 
-CoEval is configured via a declarative YAML file. Listing 2 shows a generative-mode experiment; Listing 3 shows the equivalent benchmark-sourced configuration.
+CoEval is configured via a declarative YAML file. Listing 2 shows a generative-mode experiment; Listing 3 shows the dual-track 10-model all-roles configuration used in the reported experiments.
 
 **Listing 2: Generative mode (teacher-generated datapoints)**
 ```yaml
@@ -247,44 +275,71 @@ generation:
   datapoints_per_task: 200
 ```
 
-**Listing 3: Benchmark-sourced mode (XSum summarization)**
+**Listing 3: Dual-track 10-model all-roles configuration with `interface: auto`**
 ```yaml
 experiment:
-  id: "xsum-summarization-eval-v1"
+  id: "dual-track-10model-v1"
   storage_folder: "./experiments"
 
 domain:
-  name: "News article summarization"
+  name: "Multi-task NLP evaluation"
   description: |
-    Evaluate LLM summaries of BBC news articles against
-    XSum gold summaries using benchmark-grounded rubric.
+    10-model dual-track evaluation across four NLP tasks.
+    Track A draws items from public benchmark datasets;
+    Track B uses LLM-generated synthetic datapoints.
 
-phase3:
-  source: benchmark
-  benchmark:
-    dataset: xsum
-    split: validation
-    sample_size: 620
-    attribute_map: configs/xsum_attribute_map.yaml
+models:
+  # --- Frontier API models (multi-role) ---
+  - name: gpt-4o
+    interface: openai
+    roles: [teacher, student, judge]
+  - name: gpt-4o-mini
+    interface: openai
+    roles: [teacher, student, judge]
+  - name: claude-sonnet-4-6
+    interface: anthropic
+    roles: [student, judge]
+  - name: claude-haiku-3-5
+    interface: anthropic
+    roles: [student, judge]
+  - name: gemini-2.0-flash
+    interface: gemini
+    roles: [teacher, student, judge]
 
-students:
-  - model: claude-sonnet-4-6
-    provider: anthropic
-  - model: gpt-4o-mini
-    provider: openai
+  # --- Open-weight models via OpenRouter ---
+  - name: llama-3.3-70b-instruct
+    interface: openrouter
+    roles: [teacher, student]
+  - name: llama-3.1-8b-instruct
+    interface: openrouter
+    roles: [student]
+  - name: mistral-small-24b
+    interface: openrouter
+    roles: [student]
+  - name: deepseek-v3
+    interface: auto           # CoEval selects cheapest provider automatically
+    parameters:
+      model: deepseek/deepseek-chat
+    roles: [student]
+  - name: qwen-2.5-72b
+    interface: openrouter
+    roles: [student]
 
-judges:
-  - model: gpt-4o
-    provider: openai
-  - model: gpt-4o-mini
-    provider: openai
-  - model: claude-3-5-haiku-20241022
-    provider: anthropic
+  # --- Track A: benchmark virtual teacher ---
+  - name: benchmark_data
+    interface: benchmark
+    roles: [teacher]
+
+generation:
+  datapoints_per_task: 100
+  tracks: [A, B]             # A = benchmark-sourced; B = synthetic
 ```
+
+**`interface: auto`.** Setting `interface: auto` on a model causes CoEval to automatically select the cheapest available provider for that model at runtime, consulting the routing table in `benchmark/provider_pricing.yaml`. The routing table maps model identifiers to provider costs per million tokens; CoEval picks the provider with the lowest effective cost for which valid credentials are present in the key file. This is particularly useful for models available on multiple platforms (e.g., DeepSeek V3 on both OpenRouter and a direct endpoint) where the optimal routing may change over time.
 
 ---
 
-## 3.10 Implementation Details
+## 3.11 Implementation Details
 
 CoEval is implemented in Python 3.11+ with no mandatory dependencies beyond the standard library and `pyyaml`. Optional dependencies (`openai`, `anthropic`, `google-generativeai`, `transformers`, `torch`, `datasets`) are declared as extras and installed only for the providers and benchmark loaders in use. The codebase comprises approximately 5,200 lines of source code and 2,100 lines of tests (pytest, 483 tests), achieving 94% line coverage.
 

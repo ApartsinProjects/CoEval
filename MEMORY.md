@@ -63,13 +63,16 @@ CLI entry: `experiments.cli:main` → `coeval run/probe/plan/status/generate/mod
 |-----------|----------|-------------|---------|
 | `openai` | OpenAI Batch API (50% discount) | `OPENAI_API_KEY` | pre-installed |
 | `anthropic` | Message Batches API (50% discount) | `ANTHROPIC_API_KEY` | `pip install anthropic` |
-| `gemini` | Pseudo-batch (no discount) | `GEMINI_API_KEY` or `GOOGLE_API_KEY` | `pip install google-generativeai` |
+| `gemini` | Gemini Batch API (50% discount) | `GEMINI_API_KEY` or `GOOGLE_API_KEY` | `pip install google-generativeai` |
 | `huggingface` | None (GPU required) | `HF_TOKEN` or `HUGGINGFACE_HUB_TOKEN` | `pip install 'coeval[huggingface]'` |
 | `azure_openai` | None (real-time) | `AZURE_OPENAI_API_KEY` + `AZURE_OPENAI_ENDPOINT` | pre-installed (openai) |
 | `bedrock` | None (real-time) | `api_key` OR (`AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY`) | `pip install boto3` (IAM only) |
 | `vertex` | None (real-time) | `GOOGLE_CLOUD_PROJECT` + ADC | `pip install google-cloud-aiplatform` |
 | `openrouter` | None (real-time) | `OPENROUTER_API_KEY` | pre-installed (openai) |
 | `benchmark` | N/A (virtual; no API calls) | none | pre-installed |
+| `auto` | resolves at config load time | — | — |
+
+Note: `interface: auto` is not a real interface; it resolves to a concrete provider via `benchmark/provider_pricing.yaml`.
 
 ## Provider key file
 - **Primary location**: `E:\Projects\CoEval\main\keys.yaml` (project root, auto-discovered)
@@ -170,3 +173,42 @@ Run: `pytest experiments/tests/ analysis/tests/ -v` from `E:\Projects\CoEval\mai
 - ALL NUMBERS IN paper/04_results.md ARE FICTIONAL PLACEHOLDERS
 - Paper gap fixes committed: G1 (RAR), G3 (token_count), G4 (calibration), G5 (baselines script), G8 (surface bias)
 - Remaining gaps (deferred): G2 (positional swap), G6 (actual cost tracking), G7 (pass@k — skip)
+
+## interface: auto (automatic provider selection)
+Setting `interface: auto` in a model config resolves to the cheapest available
+provider at config load time, using `benchmark/provider_pricing.yaml`.
+- Implemented in `experiments/config.py::_resolve_auto_interfaces()`
+- Provider lookup in `experiments/interfaces/registry.py::resolve_auto_interface()`
+- Pricing YAML: `benchmark/provider_pricing.yaml` (auto_routing section)
+
+## Provider pricing YAML
+`benchmark/provider_pricing.yaml` — single source of truth for all cost estimation.
+- Loaded by `experiments/interfaces/cost_estimator.py` (PRICE_TABLE + BATCH_DISCOUNT)
+- Used by `resolve_auto_interface()` for `interface: auto` routing
+- Contains: providers (with per-model prices + batch_discount), auto_routing table
+- Gemini batch_discount: 0.50 (Gemini Batch API now supported)
+- Fallback: hardcoded _FALLBACK_PRICE_TABLE / _FALLBACK_BATCH_DISCOUNT in cost_estimator.py
+
+## Dual-track experiment (paper_dual_track.yaml)
+Config: `benchmark/paper_dual_track.yaml`
+- 10 SOTA API-only models (no HuggingFace local models)
+- 5 frontier models: GPT-4o, GPT-4o-mini, Claude Sonnet 4.6, Claude Haiku 3.5, Gemini 2.0 Flash
+- 5 open models via OpenRouter: Llama 3.3 70B, Llama 3.1 8B, Mistral Small, DeepSeek V3, Qwen 2.5 72B
+- Dual track: Track A (benchmark_data virtual teacher) + Track B (GPT-4o + GPT-4o-mini + Gemini Flash + Llama 70B as teachers)
+- Judges: GPT-4o + GPT-4o-mini + Claude Haiku 3.5 (3-judge ensemble)
+- 100 items/task × 4 tasks = 400 datapoints per track
+- Rubric: each task has one [BA] benchmark-aligned dimension + 3-4 other dimensions
+- Batch API enabled for OpenAI + Anthropic + Gemini — estimated ~$42 total
+- Run: `coeval run --config benchmark/paper_dual_track.yaml`
+
+## Suggested new providers (not yet implemented)
+Accessible today via `interface: openrouter`. Future dedicated interfaces:
+- Groq (LPU, OpenAI-compatible, ultra-fast, no batch)
+- Together AI (OpenAI-compatible, competitive GPU pricing)
+- DeepInfra (cheap GPU, OpenAI-compatible)
+- Fireworks AI (fast, OpenAI-compatible)
+- DeepSeek API (own models, OpenAI-compatible)
+- Mistral API (own models, OpenAI-compatible)
+- Cohere (Command models, own SDK)
+- AI21 Labs (Jamba, OpenAI-compatible)
+See `manuals/04_provider_pricing.md` for full pricing table.

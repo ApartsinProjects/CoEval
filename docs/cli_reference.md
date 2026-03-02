@@ -49,6 +49,23 @@ providers:
 2. Provider key file (`--keys` or default path)
 3. Standard environment variables (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, etc.)
 
+#### `interface: auto`
+
+Setting `interface: auto` on a model triggers automatic provider selection at config
+load time. CoEval scans `benchmark/provider_pricing.yaml`'s `auto_routing` table and
+selects the cheapest available provider for which credentials exist in `keys.yaml`.
+
+```yaml
+- name: deepseek-v3
+  interface: auto
+  parameters:
+    model: deepseek/deepseek-chat
+  roles: [student]
+```
+
+The resolved interface is logged at `DEBUG` level. To see which provider was selected
+before running the experiment, use `coeval plan --config your.yaml`.
+
 ---
 
 ## `coeval run`

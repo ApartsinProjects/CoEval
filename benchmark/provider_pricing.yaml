@@ -1,0 +1,237 @@
+# CoEval — Shared Provider Pricing Table
+# ============================================================
+# Single source of truth for all cost estimation across all
+# CoEval experiments.  Updated: 2026-03-02.
+#
+# Prices are in USD per 1,000,000 (1M) tokens.
+# batch_discount: multiplier applied when native batch API is used
+#   (0.50 = 50% off, i.e. half price; 1.00 = no discount)
+#
+# auto_routing: ordered mapping of model-name fragments to the
+#   cheapest available interface.  Used by `interface: auto` in
+#   experiment YAML configs.  The first matching fragment whose
+#   interface has credentials available is chosen.
+# ============================================================
+
+# ─── Provider catalogue ──────────────────────────────────────────────────────
+
+providers:
+
+  # --------------------------------------------------------------------------
+  # OpenAI  (native Batch API: 50% off)
+  # https://openai.com/api/pricing/
+  # --------------------------------------------------------------------------
+  openai:
+    interface: openai
+    batch_discount: 0.50
+    models:
+      gpt-4o:             {input: 2.50,  output: 10.00}
+      gpt-4o-mini:        {input: 0.15,  output: 0.60}
+      gpt-4-turbo:        {input: 10.00, output: 30.00}
+      gpt-3.5-turbo:      {input: 0.50,  output: 1.50}
+      o1:                 {input: 15.00, output: 60.00}
+      o1-mini:            {input: 3.00,  output: 12.00}
+      o3-mini:            {input: 1.10,  output: 4.40}
+      o4-mini:            {input: 1.10,  output: 4.40}
+      gpt-4.1:            {input: 2.00,  output: 8.00}
+      gpt-4.1-mini:       {input: 0.40,  output: 1.60}
+      gpt-4.1-nano:       {input: 0.10,  output: 0.40}
+
+  # --------------------------------------------------------------------------
+  # Anthropic  (Message Batches API: 50% off)
+  # https://www.anthropic.com/pricing
+  # --------------------------------------------------------------------------
+  anthropic:
+    interface: anthropic
+    batch_discount: 0.50
+    models:
+      claude-3-5-haiku-20241022:  {input: 0.80,  output: 4.00}
+      claude-3-5-sonnet-20241022: {input: 3.00,  output: 15.00}
+      claude-3-opus-20240229:     {input: 15.00, output: 75.00}
+      claude-3-haiku-20240307:    {input: 0.25,  output: 1.25}
+      claude-opus-4-5:            {input: 15.00, output: 75.00}
+      claude-sonnet-4-5:          {input: 3.00,  output: 15.00}
+      claude-haiku-4-5:           {input: 0.80,  output: 4.00}
+      claude-opus-4-6:            {input: 15.00, output: 75.00}
+      claude-sonnet-4-6:          {input: 3.00,  output: 15.00}
+      claude-haiku-4-6:           {input: 0.80,  output: 4.00}
+
+  # --------------------------------------------------------------------------
+  # Google Gemini AI Studio  (Gemini Batch API: 50% off)
+  # https://ai.google.dev/pricing
+  # --------------------------------------------------------------------------
+  gemini:
+    interface: gemini
+    batch_discount: 0.50
+    models:
+      gemini-2.5-pro:           {input: 1.25,  output: 10.00}
+      gemini-2.5-flash:         {input: 0.15,  output: 0.60}
+      gemini-2.5-flash-lite:    {input: 0.075, output: 0.30}
+      gemini-2.0-flash:         {input: 0.10,  output: 0.40}
+      gemini-2.0-flash-lite:    {input: 0.075, output: 0.30}
+      gemini-1.5-flash:         {input: 0.075, output: 0.30}
+      gemini-1.5-pro:           {input: 1.25,  output: 5.00}
+      gemini-1.0-pro:           {input: 0.50,  output: 1.50}
+  # --------------------------------------------------------------------------
+  # OpenRouter  (aggregated routing; no native batch)
+  # https://openrouter.ai/models
+  # Best prices for popular open models as of 2026-03-02
+  # --------------------------------------------------------------------------
+  openrouter:
+    interface: openrouter
+    batch_discount: 1.00
+    models:
+      # Meta Llama
+      meta-llama/llama-3.3-70b-instruct:    {input: 0.12, output: 0.40}
+      meta-llama/llama-3.1-70b-instruct:    {input: 0.10, output: 0.28}
+      meta-llama/llama-3.1-8b-instruct:     {input: 0.05, output: 0.08}
+      meta-llama/llama-3-70b-instruct:      {input: 0.40, output: 0.90}
+      meta-llama/llama-3-8b-instruct:       {input: 0.08, output: 0.08}
+      # Mistral
+      mistralai/mistral-small-24b:          {input: 0.10, output: 0.30}
+      mistralai/mistral-large-2411:         {input: 2.00, output: 6.00}
+      mistralai/mixtral-8x7b-instruct:      {input: 0.24, output: 0.24}
+      # DeepSeek
+      deepseek/deepseek-chat:               {input: 0.14, output: 0.28}
+      deepseek/deepseek-r1:                 {input: 0.55, output: 2.19}
+      # Qwen
+      qwen/qwen-2.5-72b-instruct:           {input: 0.12, output: 0.39}
+      qwen/qwen-2.5-7b-instruct:            {input: 0.04, output: 0.08}
+      # Google via OpenRouter
+      google/gemini-2.0-flash-001:          {input: 0.10, output: 0.40}
+      google/gemini-flash-1.5:              {input: 0.075, output: 0.30}
+
+  # --------------------------------------------------------------------------
+  # AWS Bedrock  (no native batch discount; IAM or native API key)
+  # https://aws.amazon.com/bedrock/pricing/
+  # --------------------------------------------------------------------------
+  bedrock:
+    interface: bedrock
+    batch_discount: 1.00
+    models:
+      anthropic.claude-3-5-haiku-20241022-v1:   {input: 0.80,  output: 4.00}
+      anthropic.claude-3-5-sonnet-20241022-v2:  {input: 3.00,  output: 15.00}
+      amazon.nova-micro-v1:                     {input: 0.035, output: 0.14}
+      amazon.nova-lite-v1:                      {input: 0.06,  output: 0.24}
+      amazon.nova-pro-v1:                       {input: 0.80,  output: 3.20}
+      meta.llama3-70b-instruct-v1:              {input: 0.99,  output: 0.99}
+      meta.llama3-8b-instruct-v1:               {input: 0.30,  output: 0.60}
+      mistral.mistral-large-2402-v1:            {input: 4.00,  output: 12.00}
+
+  # --------------------------------------------------------------------------
+  # Azure OpenAI  (no batch discount in most regions; PTU only)
+  # https://azure.microsoft.com/pricing/details/cognitive-services/openai-service/
+  # --------------------------------------------------------------------------
+  azure_openai:
+    interface: azure_openai
+    batch_discount: 1.00
+    models:
+      gpt-4o:      {input: 2.50,  output: 10.00}
+      gpt-4o-mini: {input: 0.165, output: 0.66}
+
+  # --------------------------------------------------------------------------
+  # Google Vertex AI  (same models as Gemini; enterprise pricing)
+  # https://cloud.google.com/vertex-ai/generative-ai/pricing
+  # --------------------------------------------------------------------------
+  vertex:
+    interface: vertex
+    batch_discount: 0.50
+    models:
+      gemini-2.0-flash-001:  {input: 0.10,  output: 0.40}
+      gemini-1.5-flash:      {input: 0.075, output: 0.30}
+      gemini-1.5-pro:        {input: 1.25,  output: 5.00}
+# ─── Auto-routing table ───────────────────────────────────────────────────────────────────────────────
+#
+# Used by `interface: auto` in experiment configs.
+# When a model has `interface: auto`, CoEval scans this list top-to-bottom,
+# finds the first fragment that matches the model's `parameters.model` value,
+# and uses the listed interface — provided that interface's credentials are
+# available in keys.yaml.  Entries are ordered cheapest-first (with batch).
+#
+# Format:  model_fragment: {interface, notes}
+#   model_fragment  — lowercase substring of the model's `parameters.model`
+#   interface       — CoEval interface name to use
+#   notes           — human-readable explanation
+# ─────────────────────────────────────────────────────────────────────────────────
+
+auto_routing:
+
+  # ── OpenAI models ─────────────────────────────────────────────────────────────────────────
+  # Cheapest via direct OpenAI API (50% batch discount available)
+  gpt-4o-mini:   {interface: openai,     notes: "Direct OpenAI; batch 50% off → effective $0.075/$0.30"}
+  gpt-4.1-nano:  {interface: openai,     notes: "Direct OpenAI; batch 50% off → effective $0.05/$0.20"}
+  gpt-4.1-mini:  {interface: openai,     notes: "Direct OpenAI; batch 50% off → effective $0.20/$0.80"}
+  gpt-4o:        {interface: openai,     notes: "Direct OpenAI; batch 50% off → effective $1.25/$5.00"}
+  gpt-4.1:       {interface: openai,     notes: "Direct OpenAI; batch 50% off → effective $1.00/$4.00"}
+  gpt-3.5-turbo: {interface: openai,     notes: "Direct OpenAI; batch 50% off → effective $0.25/$0.75"}
+  o1-mini:       {interface: openai,     notes: "Direct OpenAI; batch 50% off"}
+  o3-mini:       {interface: openai,     notes: "Direct OpenAI; batch 50% off"}
+  o4-mini:       {interface: openai,     notes: "Direct OpenAI; batch 50% off"}
+  o1:            {interface: openai,     notes: "Direct OpenAI; batch 50% off"}
+  # ── Anthropic models ──────────────────────────────────────────────────────────────────────────
+  claude-3-5-haiku:  {interface: anthropic, notes: "Direct Anthropic; batch 50% off → effective $0.40/$2.00"}
+  claude-haiku-4:    {interface: anthropic, notes: "Direct Anthropic; batch 50% off → effective $0.40/$2.00"}
+  claude-3-5-sonnet: {interface: anthropic, notes: "Direct Anthropic; batch 50% off → effective $1.50/$7.50"}
+  claude-sonnet-4:   {interface: anthropic, notes: "Direct Anthropic; batch 50% off → effective $1.50/$7.50"}
+  claude-opus-4:     {interface: anthropic, notes: "Direct Anthropic; batch 50% off → effective $7.50/$37.50"}
+  claude-opus:       {interface: anthropic, notes: "Direct Anthropic; batch 50% off"}
+
+  # ── Google Gemini models ────────────────────────────────────────────────────────────────────────
+  gemini-2.0-flash-lite: {interface: gemini, notes: "Direct Gemini; batch 50% off → effective $0.0375/$0.15"}
+  gemini-2.5-flash-lite: {interface: gemini, notes: "Direct Gemini; batch 50% off → effective $0.0375/$0.15"}
+  gemini-1.5-flash:      {interface: gemini, notes: "Direct Gemini; batch 50% off → effective $0.0375/$0.15"}
+  gemini-2.0-flash:      {interface: gemini, notes: "Direct Gemini; batch 50% off → effective $0.05/$0.20"}
+  gemini-2.5-flash:      {interface: gemini, notes: "Direct Gemini; batch 50% off → effective $0.075/$0.30"}
+  gemini-1.5-pro:        {interface: gemini, notes: "Direct Gemini; batch 50% off → effective $0.625/$2.50"}
+  gemini-2.5-pro:        {interface: gemini, notes: "Direct Gemini; batch 50% off → effective $0.625/$5.00"}
+  # ── Llama models (open weights, cheapest via OpenRouter) ───────────────────────
+  llama-3.1-8b:  {interface: openrouter, notes: "OpenRouter cheapest tier → $0.05/$0.08"}
+  llama-3-8b:    {interface: openrouter, notes: "OpenRouter → $0.08/$0.08"}
+  llama-3.1-70b: {interface: openrouter, notes: "OpenRouter → $0.10/$0.28"}
+  llama-3.3-70b: {interface: openrouter, notes: "OpenRouter → $0.12/$0.40"}
+  llama-3-70b:   {interface: openrouter, notes: "OpenRouter → $0.40/$0.90"}
+
+  # ── Mistral models ────────────────────────────────────────────────────────────────────────────
+  mistral-small:  {interface: openrouter, notes: "OpenRouter → $0.10/$0.30"}
+  mistral-large:  {interface: openrouter, notes: "OpenRouter → $2.00/$6.00"}
+  mixtral-8x7b:   {interface: openrouter, notes: "OpenRouter → $0.24/$0.24"}
+
+  # ── DeepSeek models ───────────────────────────────────────────────────────────────────────────
+  deepseek-chat:  {interface: openrouter, notes: "OpenRouter → $0.14/$0.28"}
+  deepseek-r1:    {interface: openrouter, notes: "OpenRouter → $0.55/$2.19"}
+  deepseek-v3:    {interface: openrouter, notes: "OpenRouter → $0.14/$0.28"}
+  deepseek:       {interface: openrouter, notes: "OpenRouter → see deepseek-chat/r1"}
+
+  # ── Qwen models ───────────────────────────────────────────────────────────────────────────────
+  qwen-2.5-72b:   {interface: openrouter, notes: "OpenRouter → $0.12/$0.39"}
+  qwen2.5-72b:    {interface: openrouter, notes: "OpenRouter → $0.12/$0.39"}
+  qwen-2.5-7b:    {interface: openrouter, notes: "OpenRouter → $0.04/$0.08"}
+
+  # ── Bedrock fallback (when only AWS credentials are available) ────────────────────
+  amazon.nova-micro: {interface: bedrock, notes: "AWS Bedrock → $0.035/$0.14"}
+  amazon.nova-lite:  {interface: bedrock, notes: "AWS Bedrock → $0.06/$0.24"}
+  amazon.nova-pro:   {interface: bedrock, notes: "AWS Bedrock → $0.80/$3.20"}
+# ─── Suggested providers (not yet implemented in CoEval) ───────────────────────────
+# These providers offer cheaper inference and can be added in future releases.
+# All use OpenAI-compatible REST APIs (easy to integrate via openrouter for now).
+#
+# Provider          | Batch? | Notable models               | Input  | Output
+# ─────────────────────────────────────────────────────────────────────────────────────
+# Groq              |  No    | Llama-3.1-8B-instant         | $0.05  | $0.08
+#                   |        | Mixtral-8x7B                 | $0.24  | $0.24
+# Together AI       |  No    | Llama-3.3-70B                | $0.90  | $0.90
+#                   |        | Qwen2.5-72B                  | $1.20  | $1.20
+# DeepInfra         |  No    | Llama-3.3-70B                | $0.12  | $0.40
+#                   |        | Qwen2.5-72B                  | $0.30  | $0.50
+# Fireworks AI      |  No    | Llama-3.3-70B-Instruct       | $0.20  | $0.20
+#                   |        | Mixtral-8x7B                 | $0.50  | $0.50
+# DeepSeek API      |  No    | DeepSeek-V3                  | $0.14  | $0.28
+#                   |        | DeepSeek-R1                  | $0.55  | $2.19
+# Mistral API       |  No    | Mistral-Small-Latest         | $0.10  | $0.30
+#                   |        | Mistral-Large-Latest         | $2.00  | $6.00
+# Cohere            |  No    | Command-R                    | $0.15  | $0.60
+#                   |        | Command-R+                   | $2.50  | $10.00
+# AI21 Labs         |  No    | Jamba-1.5-Mini               | $0.20  | $0.40
+# ─────────────────────────────────────────────────────────────────────────────────────
+# Note: All above providers can currently be accessed through OpenRouter
+# (interface: openrouter) without additional code changes.

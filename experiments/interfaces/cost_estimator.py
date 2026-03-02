@@ -35,6 +35,7 @@ import json
 import os
 import time
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -43,58 +44,126 @@ if TYPE_CHECKING:
     from ..storage import ExperimentStorage
 
 # ---------------------------------------------------------------------------
-# Pricing tables — USD per 1 M tokens (as of early 2026; update as needed)
+# Pricing tables — loaded from benchmark/provider_pricing.yaml
+# Falls back to hardcoded defaults when the YAML is unavailable.
 # ---------------------------------------------------------------------------
 
-#: ``model_id_fragment → (input_price, output_price)``
-#: Matched by checking whether the fragment appears as a substring of the
-#: model's ``parameters["model"]`` value (case-insensitive).
-PRICE_TABLE: dict[str, tuple[float, float]] = {
+#: Path to the shared provider pricing YAML (relative to project root)
+_PRICING_YAML_PATH = Path(__file__).parent.parent.parent / 'benchmark' / 'provider_pricing.yaml'
+
+
+def _load_pricing_yaml() -> dict:
+    """Load benchmark/provider_pricing.yaml; return {} on failure."""
+    try:
+        import yaml  # type: ignore
+        if _PRICING_YAML_PATH.is_file():
+            with open(_PRICING_YAML_PATH, encoding='utf-8') as fh:
+                return yaml.safe_load(fh) or {}
+    except Exception:
+        pass
+    return {}
+
+
+def _build_price_table(pricing_data: dict) -> dict[str, tuple[float, float]]:
+    """Convert the providers block of pricing_data to the PRICE_TABLE format.
+
+    Returns a dict of  '''model_id_fragment → (input_price, output_price)'''.
+
+    Provider priority order: 'primary' providers (openai, anthropic, gemini)
+    are processed last so their prices take precedence over regional variants
+    (e.g. azure_openai) for identically-named model IDs.
+    """
+    PRIMARY = ('openai', 'anthropic', 'gemini')
+    table: dict[str, tuple[float, float]] = {}
+    providers = pricing_data.get('providers', {})
+    # Process secondary providers first (they can be overridden)
+    for provider, pdata in providers.items():
+        if provider not in PRIMARY:
+            for model_id, prices in pdata.get('models', {}).items():
+                table[model_id] = (float(prices['input']), float(prices['output']))
+    # Process primary providers last (they take precedence)
+    for provider in PRIMARY:
+        if provider in providers:
+            for model_id, prices in providers[provider].get('models', {}).items():
+                table[model_id] = (float(prices['input']), float(prices['output']))
+    return table
+
+
+def _build_batch_discount(pricing_data: dict) -> dict[str, float]:
+    """Extract per-interface batch discount multipliers from pricing YAML."""
+    discounts: dict[str, float] = {}
+    for provider, pdata in pricing_data.get('providers', {}).items():
+        interface = pdata.get('interface', provider)
+        discounts[interface] = float(pdata.get('batch_discount', 1.0))
+    return discounts
+
+
+#: Hardcoded fallback price table (used when pricing YAML is unavailable).
+#: '''model_id_fragment → (input_price, output_price)'''
+_FALLBACK_PRICE_TABLE: dict[str, tuple[float, float]] = {
     # OpenAI
-    'gpt-4o-mini':            (0.15,   0.60),
-    'gpt-4o':                 (2.50,  10.00),
-    'gpt-4-turbo':            (10.00, 30.00),
-    'gpt-4':                  (30.00, 60.00),
-    'gpt-3.5-turbo':          (0.50,   1.50),
-    'o1-mini':                (3.00,  12.00),
-    'o1':                     (15.00, 60.00),
-    'o3-mini':                (1.10,   4.40),
-    'o4-mini':                (1.10,   4.40),
-    'gpt-4.1-mini':           (0.40,   1.60),
-    'gpt-4.1-nano':           (0.10,   0.40),
-    'gpt-4.1':                (2.00,   8.00),
+    'gpt-4o-mini':		    (0.15,   0.60),
+    'gpt-4o':			      (2.50,  10.00),
+    'gpt-4-turbo':		   (10.00, 30.00),
+    'gpt-4':			      (30.00, 60.00),
+    'gpt-3.5-turbo':		  (0.50,   1.50),
+    'o1-mini':			    (3.00,  12.00),
+    'o1':				     (15.00, 60.00),
+    'o3-mini':			    (1.10,   4.40),
+    'o4-mini':			    (1.10,   4.40),
+    'gpt-4.1-mini':		   (0.40,   1.60),
+    'gpt-4.1-nano':		   (0.10,   0.40),
+    'gpt-4.1':			    (2.00,   8.00),
     # Anthropic
-    'claude-3-5-sonnet':      (3.00,  15.00),
-    'claude-3-5-haiku':       (0.80,   4.00),
-    'claude-3-opus':          (15.00, 75.00),
-    'claude-3-sonnet':        (3.00,  15.00),
-    'claude-3-haiku':         (0.25,   1.25),
-    'claude-opus-4':          (15.00, 75.00),
-    'claude-sonnet-4':        (3.00,  15.00),
-    'claude-haiku-4':         (0.80,   4.00),
-    # Gemini (google-genai SDK model names)
-    'gemini-2.5-pro':         (1.25,  10.00),
-    'gemini-2.5-flash':       (0.15,   0.60),
-    'gemini-2.5-flash-lite':  (0.075,  0.30),
-    'gemini-2.0-flash':       (0.10,   0.40),
-    'gemini-2.0-flash-lite':  (0.075,  0.30),
-    'gemini-1.5-flash':       (0.075,  0.30),
-    'gemini-1.5-pro':         (1.25,   5.00),
-    'gemini-1.0-pro':         (0.50,   1.50),
-    # OpenRouter (pass-through; approximate median across providers)
-    'openrouter':             (1.00,   3.00),
+    'claude-3-5-sonnet':	  (3.00,  15.00),
+    'claude-3-5-haiku':	   (0.80,   4.00),
+    'claude-3-opus':		  (15.00, 75.00),
+    'claude-3-sonnet':	   (3.00,  15.00),
+    'claude-3-haiku':		  (0.25,   1.25),
+    'claude-opus-4':		  (15.00, 75.00),
+    'claude-sonnet-4':	   (3.00,  15.00),
+    'claude-haiku-4':		  (0.80,   4.00),
+    # Gemini
+    'gemini-2.5-pro':		  (1.25,  10.00),
+    'gemini-2.5-flash':	   (0.15,   0.60),
+    'gemini-2.5-flash-lite':	(0.075,  0.30),
+    'gemini-2.0-flash':	   (0.10,   0.40),
+    'gemini-2.0-flash-lite':	(0.075,  0.30),
+    'gemini-1.5-flash':	   (0.075,  0.30),
+    'gemini-1.5-pro':		  (1.25,   5.00),
+    'gemini-1.0-pro':		  (0.50,   1.50),
+    # OpenRouter open models
+    'llama-3.3-70b':		  (0.12,   0.40),
+    'llama-3.1-70b':		  (0.10,   0.28),
+    'llama-3.1-8b':		   (0.05,   0.08),
+    'mistral-small':		  (0.10,   0.30),
+    'deepseek-chat':		  (0.14,   0.28),
+    'deepseek-r1':		   (0.55,   2.19),
+    'qwen-2.5-72b':		   (0.12,   0.39),
+    'qwen2.5-72b':		   (0.12,   0.39),
+    # Generic OpenRouter fallback
+    'openrouter':			(1.00,   3.00),
 }
+
+#: Hardcoded fallback batch discounts.
+_FALLBACK_BATCH_DISCOUNT: dict[str, float] = {
+    'openai':	   0.50,
+    'anthropic': 0.50,
+    'gemini':	   0.50,   # Gemini Batch API (50% off) — updated 2026-03
+}
+
+# Attempt to load from YAML; fall back to hardcoded defaults.
+_pricing_data = _load_pricing_yaml()
+PRICE_TABLE: dict[str, tuple[float, float]] = (
+    _build_price_table(_pricing_data) or _FALLBACK_PRICE_TABLE
+)
+BATCH_DISCOUNT: dict[str, float] = (
+    _build_batch_discount(_pricing_data) or _FALLBACK_BATCH_DISCOUNT
+)
 
 #: Fallback prices when the model is not found in PRICE_TABLE.
 DEFAULT_PRICE_INPUT  = 1.00   # USD / 1M tokens
 DEFAULT_PRICE_OUTPUT = 3.00
-
-#: Batch discount multiplier for interfaces that support native batch.
-BATCH_DISCOUNT: dict[str, float] = {
-    'openai':    0.50,
-    'anthropic': 0.50,
-    'gemini':    1.00,   # pseudo-batch; no pricing discount
-}
 
 #: Sample prompts used for the estimation probe (short, realistic).
 _SAMPLE_PROMPTS = [
@@ -135,7 +204,9 @@ def count_tokens_openai(text: str, model: str = 'gpt-4o-mini') -> int:
 def get_prices(model_cfg: 'ModelConfig') -> tuple[float, float]:
     """Return ``(input_price, output_price)`` in USD per 1 M tokens for *model_cfg*."""
     model_id = (model_cfg.parameters.get('model') or model_cfg.name).lower()
-    for fragment, prices in PRICE_TABLE.items():
+    # Sort by fragment length descending so more-specific keys take priority
+    # (e.g. 'gpt-4o-mini' beats 'gpt-4o' for the model 'gpt-4o-mini').
+    for fragment, prices in sorted(PRICE_TABLE.items(), key=lambda kv: len(kv[0]), reverse=True):
         if fragment.lower() in model_id:
             return prices
     return DEFAULT_PRICE_INPUT, DEFAULT_PRICE_OUTPUT
@@ -644,6 +715,7 @@ def estimate_experiment_cost(
             'token_counts':        _TOKENS,
             'price_table':         PRICE_TABLE,
             'batch_discount':      BATCH_DISCOUNT,
+            'pricing_yaml':        str(_PRICING_YAML_PATH) if _PRICING_YAML_PATH.is_file() else 'fallback',
             'n_samples_per_model': n_samples,
         },
     }
@@ -677,6 +749,10 @@ def _heuristic_latency(model_cfg: 'ModelConfig') -> float:
         return 2.0
     if iface == 'gemini':
         return 2.0
+    if iface == 'openrouter':
+        return 2.5
+    if iface in ('bedrock', 'azure_openai', 'azure_ai', 'vertex'):
+        return 2.0
     # HuggingFace: varies enormously; assume a small-to-medium GPU
     return 10.0
 
@@ -690,6 +766,10 @@ def _heuristic_tps(model_cfg: 'ModelConfig') -> float:
         return 60.0
     if iface == 'gemini':
         return 100.0
+    if iface == 'openrouter':
+        return 60.0
+    if iface in ('bedrock', 'azure_openai', 'azure_ai', 'vertex'):
+        return 70.0
     return 15.0   # HuggingFace on typical GPU
 
 
