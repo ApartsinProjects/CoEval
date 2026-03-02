@@ -215,7 +215,7 @@ class TestRunProbeWritesFile:
         logger = _make_logger()
         probe_path = tmp_path / 'probe_results.json'
 
-        def _fail_for_student(model):
+        def _fail_for_student(model, provider_keys):
             if model.name == 'student1':
                 raise RuntimeError('auth error')
 

@@ -41,6 +41,30 @@ _IFACE_ICONS = {
     "benchmark":    "📊",
 }
 
+# Visual config for task category distinction
+_CATEGORY_STYLES = {
+    "benchmark": {
+        "icon":       "📊",
+        "label":      "Real Dataset",
+        "badge_bg":   "#fef3c7",
+        "badge_fg":   "#92400e",
+        "header_bg":  "linear-gradient(90deg, #fef3c7 0%, #fff7e6 100%)",
+        "border":     "#f59e0b",
+        "num_bg":     "#d97706",
+        "card_cls":   "category-benchmark",
+    },
+    "synthetic": {
+        "icon":       "🧠",
+        "label":      "Synthetic",
+        "badge_bg":   "#e0e7ff",
+        "badge_fg":   "#3730a3",
+        "header_bg":  "linear-gradient(90deg, #e0e7ff 0%, #f0f4ff 100%)",
+        "border":     "#6366f1",
+        "num_bg":     "#4f46e5",
+        "card_cls":   "category-synthetic",
+    },
+}
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -413,10 +437,29 @@ def _render_html(cfg, config_path: str, probe_results: dict | None = None) -> st
         </tr>"""
 
     # ------------------------------------------------------------------ #
-    # Tasks section
+    # Tasks section — grouped by category (benchmark first, then synthetic)
     # ------------------------------------------------------------------ #
-    tasks_html = ""
-    for i, task in enumerate(cfg.tasks):
+    # Split tasks into groups for section headers
+    benchmark_tasks = [(i, t) for i, t in enumerate(cfg.tasks) if getattr(t, 'category', None) == 'benchmark']
+    synthetic_tasks = [(i, t) for i, t in enumerate(cfg.tasks) if getattr(t, 'category', None) == 'synthetic']
+    uncategorized   = [(i, t) for i, t in enumerate(cfg.tasks) if getattr(t, 'category', None) not in ('benchmark', 'synthetic')]
+
+    def _render_task_group(group_pairs: list, group_label: str, group_icon: str, group_color: str) -> str:
+        if not group_pairs:
+            return ""
+        header = (
+            f'<div class="task-group-header" style="border-left:4px solid {group_color}">'
+            f'<span style="font-size:1.1rem">{group_icon}</span> {_esc(group_label)}'
+            f'<span class="task-group-count">{len(group_pairs)} task{"s" if len(group_pairs)!=1 else ""}</span>'
+            f'</div>'
+        )
+        cards = "".join(_render_task_card(i, task) for i, task in group_pairs)
+        return header + cards
+
+    def _render_task_card(i: int, task) -> str:
+        category = getattr(task, 'category', None)
+        cat_style = _CATEGORY_STYLES.get(category, {})
+
         # Target attributes
         ta = task.target_attributes
         if isinstance(ta, dict) and ta:
@@ -467,6 +510,22 @@ def _render_html(cfg, config_path: str, probe_results: dict | None = None) -> st
 
         eval_mode_badge = f'<span class="eval-badge">{_esc(task.evaluation_mode)}</span>'
 
+        # Category badge
+        cat_badge = ""
+        if cat_style:
+            cat_badge = (
+                f'<span class="cat-badge" style="background:{cat_style["badge_bg"]};color:{cat_style["badge_fg"]}">'
+                f'{cat_style["icon"]} {cat_style["label"]}</span>'
+            )
+
+        # Card summary background
+        summary_style = ""
+        num_style = ""
+        card_cls = cat_style.get("card_cls", "")
+        if cat_style:
+            summary_style = f' style="background:{cat_style["header_bg"]};border-bottom:2px solid {cat_style["border"]}"'
+            num_style = f' style="background:{cat_style["num_bg"]}"'
+
         # --- Prompt templates block (pre-computed before the f-string) ---
         _plib = getattr(task, 'prompt_library', {}) or {}
         _eval_pid = ('evaluate_per_factor'
@@ -510,6 +569,11 @@ def _render_html(cfg, config_path: str, probe_results: dict | None = None) -> st
             'All teachers are benchmark sources — Phase&nbsp;3 is pre-ingested; '
             '<em>sample</em> prompt not used for benchmark teachers.'
         ) if _all_benchmark else ''
+        if category == 'benchmark':
+            _t_skip = (
+                'This is a real benchmark task — Phase&nbsp;3 data is pre-ingested from the dataset; '
+                '<em>sample</em> prompt not used for this task\'s teacher.'
+            )
         prompt_templates_html = (
             '<div class="prompt-templates">'
             '<div class="prompt-templates-title">Prompt Templates</div>'
@@ -519,11 +583,12 @@ def _render_html(cfg, config_path: str, probe_results: dict | None = None) -> st
             + '</div>'
         )
 
-        tasks_html += f"""
-        <details class="task-card" {'open' if i == 0 else ''}>
-          <summary class="task-summary">
-            <span class="task-num">{i+1}</span>
+        return f"""
+        <details class="task-card {card_cls}" {'open' if i == 0 else ''}>
+          <summary class="task-summary"{summary_style}>
+            <span class="task-num"{num_style}>{i+1}</span>
             <span class="task-name">{_esc(task.name)}</span>
+            {cat_badge}
             <span class="task-meta">
               {eval_mode_badge}
               &nbsp;{_esc(str(s.total))} items
@@ -547,6 +612,13 @@ def _render_html(cfg, config_path: str, probe_results: dict | None = None) -> st
             {prompt_templates_html}
           </div>
         </details>"""
+
+    # Render task groups (benchmark first, synthetic second, uncategorized last)
+    tasks_html = (
+        _render_task_group(benchmark_tasks, "Real Dataset Tasks", "📊", "#f59e0b")
+        + _render_task_group(synthetic_tasks, "Synthetic Tasks", "🧠", "#6366f1")
+        + _render_task_group(uncategorized, "Tasks", "📋", "#2563eb")
+    )
 
     # ------------------------------------------------------------------ #
     # Phase plan table
@@ -702,17 +774,39 @@ def _render_html(cfg, config_path: str, probe_results: dict | None = None) -> st
     .total-row td {{ font-weight: 700; background: #f8fafc;
                      border-top: 2px solid #dbeafe; }}
 
+    /* Task group headers */
+    .task-group-header {{
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px; margin: 18px 0 8px;
+      background: #f8fafc; border-radius: 6px;
+      font-size: 0.88rem; font-weight: 700; color: #374151;
+      text-transform: uppercase; letter-spacing: .04em;
+    }}
+    .task-group-count {{
+      margin-left: auto; font-weight: 500; font-size: 0.78rem;
+      background: #e2e8f0; color: #475569;
+      padding: 2px 10px; border-radius: 999px;
+    }}
+
+    /* Category badges on task cards */
+    .cat-badge {{
+      display: inline-block; padding: 2px 10px; border-radius: 999px;
+      font-size: 0.74rem; font-weight: 700; flex-shrink: 0;
+    }}
+
     /* Task cards */
     .task-card {{
       border: 1px solid #e2e8f0; border-radius: 8px;
       margin-bottom: 14px; overflow: hidden;
     }}
+    .category-benchmark {{ border-color: #f59e0b; }}
+    .category-synthetic  {{ border-color: #6366f1; }}
     .task-summary {{
       display: flex; align-items: center; gap: 12px;
       padding: 14px 18px; background: #f8fafc; cursor: pointer;
       list-style: none; font-weight: 600;
     }}
-    .task-summary:hover {{ background: #f0f4ff; }}
+    .task-summary:hover {{ filter: brightness(0.97); }}
     .task-summary::-webkit-details-marker {{ display: none; }}
     .task-summary::before {{ content: "▶"; font-size: 0.7rem; color: #6b7280; }}
     details[open] .task-summary::before {{ content: "▼"; }}
@@ -919,7 +1013,14 @@ def _render_html(cfg, config_path: str, probe_results: dict | None = None) -> st
 
   <!-- ── Tasks ── -->
   <div class="section">
-    <div class="section-title"><span class="section-icon">📋</span> Tasks ({len(cfg.tasks)})</div>
+    <div class="section-title">
+      <span class="section-icon">📋</span> Tasks ({len(cfg.tasks)})
+      {(
+        f'&nbsp;<span style="font-size:0.8rem;font-weight:500;color:#6b7280">'
+        f'📊 {len(benchmark_tasks)} real dataset&nbsp;·&nbsp;🧠 {len(synthetic_tasks)} synthetic'
+        f'</span>'
+      ) if (benchmark_tasks or synthetic_tasks) else ''}
+    </div>
     {tasks_html}
   </div>
 

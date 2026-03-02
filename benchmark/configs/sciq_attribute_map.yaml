@@ -1,0 +1,10 @@
+science_domain:
+  - biology
+  - chemistry
+  - physics
+  - earth_science
+
+question_type:
+  - concept_identification
+  - mechanism
+  - classification

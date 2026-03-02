@@ -39,6 +39,19 @@ _REGISTRY: dict[str, tuple[str, str]] = {
         "benchmark.loaders.wikitablequestions.WikiTableQuestionsLoader",
         "benchmark/configs/wikitablequestions_attribute_map.yaml",
     ),
+    # --- Education domain ---
+    "arc_challenge": (
+        "benchmark.loaders.arc_challenge.ARCChallengeLoader",
+        "benchmark/configs/arc_challenge_attribute_map.yaml",
+    ),
+    "race": (
+        "benchmark.loaders.race.RACELoader",
+        "benchmark/configs/race_attribute_map.yaml",
+    ),
+    "sciq": (
+        "benchmark.loaders.sciq.SciQLoader",
+        "benchmark/configs/sciq_attribute_map.yaml",
+    ),
 }
 
 

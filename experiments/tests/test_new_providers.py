@@ -506,7 +506,7 @@ class TestProbeNewInterfaces:
         )
         with patch('openai.AzureOpenAI') as MockAZ:
             MockAZ.return_value.models.list.return_value = MagicMock()
-            _probe_azure_openai(model)  # should not raise
+            _probe_azure_openai(model, {})  # should not raise
 
     def test_probe_azure_openai_missing_endpoint_raises(self, monkeypatch):
         from experiments.interfaces.probe import _probe_azure_openai
@@ -514,13 +514,13 @@ class TestProbeNewInterfaces:
         model = self._model_cfg(interface='azure_openai', params={}, access_key='az-key')
         with patch('openai.AzureOpenAI'):
             with pytest.raises(RuntimeError, match='azure_endpoint'):
-                _probe_azure_openai(model)
+                _probe_azure_openai(model, {})
 
     def test_probe_bedrock_ok(self, mock_boto3):
         from experiments.interfaces.probe import _probe_bedrock
         model = self._model_cfg(interface='bedrock', params={'region': 'us-east-1'})
         mock_boto3.client.return_value.list_foundation_models.return_value = {'modelSummaries': []}
-        _probe_bedrock(model)  # should not raise
+        _probe_bedrock(model, {})  # should not raise
 
     def test_probe_bedrock_import_error(self):
         from experiments.interfaces.probe import _probe_bedrock
@@ -529,7 +529,7 @@ class TestProbeNewInterfaces:
             model.parameters = {'region': 'us-east-1'}
             model.access_key = None
             with pytest.raises(RuntimeError, match='boto3'):
-                _probe_bedrock(model)
+                _probe_bedrock(model, {})
 
     def test_probe_vertex_ok(self, mock_vertexai):
         from experiments.interfaces.probe import _probe_vertex
@@ -538,7 +538,7 @@ class TestProbeNewInterfaces:
             interface='vertex',
             params={'project': 'proj', 'location': 'us-central1'},
         )
-        _probe_vertex(model)  # should not raise
+        _probe_vertex(model, {})  # should not raise
 
     def test_probe_vertex_missing_project_raises(self, mock_vertexai, monkeypatch):
         from experiments.interfaces.probe import _probe_vertex
@@ -546,31 +546,31 @@ class TestProbeNewInterfaces:
         monkeypatch.delenv('GCLOUD_PROJECT', raising=False)
         model = self._model_cfg(interface='vertex', params={})
         with pytest.raises(RuntimeError, match='project'):
-            _probe_vertex(model)
+            _probe_vertex(model, {})
 
     def test_probe_one_dispatches_azure(self):
         from experiments.interfaces.probe import _probe_one
         model = MagicMock()
         model.interface = 'azure_openai'
         with patch('experiments.interfaces.probe._probe_azure_openai') as mock_az:
-            _probe_one(model)
-            mock_az.assert_called_once_with(model)
+            _probe_one(model, {})
+            mock_az.assert_called_once_with(model, {})
 
     def test_probe_one_dispatches_bedrock(self):
         from experiments.interfaces.probe import _probe_one
         model = MagicMock()
         model.interface = 'bedrock'
         with patch('experiments.interfaces.probe._probe_bedrock') as mock_bk:
-            _probe_one(model)
-            mock_bk.assert_called_once_with(model)
+            _probe_one(model, {})
+            mock_bk.assert_called_once_with(model, {})
 
     def test_probe_one_dispatches_vertex(self):
         from experiments.interfaces.probe import _probe_one
         model = MagicMock()
         model.interface = 'vertex'
         with patch('experiments.interfaces.probe._probe_vertex') as mock_vx:
-            _probe_one(model)
-            mock_vx.assert_called_once_with(model)
+            _probe_one(model, {})
+            mock_vx.assert_called_once_with(model, {})
 
 
 # ===========================================================================

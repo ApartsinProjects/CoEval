@@ -94,6 +94,10 @@ class TaskConfig:
     # Example: ["sentiment"] for a sentiment-classification task,
     #          ["entity_type", "entity_value"] for an NER task.
     label_attributes: list[str] = field(default_factory=list)
+    # Optional task category for grouping and visual distinction in reports.
+    # Typical values: 'benchmark' (real dataset, pre-ingested) | 'synthetic' (LLM-generated)
+    # Has no effect on pipeline behaviour; used only for display purposes.
+    category: str | None = None
 
 
 @dataclass
@@ -243,6 +247,7 @@ def _parse_task(raw: dict) -> TaskConfig:
         evaluation_mode=raw.get('evaluation_mode', 'single'),
         prompt_library=dict(raw.get('prompt_library', {})),
         label_attributes=list(raw.get('label_attributes', [])),
+        category=raw.get('category'),
     )
 
 

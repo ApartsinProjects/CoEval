@@ -347,6 +347,8 @@ This opens a self-contained HTML page in your browser showing:
 
 No API calls are made; the command is purely informational.
 
+> **Example planning HTML:** Open [`benchmark/education_description.html`](../benchmark/education_description.html) to see a real planning view for the education benchmark (3 real-dataset tasks + 10 synthetic tasks, 6 models, cost table).
+
 ### 3.5 Checking model availability
 
 Verify that every model in your config responds before spending real budget:
@@ -643,6 +645,19 @@ Phase 4 records add `student_model_id` and `response`.  Phase 5 records add
 
 ## 6. Report Types & What They Tell You
 
+> **Sample reports** — all of the following report types have pre-generated examples in `samples/analysis/coeval-demo-v2/`. Open them locally in any browser (no server or internet required):
+>
+> | Sample file | Report type |
+> |-------------|-------------|
+> | [`coeval-demo-v2_student_report.html`](../samples/analysis/coeval-demo-v2/coeval-demo-v2_student_report.html) | Student Report |
+> | [`coeval-demo-v2_judge_consistency.html`](../samples/analysis/coeval-demo-v2/coeval-demo-v2_judge_consistency.html) | Judge Consistency |
+> | [`coeval-demo-v2_robust_summary.html`](../samples/analysis/coeval-demo-v2/coeval-demo-v2_robust_summary.html) | Robust Summary |
+> | [`coeval-demo-v2_score_distribution.html`](../samples/analysis/coeval-demo-v2/coeval-demo-v2_score_distribution.html) | Score Distribution |
+> | [`coeval-demo-v2_teacher_report.html`](../samples/analysis/coeval-demo-v2/coeval-demo-v2_teacher_report.html) | Teacher Report |
+> | [`coeval-demo-v2_interaction_matrix.html`](../samples/analysis/coeval-demo-v2/coeval-demo-v2_interaction_matrix.html) | Interaction Matrix |
+> | [`coeval-demo-v2_coverage_summary.html`](../samples/analysis/coeval-demo-v2/coeval-demo-v2_coverage_summary.html) | Coverage Summary |
+> | [`coeval-demo-v2_judge_report.html`](../samples/analysis/coeval-demo-v2/coeval-demo-v2_judge_report.html) | Judge Report |
+
 ### Coverage Summary
 
 **Command:** `coeval analyze coverage-summary`
@@ -856,6 +871,7 @@ native Parquet types.
 | [`manuals/04_provider_pricing.md`](../manuals/04_provider_pricing.md) | Complete pricing table, provider setup guides, and suggested future providers |
 | [`benchmark/mixed.yaml`](../benchmark/mixed.yaml) | Complete working config for the mixed benchmark experiment |
 | [`benchmark/paper_dual_track.yaml`](../benchmark/paper_dual_track.yaml) | Full dual-track paper experiment config (10 SOTA models, Track A + Track B) |
+| [`docs/extracting_benchmarks.md`](extracting_benchmarks.md) | Export Phase 3 data as a shareable versioned benchmark; `coeval ingest` format; reproducing published results |
 
 ---
 

@@ -328,3 +328,301 @@ grounded in the benchmark's evaluation criteria:
 
 For the four supported benchmarks, all rubrics are pre-aligned in
 `benchmark/paper_benchmarks.yaml` and documented in Section 3.3.2 of the paper.
+
+---
+
+> **Note on API call budget for benchmark experiments.**
+> Benchmark teachers are completely skipped during Phase 3 — their (prompt,
+> reference-response) pairs are loaded directly from the pre-ingested JSONL
+> files written by `emit_datapoints` or `setup_*` scripts. No teacher LLM
+> calls are made.  Only Phase 4 (student response collection) and Phase 5
+> (judge evaluation) make LLM API calls.  This makes benchmark-sourced
+> experiments significantly cheaper than synthetic ones: a 30-item benchmark
+> experiment with one student model and one judge typically costs a fraction of
+> a cent when Batch API discounts are enabled.
+
+---
+
+## 6. Complete Benchmark Config Examples
+
+The examples below are self-contained YAML configs that can be dropped into the
+project root or `benchmark/` directory and run with `coeval run`.
+
+### Example A: XSum text summarization benchmark (minimal)
+
+A single OpenAI model acting as both student and judge, evaluated against
+XSum gold summaries.
+
+```yaml
+models:
+  - name: benchmark
+    interface: benchmark
+    roles: [teacher]
+
+  - name: gpt-4o-mini
+    interface: openai
+    parameters: { model: gpt-4o-mini, temperature: 0.7, max_tokens: 512 }
+    roles: [student, judge]
+    role_parameters:
+      judge: { temperature: 0.0, max_tokens: 128 }
+
+tasks:
+  - name: text_summarization
+    description: Produce a concise one-sentence summary of a news article.
+    output_description: A single sentence of 15–25 words capturing the article's main point.
+    target_attributes:
+      article_length: [short, medium, long]
+      domain: [politics, sports, technology, science]
+    sampling: { target: [1,1], nuance: [0,0], total: 30 }
+    rubric:
+      relevance:    "The summary accurately reflects the article's main claim."
+      conciseness:  "The summary is free of redundant or filler language."
+      fluency:      "The summary reads as natural, grammatically correct English."
+    evaluation_mode: single
+
+experiment:
+  id: xsum-benchmark-v1
+  storage_folder: ./benchmark/runs
+  batch:
+    openai:
+      response_collection: true
+      evaluation: true
+```
+
+Setup and run:
+
+```bash
+python -m benchmark.emit_datapoints --dataset xsum --run-id xsum-benchmark-v1 --sample-size 30
+coeval run --config xsum-benchmark-v1.yaml --continue
+coeval analyze all --run ./benchmark/runs/xsum-benchmark-v1 --out ./reports
+```
+
+---
+
+### Example B: Multi-dataset education benchmark
+
+Three benchmark teachers (ARC-Challenge, RACE-High, SciQ) paired with two
+OpenAI student/judge models across three tasks.
+
+```yaml
+models:
+  - name: arc-challenge
+    interface: benchmark
+    roles: [teacher]
+
+  - name: race-high
+    interface: benchmark
+    roles: [teacher]
+
+  - name: sciq
+    interface: benchmark
+    roles: [teacher]
+
+  - name: gpt-4o-mini
+    interface: openai
+    parameters: { model: gpt-4o-mini, temperature: 0.7, max_tokens: 512 }
+    roles: [student, judge]
+
+  - name: gpt-4o
+    interface: openai
+    parameters: { model: gpt-4o, temperature: 0.7, max_tokens: 512 }
+    roles: [student, judge]
+    role_parameters:
+      judge: { temperature: 0.0, max_tokens: 128 }
+
+tasks:
+  - name: arc_science_reasoning
+    description: Answer a multiple-choice science question by selecting A, B, C, or D.
+    output_description: A single letter — A, B, C, or D.
+    target_attributes:
+      grade_band: [grade_3_5, grade_6_8, grade_9_10]
+      knowledge_type: [factual, conceptual, procedural]
+    sampling: { target: [1,1], nuance: [0,0], total: 30 }
+    rubric:
+      correctness: "The selected answer is the correct option."
+    evaluation_mode: single
+
+  - name: race_reading_comprehension
+    description: Answer a reading comprehension question about a passage.
+    output_description: A single letter — A, B, C, or D.
+    target_attributes:
+      passage_type: [narrative, expository, argumentative]
+      question_type: [factual, inferential, vocabulary]
+    sampling: { target: [1,1], nuance: [0,0], total: 30 }
+    rubric:
+      correctness: "The selected option is the correct answer to the question."
+    evaluation_mode: single
+
+  - name: sciq_science_questions
+    description: Answer a science knowledge question by selecting the correct answer from four options.
+    output_description: The exact text of the correct answer option.
+    target_attributes:
+      science_domain: [biology, chemistry, physics, earth_science]
+      question_type: [concept_identification, mechanism, classification]
+    sampling: { target: [1,1], nuance: [0,0], total: 30 }
+    rubric:
+      correctness: "The response exactly matches the correct answer."
+    evaluation_mode: single
+
+experiment:
+  id: education-benchmark-v1
+  storage_folder: ./benchmark/runs
+  batch:
+    openai:
+      response_collection: true
+      evaluation: true
+  estimate_samples: 0
+```
+
+Setup and run:
+
+```bash
+python -m benchmark.setup_education    # ingest ARC, RACE-High, SciQ (30 items each)
+coeval run --config benchmark/education.yaml --continue
+```
+
+---
+
+### Example C: Mixed synthetic + benchmark (hybrid mode)
+
+One task uses pre-ingested benchmark data (benchmark teacher); a second task
+uses a synthetic teacher (gpt-4o-mini).  A Claude model acts as an additional
+student and judge alongside OpenAI.
+
+```yaml
+models:
+  - name: benchmark
+    interface: benchmark
+    roles: [teacher]
+
+  - name: gpt-4o-mini
+    interface: openai
+    parameters: { model: gpt-4o-mini, temperature: 0.8, max_tokens: 512 }
+    roles: [teacher, student, judge]  # acts as synthetic teacher AND student+judge
+
+  - name: claude-3-5-haiku
+    interface: anthropic
+    parameters: { model: claude-3-5-haiku-20241022, temperature: 0.7, max_tokens: 512 }
+    roles: [student, judge]
+
+tasks:
+  # Task sourced from public benchmark (benchmark teacher)
+  - name: text_summarization
+    description: Summarise a news article in one sentence.
+    output_description: A single sentence, 15-25 words.
+    target_attributes:
+      domain: [politics, sports, technology]
+    sampling: { target: [1,1], nuance: [0,0], total: 20 }
+    rubric:
+      relevance:   "The summary reflects the article's main point."
+      conciseness: "No redundant language."
+    evaluation_mode: single
+
+  # Synthetic task (gpt-4o-mini as teacher)
+  - name: email_composition
+    description: Compose a professional email for a given business scenario.
+    output_description: A complete business email with subject and body.
+    target_attributes:
+      email_type: [inquiry, follow_up, complaint_resolution, meeting_request]
+      tone: [formal, semi_formal]
+    nuanced_attributes:
+      industry: [tech, finance, healthcare, retail]
+    sampling: { target: [1,1], nuance: [1,1], total: 20 }
+    rubric: auto
+    evaluation_mode: single
+
+experiment:
+  id: mixed-hybrid-v1
+  storage_folder: ./eval_runs
+  batch:
+    openai:
+      response_collection: true
+      evaluation: true
+    anthropic:
+      response_collection: true
+      evaluation: true
+```
+
+---
+
+## 7. Adding a Custom Dataset Loader
+
+To add a benchmark dataset that is not among the four built-in ones, create a
+loader class, register it, and supply an attribute-map YAML.
+
+### Loader class
+
+```python
+# benchmark/loaders/my_dataset.py
+from .base import BenchmarkLoader
+
+class MyDatasetLoader(BenchmarkLoader):
+    """Loader for my custom benchmark dataset."""
+
+    @property
+    def benchmark_id(self) -> str:
+        return "my_dataset"
+
+    @property
+    def teacher_id(self) -> str:
+        return "my-dataset"  # matches model name: in YAML config
+
+    def _load_dataset(self, split: str, seed: int, sample_size: int):
+        """Load and return a list of raw dataset records."""
+        # Load your dataset here (HuggingFace, local file, API, etc.)
+        from datasets import load_dataset
+        ds = load_dataset("my_org/my_dataset", split=split)
+        return ds.shuffle(seed=seed).select(range(sample_size))
+
+    def _to_record(self, raw, idx: int) -> dict:
+        """Convert a raw dataset record to CoEval Phase 3 format."""
+        return {
+            "prompt": f"Answer this question: {raw['question']}",
+            "reference_response": raw["answer"],
+            "sampled_target_attributes": self._infer_attributes(raw),
+        }
+
+    def _infer_attributes(self, raw: dict) -> dict:
+        """Heuristically infer target attribute values from the raw record."""
+        return {
+            "difficulty": "hard" if len(raw["question"]) > 100 else "easy",
+        }
+```
+
+### Registration
+
+Add an entry to `benchmark/loaders/__init__.py`:
+
+```python
+_REGISTRY["my_dataset"] = (
+    "benchmark.loaders.my_dataset.MyDatasetLoader",
+    "benchmark/configs/my_dataset_attribute_map.yaml",
+)
+```
+
+### Attribute map YAML
+
+Create `benchmark/configs/my_dataset_attribute_map.yaml`:
+
+```yaml
+difficulty:
+  - easy
+  - hard
+```
+
+### Experiment config
+
+Reference the loader by the `teacher_id` string as the model name:
+
+```yaml
+models:
+  - name: my-dataset        # must match teacher_id property
+    interface: benchmark
+    roles: [teacher]
+```
+
+### Ingestion
+
+```bash
+python -m benchmark.emit_datapoints --dataset my_dataset --run-id my-eval-v1 --sample-size 100
+```

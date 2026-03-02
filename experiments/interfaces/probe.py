@@ -106,11 +106,14 @@ def run_probe(
         f"(mode='{mode}', on_fail='{on_fail}') ..."
     )
 
+    # Resolved provider credentials from the key file (may be empty dict)
+    provider_keys: dict = getattr(cfg, '_provider_keys', {}) or {}
+
     results: dict[str, str] = {}
     for model in models_to_probe:
         logger.info(f"Probe: testing '{model.name}' ({model.interface}) ...")
         try:
-            _probe_one(model)
+            _probe_one(model, provider_keys)
         except Exception as exc:
             results[model.name] = str(exc)
             logger.error(f"Probe: '{model.name}' - UNAVAILABLE: {exc}")
@@ -204,57 +207,65 @@ def _models_needed(
 # Per-model probes
 # ---------------------------------------------------------------------------
 
-def _probe_one(model: 'ModelConfig') -> None:
+def _probe_one(model: 'ModelConfig', provider_keys: dict) -> None:
     """Probe a single model.  Raises on any failure."""
     iface = model.interface
     if iface == 'benchmark':
         # Virtual interface — no API to probe; data pre-ingested by `coeval ingest`
         return
     if iface == 'openai':
-        _probe_openai(model)
+        _probe_openai(model, provider_keys)
     elif iface == 'anthropic':
-        _probe_anthropic(model)
+        _probe_anthropic(model, provider_keys)
     elif iface == 'gemini':
-        _probe_gemini(model)
+        _probe_gemini(model, provider_keys)
     elif iface == 'azure_openai':
-        _probe_azure_openai(model)
+        _probe_azure_openai(model, provider_keys)
     elif iface == 'bedrock':
-        _probe_bedrock(model)
+        _probe_bedrock(model, provider_keys)
     elif iface == 'vertex':
-        _probe_vertex(model)
+        _probe_vertex(model, provider_keys)
     elif iface == 'openrouter':
-        _probe_openrouter(model)
+        _probe_openrouter(model, provider_keys)
     elif iface == 'azure_ai':
-        _probe_azure_ai(model)
+        _probe_azure_ai(model, provider_keys)
     elif iface in ('groq', 'deepseek', 'mistral', 'deepinfra', 'cerebras'):
-        _probe_openai_compat(model, iface)
+        _probe_openai_compat(model, iface, provider_keys)
     else:
-        _probe_huggingface(model)
+        _probe_huggingface(model, provider_keys)
 
 
-def _probe_openai(model: 'ModelConfig') -> None:
+def _probe_openai(model: 'ModelConfig', provider_keys: dict) -> None:
     """Call OpenAI models.list() — authenticates without consuming tokens."""
     try:
         from openai import OpenAI
     except ImportError:
         raise RuntimeError("openai package not installed (pip install openai)")
-    key = model.access_key or os.environ.get('OPENAI_API_KEY')
+    key = (
+        model.access_key
+        or provider_keys.get('openai', {}).get('api_key')
+        or os.environ.get('OPENAI_API_KEY')
+    )
     client = OpenAI(api_key=key)
     client.models.list()
 
 
-def _probe_anthropic(model: 'ModelConfig') -> None:
+def _probe_anthropic(model: 'ModelConfig', provider_keys: dict) -> None:
     """Call Anthropic models.list() — authenticates without consuming tokens."""
     try:
         import anthropic
     except ImportError:
         raise RuntimeError("anthropic package not installed (pip install anthropic)")
-    key = model.access_key or os.environ.get('ANTHROPIC_API_KEY')
+    key = (
+        model.access_key
+        or provider_keys.get('anthropic', {}).get('api_key')
+        or os.environ.get('ANTHROPIC_API_KEY')
+    )
     client = anthropic.Anthropic(api_key=key)
     client.models.list()
 
 
-def _probe_gemini(model: 'ModelConfig') -> None:
+def _probe_gemini(model: 'ModelConfig', provider_keys: dict) -> None:
     """Call client.models.list() via google-genai SDK — no tokens consumed."""
     try:
         from google import genai
@@ -262,13 +273,18 @@ def _probe_gemini(model: 'ModelConfig') -> None:
         raise RuntimeError(
             "google-genai package not installed (pip install google-genai)"
         )
-    key = (model.access_key or os.environ.get('GEMINI_API_KEY')
-           or os.environ.get('GOOGLE_API_KEY'))
+    pk = provider_keys.get('gemini', {})
+    key = (
+        model.access_key
+        or pk.get('api_key')
+        or os.environ.get('GEMINI_API_KEY')
+        or os.environ.get('GOOGLE_API_KEY')
+    )
     client = genai.Client(api_key=key)
     next(iter(client.models.list()), None)
 
 
-def _probe_huggingface(model: 'ModelConfig') -> None:
+def _probe_huggingface(model: 'ModelConfig', provider_keys: dict) -> None:
     """Query the HuggingFace Hub metadata API — no GPU/weights loaded."""
     model_id = model.parameters.get('model', '')
     if not model_id:
@@ -279,25 +295,36 @@ def _probe_huggingface(model: 'ModelConfig') -> None:
         from huggingface_hub import model_info
     except ImportError:
         return  # huggingface_hub not installed; skip silently
-    access_token = (model.access_key or os.environ.get('HF_TOKEN')
-                    or os.environ.get('HUGGINGFACE_HUB_TOKEN'))
+    access_token = (
+        model.access_key
+        or provider_keys.get('huggingface', {}).get('token')
+        or os.environ.get('HF_TOKEN')
+        or os.environ.get('HUGGINGFACE_HUB_TOKEN')
+    )
     model_info(model_id, token=access_token)
 
 
-def _probe_azure_openai(model: 'ModelConfig') -> None:
+def _probe_azure_openai(model: 'ModelConfig', provider_keys: dict) -> None:
     """Call Azure OpenAI models.list() to verify endpoint + API key."""
     try:
         from openai import AzureOpenAI
     except ImportError:
         raise RuntimeError("openai package not installed (pip install openai)")
     params = model.parameters
-    key = model.access_key or os.environ.get('AZURE_OPENAI_API_KEY')
+    pk = provider_keys.get('azure_openai', {})
+    key = (
+        model.access_key
+        or pk.get('api_key')
+        or os.environ.get('AZURE_OPENAI_API_KEY')
+    )
     endpoint = (
         params.get('azure_endpoint')
+        or pk.get('endpoint')
         or os.environ.get('AZURE_OPENAI_ENDPOINT')
     )
     api_version = (
         params.get('api_version')
+        or pk.get('api_version')
         or os.environ.get('AZURE_OPENAI_API_VERSION')
         or '2024-08-01-preview'
     )
@@ -310,17 +337,19 @@ def _probe_azure_openai(model: 'ModelConfig') -> None:
     client.models.list()
 
 
-def _probe_bedrock(model: 'ModelConfig') -> None:
+def _probe_bedrock(model: 'ModelConfig', provider_keys: dict) -> None:
     """List Bedrock foundation models to verify credentials and region."""
     params = model.parameters
+    pk = provider_keys.get('bedrock', {})
     region = (
         params.get('region')
+        or pk.get('region')
         or os.environ.get('AWS_DEFAULT_REGION')
         or 'us-east-1'
     )
 
     # Native Bedrock API key takes priority (no boto3 required)
-    api_key = model.access_key or params.get('api_key')
+    api_key = model.access_key or params.get('api_key') or pk.get('api_key')
     if api_key:
         _probe_bedrock_api_key(api_key, region)
         return
@@ -331,11 +360,21 @@ def _probe_bedrock(model: 'ModelConfig') -> None:
     except ImportError:
         raise RuntimeError("boto3 not installed (pip install boto3)")
 
-    access_key_id = params.get('access_key_id') or os.environ.get('AWS_ACCESS_KEY_ID')
-    secret_access_key = (
-        params.get('secret_access_key') or os.environ.get('AWS_SECRET_ACCESS_KEY')
+    access_key_id = (
+        params.get('access_key_id')
+        or pk.get('access_key_id')
+        or os.environ.get('AWS_ACCESS_KEY_ID')
     )
-    session_token = params.get('session_token') or os.environ.get('AWS_SESSION_TOKEN')
+    secret_access_key = (
+        params.get('secret_access_key')
+        or pk.get('secret_access_key')
+        or os.environ.get('AWS_SECRET_ACCESS_KEY')
+    )
+    session_token = (
+        params.get('session_token')
+        or pk.get('session_token')
+        or os.environ.get('AWS_SESSION_TOKEN')
+    )
 
     session_kwargs: dict = {'region_name': region}
     if access_key_id:
@@ -373,13 +412,18 @@ def _probe_bedrock_api_key(api_key: str, region: str) -> None:
         ) from exc
 
 
-def _probe_openrouter(model: 'ModelConfig') -> None:
+def _probe_openrouter(model: 'ModelConfig', provider_keys: dict) -> None:
     """Call the OpenRouter models endpoint to verify API key."""
     try:
         from openai import OpenAI
     except ImportError:
         raise RuntimeError("openai package not installed (pip install openai)")
-    key = model.access_key or os.environ.get('OPENROUTER_API_KEY')
+    pk = provider_keys.get('openrouter', {})
+    key = (
+        model.access_key
+        or pk.get('api_key')
+        or os.environ.get('OPENROUTER_API_KEY')
+    )
     if not key:
         raise RuntimeError(
             f"OpenRouter model '{model.name}' has no API key — "
@@ -389,14 +433,16 @@ def _probe_openrouter(model: 'ModelConfig') -> None:
     client.models.list()
 
 
-def _probe_azure_ai(model: 'ModelConfig') -> None:
+def _probe_azure_ai(model: 'ModelConfig', provider_keys: dict) -> None:
     """Call the Azure AI / GitHub Models models endpoint to verify API key."""
     try:
         from openai import OpenAI
     except ImportError:
         raise RuntimeError("openai package not installed (pip install openai)")
+    pk = provider_keys.get('azure_ai', {})
     key = (
         model.access_key
+        or pk.get('api_key')
         or os.environ.get('AZURE_AI_API_KEY')
         or os.environ.get('GITHUB_TOKEN')
     )
@@ -407,13 +453,14 @@ def _probe_azure_ai(model: 'ModelConfig') -> None:
         )
     endpoint = (
         model.parameters.get('azure_endpoint')
+        or pk.get('endpoint')
         or "https://models.inference.ai.azure.com"
     )
     client = OpenAI(api_key=key, base_url=endpoint)
     client.models.list()
 
 
-def _probe_vertex(model: 'ModelConfig') -> None:
+def _probe_vertex(model: 'ModelConfig', provider_keys: dict) -> None:
     """Initialise the Vertex AI SDK to verify project credentials."""
     try:
         import vertexai
@@ -423,19 +470,23 @@ def _probe_vertex(model: 'ModelConfig') -> None:
             "(pip install google-cloud-aiplatform)"
         )
     params = model.parameters
+    pk = provider_keys.get('vertex', {})
     project = (
         params.get('project')
+        or pk.get('project')
         or os.environ.get('GOOGLE_CLOUD_PROJECT')
         or os.environ.get('GCLOUD_PROJECT')
     )
     location = (
         params.get('location')
+        or pk.get('location')
         or os.environ.get('GOOGLE_CLOUD_LOCATION')
         or 'us-central1'
     )
     sa_key = (
         params.get('service_account_key')
         or model.access_key
+        or pk.get('service_account_key')
         or os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
     )
     if not project:
@@ -449,7 +500,7 @@ def _probe_vertex(model: 'ModelConfig') -> None:
     vertexai.init(project=project, location=location)
 
 
-def _probe_openai_compat(model: 'ModelConfig', interface: str) -> None:
+def _probe_openai_compat(model: 'ModelConfig', interface: str, provider_keys: dict) -> None:
     """Probe an OpenAI-compatible provider by calling models.list()."""
     from .openai_compat_iface import _REGISTRY
     try:
@@ -457,7 +508,12 @@ def _probe_openai_compat(model: 'ModelConfig', interface: str) -> None:
     except ImportError:
         raise RuntimeError("openai package not installed (pip install openai)")
     base_url, env_key, label = _REGISTRY[interface]
-    key = model.access_key or os.environ.get(env_key)
+    pk = provider_keys.get(interface, {})
+    key = (
+        model.access_key
+        or pk.get('api_key')
+        or os.environ.get(env_key)
+    )
     if not key:
         raise RuntimeError(
             f"{label} API key not found — set {env_key} or add "
