@@ -1,0 +1,2 @@
+dialogue_length: [short, medium, long]
+num_speakers: [two, three_plus]

@@ -69,6 +69,76 @@ _REGISTRY: dict[str, tuple[str, str]] = {
         "benchmark.loaders.mbpp.MBPPLoader",
         str(_CONFIGS_DIR / "mbpp_attribute_map.yaml"),
     ),
+    # --- MCQ / Reasoning ---
+    "logiqa": (
+        "benchmark.loaders.logiqa.LogiQALoader",
+        str(_CONFIGS_DIR / "logiqa_attribute_map.yaml"),
+    ),
+    "winogrande": (
+        "benchmark.loaders.winogrande.WinograndeLoader",
+        str(_CONFIGS_DIR / "winogrande_attribute_map.yaml"),
+    ),
+    "multinli": (
+        "benchmark.loaders.multinli.MultiNLILoader",
+        str(_CONFIGS_DIR / "multinli_attribute_map.yaml"),
+    ),
+    "copa": (
+        "benchmark.loaders.copa.COPALoader",
+        str(_CONFIGS_DIR / "copa_attribute_map.yaml"),
+    ),
+    "cosmos_qa": (
+        "benchmark.loaders.cosmos_qa.CosmosQALoader",
+        str(_CONFIGS_DIR / "cosmos_qa_attribute_map.yaml"),
+    ),
+    "bbq": (
+        "benchmark.loaders.bbq.BBQLoader",
+        str(_CONFIGS_DIR / "bbq_attribute_map.yaml"),
+    ),
+    "trivia_qa": (
+        "benchmark.loaders.trivia_qa.TriviaQALoader",
+        str(_CONFIGS_DIR / "trivia_qa_attribute_map.yaml"),
+    ),
+    "squad_v2": (
+        "benchmark.loaders.squad_v2.SQuADv2Loader",
+        str(_CONFIGS_DIR / "squad_v2_attribute_map.yaml"),
+    ),
+    # --- Open-domain QA ---
+    "nq_open": (
+        "benchmark.loaders.nq_open.NQOpenLoader",
+        str(_CONFIGS_DIR / "nq_open_attribute_map.yaml"),
+    ),
+    # --- Reading Comprehension ---
+    "narrativeqa": (
+        "benchmark.loaders.narrativeqa.NarrativeQALoader",
+        str(_CONFIGS_DIR / "narrativeqa_attribute_map.yaml"),
+    ),
+    # --- Summarization ---
+    "cnn_dailymail": (
+        "benchmark.loaders.cnn_dailymail.CNNDailyMailLoader",
+        str(_CONFIGS_DIR / "cnn_dailymail_attribute_map.yaml"),
+    ),
+    "samsum": (
+        "benchmark.loaders.samsum.SAMSumLoader",
+        str(_CONFIGS_DIR / "samsum_attribute_map.yaml"),
+    ),
+    # --- Fact Verification ---
+    "fever": (
+        "benchmark.loaders.fever.FEVERLoader",
+        str(_CONFIGS_DIR / "fever_attribute_map.yaml"),
+    ),
+    "scifact": (
+        "benchmark.loaders.scifact.SciFactLoader",
+        str(_CONFIGS_DIR / "scifact_attribute_map.yaml"),
+    ),
+    # --- Math (additional) ---
+    "mgsm": (
+        "benchmark.loaders.mgsm.MGSMLoader",
+        str(_CONFIGS_DIR / "mgsm_attribute_map.yaml"),
+    ),
+    "mathqa": (
+        "benchmark.loaders.mathqa.MathQALoader",
+        str(_CONFIGS_DIR / "mathqa_attribute_map.yaml"),
+    ),
 }
 
 

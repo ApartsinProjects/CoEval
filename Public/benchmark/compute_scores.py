@@ -113,16 +113,36 @@ def _exact_match(hypothesis: str, all_answers: list[str]) -> float:
 # ---------------------------------------------------------------------------
 
 BENCHMARK_METRIC: dict[str, str] = {
+    # Summarization
     "xsum": "bertscore",
-    "codesearchnet": "bleu",
     "aeslc": "bertscore",
+    "cnn_dailymail": "bertscore",
+    "samsum": "bertscore",
+    # Code
+    "codesearchnet": "bleu",
+    "mbpp": "bleu",
+    # Free-form QA
+    "narrativeqa": "bleu",
+    # Exact-match (MCQ / classification / short-answer)
     "wikitablequestions": "exact_match",
     "arc_challenge": "exact_match",
     "race": "exact_match",
     "sciq": "exact_match",
     "math": "exact_match",
-    "mbpp": "bleu",
     "bigbench_hard": "exact_match",
+    "logiqa": "exact_match",
+    "winogrande": "exact_match",
+    "multinli": "exact_match",
+    "copa": "exact_match",
+    "cosmos_qa": "exact_match",
+    "bbq": "exact_match",
+    "trivia_qa": "exact_match",
+    "squad_v2": "exact_match",
+    "nq_open": "exact_match",
+    "fever": "exact_match",
+    "scifact": "exact_match",
+    "mgsm": "exact_match",
+    "mathqa": "exact_match",
 }
 
 
@@ -284,11 +304,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--datasets", nargs="*",
-        choices=[
-            "xsum", "codesearchnet", "aeslc", "wikitablequestions",
-            "arc_challenge", "race", "sciq",
-            "math", "mbpp", "bigbench_hard",
-        ],
+        choices=list(BENCHMARK_METRIC.keys()),
         help="Limit scoring to these benchmark datasets (default: all detected)"
     )
     parser.add_argument(

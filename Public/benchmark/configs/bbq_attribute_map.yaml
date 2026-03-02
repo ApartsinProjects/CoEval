@@ -1,0 +1,2 @@
+category: [age, disability_status, gender_identity, nationality, physical_appearance, race_ethnicity, religion, ses, sexual_orientation]
+polarity: [neg, nonneg]

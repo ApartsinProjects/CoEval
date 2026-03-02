@@ -44,8 +44,24 @@ The two modes are fully compatible: Phases 4 and 5 behave identically regardless
 | `math` | `math_problem_solving` | test | 5,000 | Exact-match on extracted answer |
 | `mbpp` | `code_generation` | test | 374 | BLEU-4 vs. canonical solution |
 | `bigbench_hard` | `reasoning_and_logic` | train | ~6,700 (27 sub-tasks) | Exact-match accuracy |
+| `logiqa` | `logical_reasoning` | test | ~2,600 | Exact-match accuracy |
+| `winogrande` | `commonsense_reasoning` | validation | ~1,300 | Exact-match accuracy |
+| `multinli` | `natural_language_inference` | validation_matched | ~9,800 | Exact-match accuracy |
+| `copa` | `causal_reasoning` | validation | 100 | Exact-match accuracy |
+| `cosmos_qa` | `narrative_reasoning` | validation | ~2,900 | Exact-match accuracy |
+| `bbq` | `bias_evaluation_qa` | test | ~58,000 | Exact-match accuracy |
+| `trivia_qa` | `knowledge_retrieval` | validation | ~11,300 | Exact-match accuracy |
+| `squad_v2` | `reading_comprehension_qa` | validation | ~11,900 | Exact-match / F1 |
+| `nq_open` | `open_domain_qa` | validation | ~3,600 | Exact-match accuracy |
+| `narrativeqa` | `narrative_qa` | test | ~10,600 | BLEU-4 (free-form) |
+| `cnn_dailymail` | `news_summarization` | test | ~11,500 | BERTScore-F1 |
+| `samsum` | `dialogue_summarization` | test | 819 | BERTScore-F1 |
+| `fever` | `fact_verification` | labelled_dev | ~19,000 | Exact-match accuracy |
+| `scifact` | `scientific_claim_verification` | train | 809 | Exact-match accuracy |
+| `mgsm` | `multilingual_math` | test | 250 (en) | Exact-match accuracy |
+| `mathqa` | `math_word_problems_mc` | test | ~2,900 | Exact-match accuracy |
 
-> **Two ingestion systems:** The 10 datasets above use `Public/benchmark/loaders/` and are set up with `python -m benchmark.setup_mixed` (xsum, codesearchnet, aeslc, wikitablequestions), `python -m benchmark.setup_education` (arc-challenge, race, sciq), or `python -m benchmark.emit_datapoints --dataset math|mbpp|bigbench_hard`. A separate set of built-in CLI adapters (`Code/runner/benchmarks/registry.py`) is available via `coeval ingest`: `mmlu`, `hellaswag`, `truthfulqa`, `humaneval`, `medqa`, `gsm8k`.
+> **Two ingestion systems:** The 26 datasets above use `Public/benchmark/loaders/` and are set up with `python -m benchmark.setup_mixed` (xsum, codesearchnet, aeslc, wikitablequestions), `python -m benchmark.setup_education` (arc-challenge, race, sciq), or `python -m benchmark.emit_datapoints --dataset <name>`. A separate set of built-in CLI adapters (`Code/runner/benchmarks/registry.py`) is available via `coeval ingest`: `mmlu`, `hellaswag`, `truthfulqa`, `humaneval`, `medqa`, `gsm8k`.
 
 Loader files:
 
@@ -61,6 +77,22 @@ Loader files:
 | `Public/benchmark/loaders/math_dataset.py` | MATH (Hendrycks et al.) | Competition mathematics |
 | `Public/benchmark/loaders/mbpp.py` | MBPP | Python code generation |
 | `Public/benchmark/loaders/bigbench_hard.py` | BIG-Bench Hard (27 sub-tasks) | Reasoning & logic |
+| `Public/benchmark/loaders/logiqa.py` | LogiQA | Logical reasoning (MCQ) |
+| `Public/benchmark/loaders/winogrande.py` | WinoGrande | Commonsense reasoning |
+| `Public/benchmark/loaders/multinli.py` | MultiNLI | Natural language inference |
+| `Public/benchmark/loaders/copa.py` | COPA | Causal commonsense reasoning |
+| `Public/benchmark/loaders/cosmos_qa.py` | CosmosQA | Narrative commonsense comprehension |
+| `Public/benchmark/loaders/bbq.py` | BBQ | Bias-aware QA |
+| `Public/benchmark/loaders/trivia_qa.py` | TriviaQA | Knowledge retrieval |
+| `Public/benchmark/loaders/squad_v2.py` | SQuAD 2.0 | Extractive + unanswerable RC |
+| `Public/benchmark/loaders/nq_open.py` | Natural Questions (open) | Open-domain QA |
+| `Public/benchmark/loaders/narrativeqa.py` | NarrativeQA | Long-story comprehension |
+| `Public/benchmark/loaders/cnn_dailymail.py` | CNN/DailyMail | News summarization |
+| `Public/benchmark/loaders/samsum.py` | SAMSum | Dialogue summarization |
+| `Public/benchmark/loaders/fever.py` | FEVER | Fact verification |
+| `Public/benchmark/loaders/scifact.py` | SciFact | Scientific claim verification |
+| `Public/benchmark/loaders/mgsm.py` | MGSM (en) | Multilingual math (English) |
+| `Public/benchmark/loaders/mathqa.py` | MathQA | Math word problems (MCQ) |
 
 ---
 
@@ -95,8 +127,8 @@ This section catalogues widely-used public benchmarks by domain. CoEval can supp
 |-----------|-------------|--------|
 | **BIG-Bench Hard** | 23 tasks requiring chain-of-thought reasoning | ✅ `bigbench_hard` |
 | **ARC-Challenge** | AI2 science reasoning — harder subset | ✅ `arc-challenge` |
-| **LogiQA** | Reading comprehension with formal logic | ❌ |
-| **ReClor** | Logical reasoning from law-school exams | ❌ |
+| **LogiQA** | Reading comprehension with formal logic | ✅ `logiqa` |
+| **ReClor** | Logical reasoning from law-school exams | ❌ restricted |
 | **AGIEval** | Human-centric reasoning: SAT, GRE, LSAT, etc. | ❌ |
 
 #### 2. Mathematics
@@ -105,8 +137,8 @@ This section catalogues widely-used public benchmarks by domain. CoEval can supp
 |-----------|-------------|--------|
 | **GSM8K** | 8.5K grade-school word problems | ✅ `gsm8k` |
 | **MATH** | 12.5K competition problems (Hendrycks et al.) | ✅ `math` |
-| **MGSM** | Multilingual grade-school math (11 languages) | ❌ |
-| **MathQA** | Multiple-choice math word problems | ❌ |
+| **MGSM** | Multilingual grade-school math (11 languages) | ✅ `mgsm` |
+| **MathQA** | Multiple-choice math word problems | ✅ `mathqa` |
 | **NumGLUE** | Numerical reasoning across 8 NLU tasks | ❌ |
 
 #### 3. Code Generation
@@ -124,19 +156,19 @@ This section catalogues widely-used public benchmarks by domain. CoEval can supp
 | Benchmark | Description | CoEval |
 |-----------|-------------|--------|
 | **HellaSwag** | 70K sentence-completion / commonsense NLI items | ✅ `hellaswag` |
-| **WinoGrande** | Large-scale Winograd schema challenge | ❌ |
+| **WinoGrande** | Large-scale Winograd schema challenge | ✅ `winogrande` |
 | **SuperGLUE** | 8-task NLU suite (NLI, QA, coreference) | ❌ |
-| **MultiNLI** | Multi-genre natural language inference | ❌ |
-| **COPA** | Cause-and-effect commonsense reasoning | ❌ |
+| **MultiNLI** | Multi-genre natural language inference | ✅ `multinli` |
+| **COPA** | Cause-and-effect commonsense reasoning | ✅ `copa` |
 
 #### 5. Open-Domain Question Answering
 
 | Benchmark | Description | CoEval |
 |-----------|-------------|--------|
-| **TriviaQA** | 95K trivia questions with evidence passages | ❌ |
-| **Natural Questions** | 307K Google search queries + Wikipedia answers | ❌ |
+| **TriviaQA** | 95K trivia questions with evidence passages | ✅ `trivia_qa` |
+| **Natural Questions** | 307K Google search queries + Wikipedia answers | ✅ `nq_open` |
 | **WikiTableQuestions** | Table-grounded free-form QA | ✅ pre-ingested |
-| **SQuAD 2.0** | Extractive + unanswerable span QA | ❌ |
+| **SQuAD 2.0** | Extractive + unanswerable span QA | ✅ `squad_v2` |
 | **WebQuestions** | 3K Freebase entity questions | ❌ |
 
 #### 6. Reading Comprehension
@@ -146,8 +178,8 @@ This section catalogues widely-used public benchmarks by domain. CoEval can supp
 | **RACE** | 100K MCQ from English exams (middle + high school) | ✅ `race` |
 | **SciQ** | 14K elementary/middle school science MCQ | ✅ `sciq` |
 | **QuALITY** | Long-document multiple-choice QA | ❌ |
-| **CosmosQA** | Narrative-based commonsense comprehension | ❌ |
-| **NarrativeQA** | Full-story comprehension with free-form answers | ❌ |
+| **CosmosQA** | Narrative-based commonsense comprehension | ✅ `cosmos_qa` |
+| **NarrativeQA** | Full-story comprehension with free-form answers | ✅ `narrativeqa` |
 
 #### 7. Knowledge & Factual Recall
 
@@ -157,7 +189,7 @@ This section catalogues widely-used public benchmarks by domain. CoEval can supp
 | **MedQA (USMLE)** | USMLE medical licensing exam questions | ✅ `medqa` |
 | **KOLA** | Knowledge-oriented LLM assessment | ❌ |
 | **FActScore** | Factual precision metric for open-ended generation | ❌ |
-| **FEVER** | Fact verification against Wikipedia | ❌ |
+| **FEVER** | Fact verification against Wikipedia | ✅ `fever` |
 
 #### 8. Summarization & Generation
 
@@ -165,9 +197,9 @@ This section catalogues widely-used public benchmarks by domain. CoEval can supp
 |-----------|-------------|--------|
 | **XSum** | 11K BBC articles → 1-sentence summaries | ✅ pre-ingested |
 | **AESLC** | Email subject-line composition | ✅ pre-ingested |
-| **CNN/DailyMail** | News summarization with bullet highlights | ❌ |
-| **SAMSum** | Dialogue summarization | ❌ |
-| **MeetingBank** | Meeting transcript summarization | ❌ |
+| **CNN/DailyMail** | News summarization with bullet highlights | ✅ `cnn_dailymail` |
+| **SAMSum** | Dialogue summarization | ✅ `samsum` |
+| **MeetingBank** | Meeting transcript summarization | ❌ proprietary |
 
 #### 9. Truthfulness & Safety
 
@@ -175,7 +207,7 @@ This section catalogues widely-used public benchmarks by domain. CoEval can supp
 |-----------|-------------|--------|
 | **TruthfulQA** | 817 questions probing hallucination tendencies | ✅ `truthfulqa` |
 | **BOLD** | Bias in open-ended language generation | ❌ |
-| **BBQ** | Bias benchmark for question answering | ❌ |
+| **BBQ** | Bias benchmark for question answering | ✅ `bbq` |
 | **WinoBias** | Gender bias in coreference resolution | ❌ |
 | **RealToxicityPrompts** | Toxicity measurement in generation | ❌ |
 
@@ -187,7 +219,7 @@ This section catalogues widely-used public benchmarks by domain. CoEval can supp
 | **SciQ** | Science MCQ with supporting passages | ✅ `sciq` |
 | **ARC-Challenge** | AI2 science exam MCQ (harder 1.17K items) | ✅ `arc-challenge` |
 | **GPQA** | PhD-level science MCQ (chemistry, biology, physics) | ❌ planned |
-| **SciFact** | Scientific claim verification against abstracts | ❌ |
+| **SciFact** | Scientific claim verification against abstracts | ✅ `scifact` |
 
 ---
 
@@ -195,7 +227,7 @@ This section catalogues widely-used public benchmarks by domain. CoEval can supp
 
 | Status | Datasets |
 |--------|----------|
-| ✅ **Pre-ingested** (loaders in `Public/benchmark/loaders/`) | XSum, CodeSearchNet, AESLC, WikiTableQuestions, ARC-Challenge, RACE, SciQ, MATH, MBPP, BIG-Bench Hard |
+| ✅ **Pre-ingested** (loaders in `Public/benchmark/loaders/`) | XSum, CodeSearchNet, AESLC, WikiTableQuestions, ARC-Challenge, RACE, SciQ, MATH, MBPP, BIG-Bench Hard, LogiQA, WinoGrande, MultiNLI, COPA, CosmosQA, BBQ, TriviaQA, SQuAD 2.0, NQ Open, NarrativeQA, CNN/DailyMail, SAMSum, FEVER, SciFact, MGSM, MathQA |
 | ✅ **Available via `coeval ingest`** | MMLU, HellaSwag, TruthfulQA, HumanEval, MedQA, GSM8K |
 | ❌ **Planned** (loader not yet implemented; custom JSONL ingestion possible) | GPQA |
 | ❌ **Not yet supported** | All others — contribute a loader! See [Writing a Loader](#writing-a-loader-for-a-new-dataset) |
@@ -597,9 +629,9 @@ Available metrics:
 
 | Metric flag | Used for | Library |
 |-------------|----------|---------|
-| `bertscore` | XSum, AESLC | `bert-score` |
-| `bleu` | CodeSearchNet, MBPP | `nltk` |
-| `exact_match` | WikiTableQuestions, ARC-Challenge, RACE, SciQ, MATH, BIG-Bench Hard | built-in |
+| `bertscore` | XSum, AESLC, CNN/DailyMail, SAMSum | `bert-score` |
+| `bleu` | CodeSearchNet, MBPP, NarrativeQA | `nltk` |
+| `exact_match` | WikiTableQuestions, ARC-Challenge, RACE, SciQ, MATH, BIG-Bench Hard, LogiQA, WinoGrande, MultiNLI, COPA, CosmosQA, BBQ, TriviaQA, SQuAD 2.0, NQ Open, FEVER, SciFact, MGSM, MathQA | built-in |
 | `rouge_l` | XSum (alternative) | `rouge-score` |
 
 Each benchmark has a default metric defined in `Public/benchmark/compute_scores.py`'s `BENCHMARK_METRIC` dict. You can override with `--metric` if you want to compare alternatives.
@@ -736,7 +768,7 @@ tasks:
 ## Frequently Asked Questions
 
 **Q: What benchmark datasets are available out of the box?**
-A: Ten datasets have pre-ingested loaders in `Public/benchmark/loaders/`: `python -m benchmark.setup_mixed` ingests XSum, CodeSearchNet, AESLC, and WikiTableQuestions; `python -m benchmark.setup_education` ingests ARC-Challenge, RACE-High, and SciQ; `python -m benchmark.emit_datapoints --dataset math|mbpp|bigbench_hard` ingests MATH, MBPP, and BIG-Bench Hard. An additional six datasets — MMLU, HellaSwag, TruthfulQA, HumanEval, MedQA, and GSM8K — are available via `coeval ingest` (built-in CLI adapters).
+A: Twenty-six datasets have pre-ingested loaders in `Public/benchmark/loaders/`: `python -m benchmark.setup_mixed` ingests XSum, CodeSearchNet, AESLC, and WikiTableQuestions; `python -m benchmark.setup_education` ingests ARC-Challenge, RACE-High, and SciQ; `python -m benchmark.emit_datapoints --dataset <name>` ingests any of the remaining 19 datasets (MATH, MBPP, BIG-Bench Hard, LogiQA, WinoGrande, MultiNLI, COPA, CosmosQA, BBQ, TriviaQA, SQuAD 2.0, NQ Open, NarrativeQA, CNN/DailyMail, SAMSum, FEVER, SciFact, MGSM, MathQA). An additional six datasets — MMLU, HellaSwag, TruthfulQA, HumanEval, MedQA, and GSM8K — are available via `coeval ingest` (built-in CLI adapters).
 
 **Q: What does `coeval ingest` do?**
 A: `coeval ingest` converts an external JSONL dataset into Phase 3 datapoint format, writing files to `benchmark/runs/{run-id}/phase3_datapoints/`. The input JSONL must have at minimum `prompt` and `reference_response` fields. Once ingested, the dataset can be used as a virtual teacher with `interface: benchmark` — no LLM API calls are made for Phase 3.
