@@ -1,5 +1,6 @@
 # CoEval: Ensemble-Based Self-Evaluation for LLMs
 
+[![Status WIP](https://img.shields.io/badge/status-WIP-yellow)](CHANGELOG.md)
 [![Python ≥3.10](https://img.shields.io/badge/python-%E2%89%A53.10-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![Version 0.3.0](https://img.shields.io/badge/version-0.3.0-informational)](CHANGELOG.md)
 [![Tests 622 passing](https://img.shields.io/badge/tests-622%20passing-brightgreen)](docs/README/11-testing.md)
@@ -278,7 +279,7 @@ YAML Config  →  Phase 1: Attribute Mapping   (teachers infer task dimensions)
 | **Virtual teachers** | Pre-ingested public datasets supply zero-cost Phase 3 ground truth |
 | **Label accuracy** | Judge-free exact-match for classification tasks (`label_attributes`) |
 
-### Project Statistics
+### Project Statistics · System v1.3
 
 | Component | Files | LoC |
 |-----------|------:|----:|

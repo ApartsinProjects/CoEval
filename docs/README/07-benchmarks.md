@@ -41,8 +41,11 @@ The two modes are fully compatible: Phases 4 and 5 behave identically regardless
 | `arc-challenge` | `science_reasoning` | test | 1,172 | Exact-match accuracy |
 | `race` | `reading_comprehension` | test | ~4.9K (high-school) | Exact-match accuracy |
 | `sciq` | `science_qa` | test | 1,000 | Exact-match accuracy |
+| `math` | `math_problem_solving` | test | 5,000 | Exact-match on extracted answer |
+| `mbpp` | `code_generation` | test | 374 | BLEU-4 vs. canonical solution |
+| `bigbench_hard` | `reasoning_and_logic` | train | ~6,700 (27 sub-tasks) | Exact-match accuracy |
 
-> **Two ingestion systems:** The 7 datasets above use `Public/benchmark/loaders/` and are set up with `python -m benchmark.setup_mixed` (xsum, codesearchnet, aeslc, wikitablequestions) or `python -m benchmark.setup_education` (arc-challenge, race, sciq). A separate set of built-in CLI adapters (`Code/runner/benchmarks/registry.py`) is available via `coeval ingest`: `mmlu`, `hellaswag`, `truthfulqa`, `humaneval`, `medqa`, `gsm8k`.
+> **Two ingestion systems:** The 10 datasets above use `Public/benchmark/loaders/` and are set up with `python -m benchmark.setup_mixed` (xsum, codesearchnet, aeslc, wikitablequestions), `python -m benchmark.setup_education` (arc-challenge, race, sciq), or `python -m benchmark.emit_datapoints --dataset math|mbpp|bigbench_hard`. A separate set of built-in CLI adapters (`Code/runner/benchmarks/registry.py`) is available via `coeval ingest`: `mmlu`, `hellaswag`, `truthfulqa`, `humaneval`, `medqa`, `gsm8k`.
 
 Loader files:
 
@@ -55,6 +58,9 @@ Loader files:
 | `Public/benchmark/loaders/arc_challenge.py` | ARC-Challenge | Science reasoning (MCQ) |
 | `Public/benchmark/loaders/race.py` | RACE | Reading comprehension (MCQ) |
 | `Public/benchmark/loaders/sciq.py` | SciQ | Science questions (MCQ) |
+| `Public/benchmark/loaders/math_dataset.py` | MATH (Hendrycks et al.) | Competition mathematics |
+| `Public/benchmark/loaders/mbpp.py` | MBPP | Python code generation |
+| `Public/benchmark/loaders/bigbench_hard.py` | BIG-Bench Hard (27 sub-tasks) | Reasoning & logic |
 
 ---
 
@@ -71,13 +77,13 @@ This section catalogues widely-used public benchmarks by domain. CoEval can supp
 | **GSM8K** | Grade-school math word problems | 8.5K | Accuracy | ✅ `gsm8k` | [arxiv](https://arxiv.org/abs/2110.14168) |
 | **HellaSwag** | Sentence completion / commonsense NLI | 70K | Accuracy | ✅ `hellaswag` | [arxiv](https://arxiv.org/abs/1905.07830) |
 | **TruthfulQA** | Truthfulness — MC + generation | 817 | Accuracy / BLEURT | ✅ `truthfulqa` | [arxiv](https://arxiv.org/abs/2109.07958) |
-| **BIG-Bench Hard** | 23 challenging multi-step reasoning tasks | ~6K | Accuracy / EM | ❌ planned | [arxiv](https://arxiv.org/abs/2206.04615) |
-| **MATH** | Competition math (algebra → calculus) | 12.5K | Accuracy (symbolic) | ❌ planned | [arxiv](https://arxiv.org/abs/2103.03874) |
+| **BIG-Bench Hard** | 23 challenging multi-step reasoning tasks | ~6K | Accuracy / EM | ✅ `bigbench_hard` | [arxiv](https://arxiv.org/abs/2206.04615) |
+| **MATH** | Competition math (algebra → calculus) | 12.5K | Accuracy (symbolic) | ✅ `math` | [arxiv](https://arxiv.org/abs/2103.03874) |
 | **ARC-Challenge** | Science MCQ — hard subset | 1.17K | Accuracy | ✅ `arc-challenge` | [arxiv](https://arxiv.org/abs/1803.05457) |
 | **GPQA** | Graduate-level science MCQ (Diamond set) | 448 | Accuracy | ❌ planned | [arxiv](https://arxiv.org/abs/2311.12022) |
-| **MBPP** | Python beginner coding problems | 374 | Pass@1 | ❌ planned | [arxiv](https://arxiv.org/abs/2108.07732) |
+| **MBPP** | Python beginner coding problems | 374 | Pass@1 | ✅ `mbpp` | [arxiv](https://arxiv.org/abs/2108.07732) |
 
-> **Reading the table:** ✅ `pre-ingested` = set up via `python -m benchmark.setup_*` scripts (`Public/benchmark/loaders/`). ✅ `coeval ingest` = CLI adapter in `Code/runner/benchmarks/registry.py`. ❌ planned = loader not yet implemented; custom JSONL ingestion via `coeval ingest --dataset` is still possible.
+> **Reading the table:** ✅ `name` = loader in `Public/benchmark/loaders/`; use `python -m benchmark.emit_datapoints --dataset name`. ✅ `coeval ingest` = CLI adapter in `Code/runner/benchmarks/registry.py`. ❌ planned = loader not yet implemented; custom JSONL ingestion via `coeval ingest --dataset` is still possible.
 
 ---
 
@@ -87,7 +93,7 @@ This section catalogues widely-used public benchmarks by domain. CoEval can supp
 
 | Benchmark | Description | CoEval |
 |-----------|-------------|--------|
-| **BIG-Bench Hard** | 23 tasks requiring chain-of-thought reasoning | ❌ planned |
+| **BIG-Bench Hard** | 23 tasks requiring chain-of-thought reasoning | ✅ `bigbench_hard` |
 | **ARC-Challenge** | AI2 science reasoning — harder subset | ✅ `arc-challenge` |
 | **LogiQA** | Reading comprehension with formal logic | ❌ |
 | **ReClor** | Logical reasoning from law-school exams | ❌ |
@@ -98,7 +104,7 @@ This section catalogues widely-used public benchmarks by domain. CoEval can supp
 | Benchmark | Description | CoEval |
 |-----------|-------------|--------|
 | **GSM8K** | 8.5K grade-school word problems | ✅ `gsm8k` |
-| **MATH** | 12.5K competition problems (Hendrycks et al.) | ❌ planned |
+| **MATH** | 12.5K competition problems (Hendrycks et al.) | ✅ `math` |
 | **MGSM** | Multilingual grade-school math (11 languages) | ❌ |
 | **MathQA** | Multiple-choice math word problems | ❌ |
 | **NumGLUE** | Numerical reasoning across 8 NLU tasks | ❌ |
@@ -108,7 +114,7 @@ This section catalogues widely-used public benchmarks by domain. CoEval can supp
 | Benchmark | Description | CoEval |
 |-----------|-------------|--------|
 | **HumanEval** | 164 Python function completions | ✅ `humaneval` |
-| **MBPP** | 374 Python beginner problems | ❌ planned |
+| **MBPP** | 374 Python beginner problems | ✅ `mbpp` |
 | **CodeSearchNet** | Code-to-docstring generation (Python) | ✅ pre-ingested |
 | **SWE-bench** | Real GitHub issue resolution | ❌ |
 | **DS-1000** | 1 000 data-science code completions | ❌ |
@@ -189,9 +195,9 @@ This section catalogues widely-used public benchmarks by domain. CoEval can supp
 
 | Status | Datasets |
 |--------|----------|
-| ✅ **Pre-ingested** (ready to use, no setup needed after `setup_mixed`/`setup_education`) | XSum, CodeSearchNet, AESLC, WikiTableQuestions, ARC-Challenge, RACE, SciQ |
+| ✅ **Pre-ingested** (loaders in `Public/benchmark/loaders/`) | XSum, CodeSearchNet, AESLC, WikiTableQuestions, ARC-Challenge, RACE, SciQ, MATH, MBPP, BIG-Bench Hard |
 | ✅ **Available via `coeval ingest`** | MMLU, HellaSwag, TruthfulQA, HumanEval, MedQA, GSM8K |
-| ❌ **Planned** (loader not yet implemented; custom JSONL ingestion possible) | MATH, BIG-Bench Hard, MBPP, GPQA |
+| ❌ **Planned** (loader not yet implemented; custom JSONL ingestion possible) | GPQA |
 | ❌ **Not yet supported** | All others — contribute a loader! See [Writing a Loader](#writing-a-loader-for-a-new-dataset) |
 
 ---
@@ -202,9 +208,6 @@ The following benchmarks are on the roadmap. No loader exists yet, but you can s
 
 | Benchmark | Priority | Blocker | Notes |
 |-----------|----------|---------|-------|
-| **MATH** | High | Symbolic math eval (LaTeX) | Requires expression normalisation before exact-match |
-| **BIG-Bench Hard** | High | 23 sub-tasks, heterogeneous formats | Needs per-task attribute maps |
-| **MBPP** | Medium | Code execution sandbox for Pass@1 | Static BLEU alternative available |
 | **GPQA** | Medium | Restricted access (Diamond set) | Requires NDA agreement from maintainers |
 
 To add a loader, follow the [Writing a Loader](#writing-a-loader-for-a-new-dataset) guide and submit a PR to `Public/benchmark/loaders/`.
@@ -595,11 +598,11 @@ Available metrics:
 | Metric flag | Used for | Library |
 |-------------|----------|---------|
 | `bertscore` | XSum, AESLC | `bert-score` |
-| `bleu` | CodeSearchNet | `nltk` |
-| `exact_match` | WikiTableQuestions | built-in |
+| `bleu` | CodeSearchNet, MBPP | `nltk` |
+| `exact_match` | WikiTableQuestions, ARC-Challenge, RACE, SciQ, MATH, BIG-Bench Hard | built-in |
 | `rouge_l` | XSum (alternative) | `rouge-score` |
 
-Each benchmark has a default metric defined in `benchmark/compute_scores.py`'s `BENCHMARK_METRIC` dict. You can override with `--metric` if you want to compare alternatives.
+Each benchmark has a default metric defined in `Public/benchmark/compute_scores.py`'s `BENCHMARK_METRIC` dict. You can override with `--metric` if you want to compare alternatives.
 
 This fills `benchmark_native_score` in the Phase 3 JSONL files. These scores are used for two purposes:
 1. **Calibration** (`Code/analyzer/calibration.py`): Fits an OLS linear mapping from judge ensemble scores to benchmark-native ground truth — useful for detecting judge bias or drift.
@@ -733,7 +736,7 @@ tasks:
 ## Frequently Asked Questions
 
 **Q: What benchmark datasets are available out of the box?**
-A: Two setup scripts cover seven pre-ingested datasets: `python -m benchmark.setup_mixed` ingests XSum, CodeSearchNet, AESLC, and WikiTableQuestions; `python -m benchmark.setup_education` ingests ARC-Challenge, RACE-High, and SciQ. An additional six datasets — MMLU, HellaSwag, TruthfulQA, HumanEval, MedQA, and GSM8K — are available via `coeval ingest` (built-in CLI adapters).
+A: Ten datasets have pre-ingested loaders in `Public/benchmark/loaders/`: `python -m benchmark.setup_mixed` ingests XSum, CodeSearchNet, AESLC, and WikiTableQuestions; `python -m benchmark.setup_education` ingests ARC-Challenge, RACE-High, and SciQ; `python -m benchmark.emit_datapoints --dataset math|mbpp|bigbench_hard` ingests MATH, MBPP, and BIG-Bench Hard. An additional six datasets — MMLU, HellaSwag, TruthfulQA, HumanEval, MedQA, and GSM8K — are available via `coeval ingest` (built-in CLI adapters).
 
 **Q: What does `coeval ingest` do?**
 A: `coeval ingest` converts an external JSONL dataset into Phase 3 datapoint format, writing files to `benchmark/runs/{run-id}/phase3_datapoints/`. The input JSONL must have at minimum `prompt` and `reference_response` fields. Once ingested, the dataset can be used as a virtual teacher with `interface: benchmark` — no LLM API calls are made for Phase 3.

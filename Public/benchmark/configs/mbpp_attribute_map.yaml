@@ -1,0 +1,11 @@
+topic:
+  - string_manipulation
+  - list_operations
+  - math_computation
+  - data_structures
+  - general
+
+complexity:
+  - simple
+  - moderate
+  - complex

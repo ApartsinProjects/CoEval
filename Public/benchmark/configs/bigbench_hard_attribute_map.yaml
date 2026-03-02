@@ -1,0 +1,11 @@
+task_type:
+  - logic
+  - reasoning
+  - math
+  - language
+  - knowledge
+
+difficulty:
+  - low
+  - medium
+  - high

@@ -54,6 +54,21 @@ _REGISTRY: dict[str, tuple[str, str]] = {
         "benchmark.loaders.sciq.SciQLoader",
         str(_CONFIGS_DIR / "sciq_attribute_map.yaml"),
     ),
+    # --- Reasoning / Logic ---
+    "bigbench_hard": (
+        "benchmark.loaders.bigbench_hard.BigBenchHardLoader",
+        str(_CONFIGS_DIR / "bigbench_hard_attribute_map.yaml"),
+    ),
+    # --- Mathematics ---
+    "math": (
+        "benchmark.loaders.math_dataset.MATHLoader",
+        str(_CONFIGS_DIR / "math_attribute_map.yaml"),
+    ),
+    # --- Code generation ---
+    "mbpp": (
+        "benchmark.loaders.mbpp.MBPPLoader",
+        str(_CONFIGS_DIR / "mbpp_attribute_map.yaml"),
+    ),
 }
 
 

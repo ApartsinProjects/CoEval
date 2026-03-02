@@ -117,6 +117,12 @@ BENCHMARK_METRIC: dict[str, str] = {
     "codesearchnet": "bleu",
     "aeslc": "bertscore",
     "wikitablequestions": "exact_match",
+    "arc_challenge": "exact_match",
+    "race": "exact_match",
+    "sciq": "exact_match",
+    "math": "exact_match",
+    "mbpp": "bleu",
+    "bigbench_hard": "exact_match",
 }
 
 
@@ -278,7 +284,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--datasets", nargs="*",
-        choices=["xsum", "codesearchnet", "aeslc", "wikitablequestions"],
+        choices=[
+            "xsum", "codesearchnet", "aeslc", "wikitablequestions",
+            "arc_challenge", "race", "sciq",
+            "math", "mbpp", "bigbench_hard",
+        ],
         help="Limit scoring to these benchmark datasets (default: all detected)"
     )
     parser.add_argument(
