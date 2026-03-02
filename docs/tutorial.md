@@ -152,9 +152,8 @@ providers:
   roles: [student]
 ```
 
-See `manuals/04_provider_pricing.md` for a complete pricing table and setup guide for
-each provider, including suggested future providers (Groq, DeepInfra, Fireworks AI,
-DeepSeek API, Mistral API, Cohere).
+See [`docs/README/05-providers.md`](README/05-providers.md) for a complete pricing table and setup guide for
+each provider, including native direct-API providers (Groq, DeepInfra, DeepSeek, Mistral, Cerebras).
 
 ### Verifying your setup
 
@@ -347,7 +346,7 @@ This opens a self-contained HTML page in your browser showing:
 
 No API calls are made; the command is purely informational.
 
-> **Example planning HTML:** Open [`benchmark/education_description.html`](../benchmark/education_description.html) to see a real planning view for the education benchmark (3 real-dataset tasks + 10 synthetic tasks, 6 models, cost table).
+> **Example planning HTML:** Open the [Education Benchmark Plan](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/benchmark/education_description.html) to see a real planning view for the education benchmark (3 real-dataset tasks + 10 synthetic tasks, 6 models, cost table).
 
 ### 3.5 Checking model availability
 
@@ -645,18 +644,18 @@ Phase 4 records add `student_model_id` and `response`.  Phase 5 records add
 
 ## 6. Report Types & What They Tell You
 
-> **Sample reports** — all of the following report types have pre-generated examples in `samples/analysis/coeval-demo-v2/`. Open them locally in any browser (no server or internet required):
+> **Sample reports** — all of the following report types have pre-generated examples in `samples/analysis/coeval-demo-v2/`. Click to open rendered in browser:
 >
 > | Sample file | Report type |
 > |-------------|-------------|
-> | [`coeval-demo-v2_student_report.html`](../samples/analysis/coeval-demo-v2/coeval-demo-v2_student_report.html) | Student Report |
-> | [`coeval-demo-v2_judge_consistency.html`](../samples/analysis/coeval-demo-v2/coeval-demo-v2_judge_consistency.html) | Judge Consistency |
-> | [`coeval-demo-v2_robust_summary.html`](../samples/analysis/coeval-demo-v2/coeval-demo-v2_robust_summary.html) | Robust Summary |
-> | [`coeval-demo-v2_score_distribution.html`](../samples/analysis/coeval-demo-v2/coeval-demo-v2_score_distribution.html) | Score Distribution |
-> | [`coeval-demo-v2_teacher_report.html`](../samples/analysis/coeval-demo-v2/coeval-demo-v2_teacher_report.html) | Teacher Report |
-> | [`coeval-demo-v2_interaction_matrix.html`](../samples/analysis/coeval-demo-v2/coeval-demo-v2_interaction_matrix.html) | Interaction Matrix |
-> | [`coeval-demo-v2_coverage_summary.html`](../samples/analysis/coeval-demo-v2/coeval-demo-v2_coverage_summary.html) | Coverage Summary |
-> | [`coeval-demo-v2_judge_report.html`](../samples/analysis/coeval-demo-v2/coeval-demo-v2_judge_report.html) | Judge Report |
+> | [Student Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_student_report.html) | Student Report |
+> | [Judge Consistency](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_judge_consistency.html) | Judge Consistency |
+> | [Robust Summary](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_robust_summary.html) | Robust Summary |
+> | [Score Distribution](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_score_distribution.html) | Score Distribution |
+> | [Teacher Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_teacher_report.html) | Teacher Report |
+> | [Interaction Matrix](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_interaction_matrix.html) | Interaction Matrix |
+> | [Coverage Summary](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_coverage_summary.html) | Coverage Summary |
+> | [Judge Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_judge_report.html) | Judge Report |
 
 ### Coverage Summary
 
@@ -862,16 +861,14 @@ native Parquet types.
 
 | Document | What it covers |
 |----------|---------------|
-| [`docs/running_experiments.md`](running_experiments.md) | Complete YAML config reference, all phase modes, multi-role model configuration, HuggingFace local models, use-case examples |
+| [`docs/README/06-running.md`](README/06-running.md) | Complete running guide: phase modes, multi-role config, HuggingFace local models, cost estimation, use-case examples |
 | [`docs/cli_reference.md`](cli_reference.md) | Every CLI subcommand with full option tables and exit codes |
 | [`docs/developer_guide.md`](developer_guide.md) | Repository layout, module APIs, how to add a new provider interface or phase |
-| [`manuals/01_running_experiments.md`](../manuals/01_running_experiments.md) | Quick-start cheatsheet with cost formula and fault tolerance notes |
-| [`manuals/02_benchmark_experiments.md`](../manuals/02_benchmark_experiments.md) | Deep dive into benchmark-sourced mode, benchmark loaders, paper table generation |
-| [`manuals/03_analysis_and_reporting.md`](../manuals/03_analysis_and_reporting.md) | Analysis CLI reference, metrics formulas (ACR, RAR, Spearman ρ), programmatic API |
-| [`manuals/04_provider_pricing.md`](../manuals/04_provider_pricing.md) | Complete pricing table, provider setup guides, and suggested future providers |
+| [`docs/README/05-providers.md`](README/05-providers.md) | All 15 interfaces, pricing tables, provider setup guides, `interface: auto` routing |
+| [`docs/README/07-benchmarks.md`](README/07-benchmarks.md) | Benchmark datasets, `coeval ingest`, `interface: benchmark` virtual teacher, reproducing published results |
+| [`docs/README/08-reports.md`](README/08-reports.md) | Analysis CLI reference, metrics formulas (ACR, RAR, Spearman ρ), programmatic API, calibration |
 | [`benchmark/mixed.yaml`](../benchmark/mixed.yaml) | Complete working config for the mixed benchmark experiment |
 | [`benchmark/paper_dual_track.yaml`](../benchmark/paper_dual_track.yaml) | Full dual-track paper experiment config (10 SOTA models, Track A + Track B) |
-| [`docs/extracting_benchmarks.md`](extracting_benchmarks.md) | Export Phase 3 data as a shareable versioned benchmark; `coeval ingest` format; reproducing published results |
 
 ---
 

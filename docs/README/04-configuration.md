@@ -1,6 +1,6 @@
 # Configuration Guide
 
-[← Quick Start](05-quick-start.md) · [Interfaces →](07-interfaces.md)
+[← Quick Start](03-quick-start.md) · [Providers →](05-providers.md)
 
 ---
 
@@ -291,8 +291,6 @@ model.access_key (in YAML)  →  provider entry in keys.yaml  →  environment v
 
 ## Complete Example Configurations
 
-The following complete YAML configurations cover common use cases. Copy and adapt them as starting points for your own experiments.
-
 ### Example 1: Minimal Sentiment Classification
 
 Single model acting as teacher, student, and judge. 20 items. Uses `label_attributes` for judge-free exact-match scoring on the `sentiment` dimension.
@@ -387,7 +385,7 @@ experiment:
 
 ### Example 3: Education Benchmark (Real Datasets + Synthetic Tasks)
 
-Combines a `benchmark` virtual interface (pre-ingested ARC-Challenge dataset responses) with a synthetic task. The benchmark model acts as teacher for the dataset task; `gpt-4o-mini` handles all roles for the synthetic task. Cost estimation uses heuristics only (`estimate_samples: 0`).
+Combines a `benchmark` virtual interface (pre-ingested ARC-Challenge dataset responses) with a synthetic task.
 
 ```yaml
 models:
@@ -451,7 +449,7 @@ experiment:
 
 ### Example 4: Customer Support Email (Per-Factor Evaluation, Prompt Override)
 
-Uses `evaluation_mode: per_factor` to score each rubric dimension in a separate judge call, enabling fine-grained dimension-level analysis. Includes a custom `sample` prompt template that instructs the teacher on the exact JSON structure to return. Two judge models (OpenAI and Anthropic) cross-evaluate student responses.
+Uses `evaluation_mode: per_factor` to score each rubric dimension in a separate judge call, enabling fine-grained dimension-level analysis.
 
 ```yaml
 models:
@@ -517,7 +515,7 @@ experiment:
 
 ### Example 5: Mixed Open-Source + API Experiment with OpenRouter
 
-Evaluates four open-source models (via OpenRouter) and one model using `interface: auto` (cheapest available provider) against a static SQL generation task. `gpt-4o-mini` acts as teacher and judge. Probe mode is set to `full` with `warn` on failure so the pipeline continues even if a model is temporarily unavailable.
+Evaluates four open-source models (via OpenRouter) and one model using `interface: auto`.
 
 ```yaml
 models:
@@ -620,4 +618,32 @@ When `label_attributes` is set, Phase 5 uses exact-match comparison instead of c
 
 ---
 
-[← Quick Start](05-quick-start.md) · [Interfaces →](07-interfaces.md)
+## Multi-Role Model Parameters
+
+A model can hold any combination of `teacher`, `student`, and `judge` roles. Use `role_parameters` to override generation settings per role:
+
+```yaml
+- name: gpt-4o-mini
+  interface: openai
+  roles: [teacher, student, judge]
+  parameters:
+    model: gpt-4o-mini
+    temperature: 0.7
+    max_tokens: 512
+  role_parameters:
+    teacher:
+      temperature: 0.8   # slightly higher creativity for generation
+      max_tokens: 512
+    student:
+      temperature: 0.7
+      max_tokens: 256
+    judge:
+      temperature: 0.0   # deterministic scoring
+      max_tokens: 128
+```
+
+`role_parameters` values are merged on top of `parameters` — only the keys you specify are overridden.
+
+---
+
+[← Quick Start](03-quick-start.md) · [Providers →](05-providers.md)

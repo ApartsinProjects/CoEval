@@ -1,6 +1,6 @@
-# Resume, Recovery & Repair
+# Resume & Recovery
 
-[← Cost Planning](09-cost-control.md) · [Analytics & Reports →](11-analytics-reports.md)
+[← Reports](08-reports.md) · [Architecture →](10-architecture.md)
 
 ---
 
@@ -38,6 +38,10 @@ coeval run --config my-experiment.yaml --continue
 3. Submits only the missing calls; existing data is never touched
 
 No data is duplicated. No extra API calls are made for completed items.
+
+**Validation checks on `--continue`:**
+- Config ID must match the existing `meta.json` experiment ID.
+- A `meta.json` must already exist (ensures you are continuing, not starting fresh).
 
 ---
 
@@ -161,4 +165,4 @@ Run failed or was interrupted?
 
 ---
 
-[← Cost Planning](09-cost-control.md) · [Analytics & Reports →](11-analytics-reports.md)
+[← Reports](08-reports.md) · [Architecture →](10-architecture.md)

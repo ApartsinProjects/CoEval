@@ -1,6 +1,6 @@
 # Architecture — The Five-Phase Pipeline
 
-[← Features](02-features.md) · [Installation →](04-installation.md)
+[← Recovery](09-recovery.md) · [Testing →](11-testing.md)
 
 ---
 
@@ -78,7 +78,7 @@ Teacher models produce **(prompt, reference_response)** pairs — the benchmark 
 
 Student models receive Phase 3 prompts and generate responses. Every (task, teacher, student) triple produces a JSONL file of student outputs.
 
-- Batch API (OpenAI, Anthropic, Gemini) submits jobs and polls for completion
+- Batch API (OpenAI, Anthropic, Gemini, Azure OpenAI) submits jobs and polls for completion
 - Non-batch interfaces run concurrently up to the configured worker pool size
 - HuggingFace models run sequentially (GPU-bound)
 - Output written to `{task_name}__{teacher_name}__{student_name}.responses.jsonl`
@@ -146,4 +146,4 @@ Each experiment writes to `{storage_folder}/{experiment_id}/`:
 
 ---
 
-[← Features](02-features.md) · [Installation →](04-installation.md)
+[← Recovery](09-recovery.md) · [Testing →](11-testing.md)

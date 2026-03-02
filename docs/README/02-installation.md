@@ -1,6 +1,6 @@
 # Installation
 
-[← Architecture](03-architecture.md) · [Quick Start →](05-quick-start.md)
+[← Overview](01-overview.md) · [Quick Start →](03-quick-start.md)
 
 ---
 
@@ -18,6 +18,11 @@ The core package includes all cloud interfaces (OpenAI, Anthropic, Gemini, Azure
 git clone https://github.com/ApartsinProjects/CoEval
 cd CoEval
 pip install -e .
+```
+
+```bash
+# Verify GPU (required for local HuggingFace models)
+python -c "import torch; print('CUDA:', torch.cuda.is_available())"
 ```
 
 ## Optional Extras
@@ -86,4 +91,4 @@ pytest experiments/tests/ analysis/tests/ -v
 
 ---
 
-[← Architecture](03-architecture.md) · [Quick Start →](05-quick-start.md)
+[← Overview](01-overview.md) · [Quick Start →](03-quick-start.md)

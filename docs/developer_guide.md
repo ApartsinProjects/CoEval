@@ -109,8 +109,9 @@ benchmark/                       ← benchmark configs, loaders, and runs
 
 docs/
 ├── cli_reference.md             # Complete CLI option reference (all subcommands)
-├── running_experiments.md       # User/operator manual
-└── developer_guide.md           # This file
+├── tutorial.md                  # End-to-end tutorial
+├── developer_guide.md           # This file
+└── README/                      # 13-section guide (01-overview through 13-documentation)
 
 examples/
 └── local_smoke_test.yaml        # Reference config for local HuggingFace models

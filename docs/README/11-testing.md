@@ -1,6 +1,6 @@
 # Testing
 
-[← Repository Layout](12-repository-layout.md) · [Documentation →](14-documentation.md)
+[← Architecture](10-architecture.md) · [Repository →](12-repository.md)
 
 ---
 
@@ -85,4 +85,4 @@ Expected: **557 tests passing** in `experiments/tests/`, plus analysis tests.
 
 ---
 
-[← Repository Layout](12-repository-layout.md) · [Documentation →](14-documentation.md)
+[← Architecture](10-architecture.md) · [Repository →](12-repository.md)

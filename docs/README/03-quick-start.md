@@ -1,6 +1,6 @@
 # Quick Start
 
-[← Installation](04-installation.md) · [Configuration Guide →](06-configuration.md)
+[← Installation](02-installation.md) · [Configuration →](04-configuration.md)
 
 ---
 
@@ -121,4 +121,4 @@ This config uses five small instruction-tuned models (SmolLM2 135M/360M/1.7B, Qw
 
 ---
 
-[← Installation](04-installation.md) · [Configuration Guide →](06-configuration.md)
+[← Installation](02-installation.md) · [Configuration →](04-configuration.md)

@@ -1,6 +1,6 @@
 # Repository Layout
 
-[← Analytics & Reports](11-analytics-reports.md) · [Testing →](13-testing.md)
+[← Testing](11-testing.md) · [Documentation →](13-documentation.md)
 
 ---
 
@@ -87,7 +87,7 @@ CoEval/
 ├── benchmark/                        # Benchmark configs and dataset tooling
 │   ├── mixed.yaml                    # Quick-start: real datasets + OpenAI (~$0.02)
 │   ├── paper_dual_track.yaml         # Paper-scale: 14 models × 4 tasks
-│   ├── education.yaml                # Education domain benchmark config (3 real + 10 synthetic tasks)
+│   ├── education.yaml                # Education domain benchmark config
 │   ├── setup_mixed.py                # Ingest XSum / CodeSearchNet / AESLC / WikiTQ
 │   ├── setup_education.py            # One-time ingestion for ARC-Challenge, RACE, SciQ
 │   ├── education_description.html    # Generated planning HTML for the education benchmark
@@ -111,26 +111,23 @@ CoEval/
 │
 ├── docs/
 │   ├── README/                       # Section-by-section README (this folder)
-│   │   ├── 01-why-coeval.md
-│   │   ├── 02-features.md
-│   │   ├── 03-architecture.md
-│   │   ├── 04-installation.md
-│   │   ├── 05-quick-start.md
-│   │   ├── 06-configuration.md
-│   │   ├── 07-interfaces.md
-│   │   ├── 08-cli-reference.md
-│   │   ├── 09-cost-control.md
-│   │   ├── 10-resume-recovery.md
-│   │   ├── 11-analytics-reports.md
-│   │   ├── 12-repository-layout.md
-│   │   ├── 13-testing.md
-│   │   └── 14-documentation.md
+│   │   ├── 01-overview.md            # Problem space, solution, features
+│   │   ├── 02-installation.md        # Requirements, install, extras, SDKs
+│   │   ├── 03-quick-start.md         # Three quick-start paths + workflow
+│   │   ├── 04-configuration.md       # Models, tasks, sampling, rubric, examples
+│   │   ├── 05-providers.md           # All 15 interfaces, pricing, batch, key file
+│   │   ├── 06-running.md             # Pipeline phases, modes, cost, quotas, use cases
+│   │   ├── 07-benchmarks.md          # Pre-ingested datasets, ingest, reproduce results
+│   │   ├── 08-reports.md             # All 11 report types, metrics, API, paper tables
+│   │   ├── 09-recovery.md            # Checkpointing, --continue, repair workflow
+│   │   ├── 10-architecture.md        # Five-phase pipeline, role assignment, storage
+│   │   ├── 11-testing.md             # Running tests, coverage areas, CI setup
+│   │   ├── 12-repository.md          # Annotated directory tree, key file index
+│   │   └── 13-documentation.md       # Documentation index
 │   │
 │   ├── cli_reference.md              # Complete CLI flag reference
 │   ├── tutorial.md                   # Step-by-step tutorial
-│   ├── running_experiments.md        # Production workflow guide
-│   ├── developer_guide.md            # Extending CoEval (new interfaces, phases, reports)
-│   └── extracting_benchmarks.md      # Guide: export Phase 3 data as shareable benchmark
+│   └── developer_guide.md            # Extending CoEval (new interfaces, phases, reports)
 │
 ├── examples/
 │   └── local_smoke_test.yaml         # 5 HuggingFace models, 2 tasks, no cloud APIs
@@ -160,4 +157,4 @@ CoEval/
 
 ---
 
-[← Analytics & Reports](11-analytics-reports.md) · [Testing →](13-testing.md)
+[← Testing](11-testing.md) · [Documentation →](13-documentation.md)

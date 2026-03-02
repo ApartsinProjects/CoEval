@@ -2,8 +2,8 @@
 
 [![Python ≥3.10](https://img.shields.io/badge/python-%E2%89%A53.10-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![Version 0.3.0](https://img.shields.io/badge/version-0.3.0-informational)](CHANGELOG.md)
-[![Tests 557 passing](https://img.shields.io/badge/tests-557%20passing-brightgreen)](docs/README/13-testing.md)
-[![Interfaces 15+](https://img.shields.io/badge/interfaces-15%2B-orange)](docs/README/07-interfaces.md)
+[![Tests 557 passing](https://img.shields.io/badge/tests-557%20passing-brightgreen)](docs/README/11-testing.md)
+[![Interfaces 15+](https://img.shields.io/badge/interfaces-15%2B-orange)](docs/README/05-providers.md)
 [![License MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
 ---
@@ -74,13 +74,15 @@ experiment:
 
 ## Examples
 
-Interactive HTML examples — open locally in any browser (no server or internet required):
+Interactive HTML examples — click to open rendered in browser:
 
 ### Experiment Planning
 
 | Example | Description |
 |---------|-------------|
-| [Education Benchmark — Planning View](benchmark/education_description.html) | Full experiment plan: 3 real-dataset tasks + 10 synthetic tasks, 6 models, per-phase call budget, cost table, and attribute maps |
+| [Education Benchmark — Planning View](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/benchmark/education_description.html) | Full experiment plan: 3 real-dataset tasks + 10 synthetic tasks, 6 models, per-phase call budget, cost table, and attribute maps |
+| [Mixed Benchmark — Planning View](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/benchmark/mixed_description.html) | Mixed benchmark plan: real benchmark datasets + OpenAI models |
+| [Paper Dual-Track — Planning View](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/benchmark/paper_dual_track_description.html) | Paper evaluation: dual-track design with benchmark + generative teachers |
 
 > **Generate your own planning view:**
 > ```bash
@@ -91,14 +93,14 @@ Interactive HTML examples — open locally in any browser (no server or internet
 
 | Report | Description |
 |--------|-------------|
-| [Student Performance Report](samples/analysis/coeval-demo-v2/coeval-demo-v2_student_report.html) | Per-student score breakdowns, task rankings, rubric factor heatmaps |
-| [Judge Consistency Report](samples/analysis/coeval-demo-v2/coeval-demo-v2_judge_consistency.html) | Inter-judge ICC agreement, calibration drift, flagged uncertain items |
-| [Robust Summary Report](samples/analysis/coeval-demo-v2/coeval-demo-v2_robust_summary.html) | Final model rankings with confidence intervals and robust ensemble weights |
-| [Score Distribution Report](samples/analysis/coeval-demo-v2/coeval-demo-v2_score_distribution.html) | High / Medium / Low histograms filterable by task, teacher, student, and judge |
-| [Teacher Report](samples/analysis/coeval-demo-v2/coeval-demo-v2_teacher_report.html) | Per-teacher source quality, attribute stratum coverage, data consistency |
-| [Interaction Matrix](samples/analysis/coeval-demo-v2/coeval-demo-v2_interaction_matrix.html) | Teacher × Student pair quality heatmap — spot which combinations succeed or fail |
-| [Coverage Summary](samples/analysis/coeval-demo-v2/coeval-demo-v2_coverage_summary.html) | Attribute Coverage Ratio (ACR) and rare-attribute recall per task |
-| [Judge Report](samples/analysis/coeval-demo-v2/coeval-demo-v2_judge_report.html) | Judge-level bias rates, score calibration, inter-rater reliability |
+| [Student Performance Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_student_report.html) | Per-student score breakdowns, task rankings, rubric factor heatmaps |
+| [Judge Consistency Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_judge_consistency.html) | Inter-judge ICC agreement, calibration drift, flagged uncertain items |
+| [Robust Summary Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_robust_summary.html) | Final model rankings with confidence intervals and robust ensemble weights |
+| [Score Distribution Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_score_distribution.html) | High / Medium / Low histograms filterable by task, teacher, student, and judge |
+| [Teacher Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_teacher_report.html) | Per-teacher source quality, attribute stratum coverage, data consistency |
+| [Interaction Matrix](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_interaction_matrix.html) | Teacher × Student pair quality heatmap — spot which combinations succeed or fail |
+| [Coverage Summary](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_coverage_summary.html) | Attribute Coverage Ratio (ACR) and rare-attribute recall per task |
+| [Judge Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/samples/analysis/coeval-demo-v2/coeval-demo-v2_judge_report.html) | Judge-level bias rates, score calibration, inter-rater reliability |
 
 > **Generate all reports from a completed run:**
 > ```bash
@@ -112,13 +114,12 @@ Interactive HTML examples — open locally in any browser (no server or internet
 | Guide | What it covers |
 |-------|----------------|
 | [Evaluation Experiment Planning and Preparation Guide](docs/tutorial.md) | End-to-end walkthrough: installation, config design, probing, running, analysis, and benchmark export |
-| [Command Line Option Reference](docs/cli_reference.md) | Every `coeval` subcommand, flag, and exit code — `run`, `probe`, `plan`, `generate`, `status`, `models`, `analyze`, `describe`, `wizard`, `ingest`, `report` |
-| [Running, Resuming and Querying Status of the Experiments](docs/running_experiments.md) | Phase modes (New / Keep / Extend / Model), `--continue`, `--status`, batch API, quota control, fault recovery |
-| [Analyzing experiment reports](manuals/03_analysis_and_reporting.md) | 8 interactive HTML dashboards, paper-quality result tables, Excel workbook export |
-| [Formats the experiment data](docs/README/06-configuration.md) | YAML config schema: models, tasks, attributes, rubric, sampling, prompt overrides, experiment settings |
-| [Extracting reusable benchmarks](docs/extracting_benchmarks.md) | Export Phase 3 data as a shareable, versioned benchmark; `coeval ingest` format; reproducing published results |
-| [Ingest Public Benchmarks for Comparison](manuals/02_benchmark_experiments.md) | Load XSum, CodeSearchNet, AESLC, WikiTableQuestions and custom datasets; `interface: benchmark` virtual teacher |
-| [Exporting experiment data and summary](docs/README/11-analytics-reports.md) | Complete Excel workbook, per-report CSV tables, self-contained offline HTML packages |
+| [Command Line Option Reference](docs/cli_reference.md) | Every `coeval` subcommand, flag, and exit code — `run`, `probe`, `plan`, `generate`, `status`, `models`, `analyze`, `describe`, `wizard`, `ingest`, `repair` |
+| [Running Experiments](docs/README/06-running.md) | Phase modes, `--continue`, batch API, quota control, cost estimation, fault recovery, use-case examples |
+| [Providers & Pricing](docs/README/05-providers.md) | All 15 interfaces with auth, batch support, code examples, and pricing tables |
+| [Analytics & Reports](docs/README/08-reports.md) | 11 interactive HTML dashboards, paper-quality result tables, programmatic API, Excel workbook export |
+| [Configuration Guide](docs/README/04-configuration.md) | YAML config schema: models, tasks, attributes, rubric, sampling, prompt overrides, experiment settings |
+| [Benchmark Datasets](docs/README/07-benchmarks.md) | Pre-ingested datasets, `coeval ingest`, `interface: benchmark` virtual teacher, reproducing published results |
 
 ---
 
