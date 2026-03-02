@@ -6,6 +6,8 @@
 
 CoEval orchestrates LLM evaluation through a structured five-phase pipeline. Every phase is independently checkpointed, resumable, and configurable. A single YAML file drives everything.
 
+> **Code entry point:** [`Code/runner/cli.py`](../../Code/runner/cli.py) → [`Code/runner/runner.py`](../../Code/runner/runner.py) orchestrates the five phases; config is loaded and validated by [`Code/runner/config.py`](../../Code/runner/config.py).
+
 ## Pipeline Overview
 
 ```
@@ -49,6 +51,8 @@ CoEval orchestrates LLM evaluation through a structured five-phase pipeline. Eve
 
 ### Phase 1 — Attribute Mapping (`attribute_mapping`)
 
+> **Code:** [`Code/runner/phases/phase1.py`](../../Code/runner/phases/phase1.py)
+
 Teacher models map each task onto a set of **target attributes** — the structural dimensions that define the evaluation space (e.g., `{domain: [politics, sports, tech], length: [short, long]}`).
 
 - Runs only when `target_attributes: auto` or `target_attributes: complete` is set
@@ -57,6 +61,8 @@ Teacher models map each task onto a set of **target attributes** — the structu
 - Output written to `{task_name}.attributes.json` per task
 
 ### Phase 2 — Rubric Mapping (`rubric_mapping`)
+
+> **Code:** [`Code/runner/phases/phase2.py`](../../Code/runner/phases/phase2.py)
 
 Teacher models generate the **evaluation rubric** — a set of named criteria against which judge models will score student responses.
 
@@ -67,6 +73,8 @@ Teacher models generate the **evaluation rubric** — a set of named criteria ag
 
 ### Phase 3 — Data Generation (`data_generation`)
 
+> **Code:** [`Code/runner/phases/phase3.py`](../../Code/runner/phases/phase3.py)
+
 Teacher models produce **(prompt, reference_response)** pairs — the benchmark items. Each item is drawn from a sampled combination of target and nuanced attributes.
 
 - `benchmark` interface teachers are skipped (data pre-ingested via `coeval ingest`)
@@ -75,6 +83,8 @@ Teacher models produce **(prompt, reference_response)** pairs — the benchmark 
 - Retry logic handles transient API failures (`generation_retries`)
 
 ### Phase 4 — Response Collection (`response_collection`)
+
+> **Code:** [`Code/runner/phases/phase4.py`](../../Code/runner/phases/phase4.py) · Interfaces: [`Code/runner/interfaces/pool.py`](../../Code/runner/interfaces/pool.py)
 
 Student models receive Phase 3 prompts and generate responses. Every (task, teacher, student) triple produces a JSONL file of student outputs.
 
@@ -85,10 +95,13 @@ Student models receive Phase 3 prompts and generate responses. Every (task, teac
 
 ### Phase 5 — Evaluation (`evaluation`)
 
+> **Code:** [`Code/runner/phases/phase5.py`](../../Code/runner/phases/phase5.py) · Label eval: [`Code/runner/label_eval.py`](../../Code/runner/label_eval.py)
+
 Judge models score each student response against the rubric using the (prompt, student_response, reference_response) triple.
 
 - **`evaluation_mode: single`** — one call per response; judge returns all rubric dimension scores at once
 - **`evaluation_mode: per_factor`** — one call per rubric dimension per response; maximum granularity, higher cost
+- When `label_attributes` is set, `LabelEvaluator` performs exact-match scoring without a judge call
 - Batch API support as in Phase 4
 - Output written to `{task_name}__{teacher_name}__{judge_name}.evaluations.jsonl`
 
@@ -143,6 +156,34 @@ Each experiment writes to `{storage_folder}/{experiment_id}/`:
 ├── {task}__{teacher}__{student}.responses.jsonl  # Phase 4 output
 └── {task}__{teacher}__{judge}.evaluations.jsonl  # Phase 5 output
 ```
+
+---
+
+## Code Reference
+
+Key source files by architectural area:
+
+| Area | File |
+|------|------|
+| CLI entry point | [`Code/runner/cli.py`](../../Code/runner/cli.py) |
+| Pipeline orchestration | [`Code/runner/runner.py`](../../Code/runner/runner.py) |
+| Config loading + validation (V-01–V-17) | [`Code/runner/config.py`](../../Code/runner/config.py) |
+| Storage / filesystem I/O (EES) | [`Code/runner/storage.py`](../../Code/runner/storage.py) |
+| Phase 1 — attribute mapping | [`Code/runner/phases/phase1.py`](../../Code/runner/phases/phase1.py) |
+| Phase 2 — rubric mapping | [`Code/runner/phases/phase2.py`](../../Code/runner/phases/phase2.py) |
+| Phase 3 — data generation | [`Code/runner/phases/phase3.py`](../../Code/runner/phases/phase3.py) |
+| Phase 4 — response collection | [`Code/runner/phases/phase4.py`](../../Code/runner/phases/phase4.py) |
+| Phase 5 — evaluation | [`Code/runner/phases/phase5.py`](../../Code/runner/phases/phase5.py) |
+| Label evaluation (exact-match) | [`Code/runner/label_eval.py`](../../Code/runner/label_eval.py) |
+| Model interface factory | [`Code/runner/interfaces/pool.py`](../../Code/runner/interfaces/pool.py) |
+| Credential resolution + key loading | [`Code/runner/interfaces/registry.py`](../../Code/runner/interfaces/registry.py) |
+| Cost estimation | [`Code/runner/interfaces/cost_estimator.py`](../../Code/runner/interfaces/cost_estimator.py) |
+| Pre-run model probe | [`Code/runner/interfaces/probe.py`](../../Code/runner/interfaces/probe.py) |
+| `coeval ingest` benchmark adapters | [`Code/runner/benchmarks/registry.py`](../../Code/runner/benchmarks/registry.py) |
+| CLI subcommand implementations | [`Code/runner/commands/`](../../Code/runner/commands/) |
+| Analysis & reporting | [`Code/analyzer/`](../../Code/analyzer/) |
+| Benchmark dataset loaders | [`Public/benchmark/loaders/`](../../Public/benchmark/loaders/) |
+| Benchmark-native metric scoring | [`Public/benchmark/compute_scores.py`](../../Public/benchmark/compute_scores.py) |
 
 ---
 
