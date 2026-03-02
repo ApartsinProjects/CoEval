@@ -267,7 +267,7 @@
   <div class="exp-id">experiment: <b>paper-dual-track-v1</b></div>
   <div class="meta">
     Config: <code style="background:rgba(255,255,255,.15);color:#fff">E:\Projects\CoEval\main\benchmark\paper_dual_track.yaml</code>
-    &nbsp;&nbsp;|&nbsp;&nbsp;Generated: 2026-03-02 03:13 UTC
+    &nbsp;&nbsp;|&nbsp;&nbsp;Generated: 2026-03-02 03:22 UTC
     &nbsp;&nbsp;|&nbsp;&nbsp;Storage: <code style="background:rgba(255,255,255,.15);color:#fff">./benchmark/runs</code>
   </div>
 </div>
@@ -278,7 +278,7 @@
     <div class="lbl">Models</div>
   </div>
   <div class="stat">
-    <div class="val">4 LLM + 4 benchmark</div>
+    <div class="val">10 LLM + 4 benchmark</div>
     <div class="lbl">Teachers</div>
   </div>
   <div class="stat">
@@ -286,7 +286,7 @@
     <div class="lbl">Students</div>
   </div>
   <div class="stat">
-    <div class="val">5</div>
+    <div class="val">10</div>
     <div class="lbl">Judges</div>
   </div>
   <div class="stat">
@@ -294,10 +294,10 @@
     <div class="lbl">Tasks</div>
   </div>
   <div class="stat">
-    <div class="val">193,600</div>
+    <div class="val">620,000</div>
     <div class="lbl">LLM Calls (est.)</div>
   </div>
-  <div class="stat"><div class="val">$113.99</div><div class="lbl">Est. Cost (USD)</div></div>
+  <div class="stat"><div class="val">$224.56</div><div class="lbl">Est. Cost (USD)</div></div>
 </div>
 
 <div class="container">
@@ -365,17 +365,17 @@
           <td class="model-name">🟠 claude-sonnet-4-6</td>
           <td><code>anthropic</code></td>
           <td><code class="model-id">claude-sonnet-4-6</code></td>
-          <td><span class="role-badge" style="background:#dcfce7;color:#16a34a">student</span> <span class="role-badge" style="background:#f3e8ff;color:#9333ea">judge</span> </td>
+          <td><span class="role-badge" style="background:#dbeafe;color:#2563eb">teacher</span> <span class="role-badge" style="background:#dcfce7;color:#16a34a">student</span> <span class="role-badge" style="background:#f3e8ff;color:#9333ea">judge</span> </td>
           <td class="small-text">temperature=0.7, max_tokens=512</td>
-          <td class="small-text"><span class="role-badge" style="background:#dcfce7;color:#16a34a;font-size:0.75rem">student</span>: temperature=0.7, max_tokens=512<br><span class="role-badge" style="background:#f3e8ff;color:#9333ea;font-size:0.75rem">judge</span>: temperature=0.0, max_tokens=256<br></td>
+          <td class="small-text"><span class="role-badge" style="background:#dbeafe;color:#2563eb;font-size:0.75rem">teacher</span>: temperature=0.8, max_tokens=768<br><span class="role-badge" style="background:#dcfce7;color:#16a34a;font-size:0.75rem">student</span>: temperature=0.7, max_tokens=512<br><span class="role-badge" style="background:#f3e8ff;color:#9333ea;font-size:0.75rem">judge</span>: temperature=0.0, max_tokens=256<br></td>
         </tr>
         <tr>
           <td class="model-name">🟠 claude-3-5-haiku</td>
           <td><code>anthropic</code></td>
           <td><code class="model-id">claude-3-5-haiku-20241022</code></td>
-          <td><span class="role-badge" style="background:#dcfce7;color:#16a34a">student</span> <span class="role-badge" style="background:#f3e8ff;color:#9333ea">judge</span> </td>
+          <td><span class="role-badge" style="background:#dbeafe;color:#2563eb">teacher</span> <span class="role-badge" style="background:#dcfce7;color:#16a34a">student</span> <span class="role-badge" style="background:#f3e8ff;color:#9333ea">judge</span> </td>
           <td class="small-text">temperature=0.7, max_tokens=512</td>
-          <td class="small-text"><span class="role-badge" style="background:#dcfce7;color:#16a34a;font-size:0.75rem">student</span>: temperature=0.7, max_tokens=512<br><span class="role-badge" style="background:#f3e8ff;color:#9333ea;font-size:0.75rem">judge</span>: temperature=0.0, max_tokens=256<br></td>
+          <td class="small-text"><span class="role-badge" style="background:#dbeafe;color:#2563eb;font-size:0.75rem">teacher</span>: temperature=0.8, max_tokens=768<br><span class="role-badge" style="background:#dcfce7;color:#16a34a;font-size:0.75rem">student</span>: temperature=0.7, max_tokens=512<br><span class="role-badge" style="background:#f3e8ff;color:#9333ea;font-size:0.75rem">judge</span>: temperature=0.0, max_tokens=256<br></td>
         </tr>
         <tr>
           <td class="model-name">🔵 gemini-2.0-flash</td>
@@ -389,41 +389,41 @@
           <td class="model-name">🔴 llama-3.3-70b</td>
           <td><code>openrouter</code></td>
           <td><code class="model-id">meta-llama/llama-3.3-70b-instruct</code></td>
-          <td><span class="role-badge" style="background:#dbeafe;color:#2563eb">teacher</span> <span class="role-badge" style="background:#dcfce7;color:#16a34a">student</span> </td>
+          <td><span class="role-badge" style="background:#dbeafe;color:#2563eb">teacher</span> <span class="role-badge" style="background:#dcfce7;color:#16a34a">student</span> <span class="role-badge" style="background:#f3e8ff;color:#9333ea">judge</span> </td>
           <td class="small-text">temperature=0.7, max_tokens=512</td>
-          <td class="small-text"><span class="role-badge" style="background:#dbeafe;color:#2563eb;font-size:0.75rem">teacher</span>: temperature=0.8, max_tokens=768<br><span class="role-badge" style="background:#dcfce7;color:#16a34a;font-size:0.75rem">student</span>: temperature=0.7, max_tokens=512<br></td>
+          <td class="small-text"><span class="role-badge" style="background:#dbeafe;color:#2563eb;font-size:0.75rem">teacher</span>: temperature=0.8, max_tokens=768<br><span class="role-badge" style="background:#dcfce7;color:#16a34a;font-size:0.75rem">student</span>: temperature=0.7, max_tokens=512<br><span class="role-badge" style="background:#f3e8ff;color:#9333ea;font-size:0.75rem">judge</span>: temperature=0.0, max_tokens=256<br></td>
         </tr>
         <tr>
           <td class="model-name">🔴 llama-3.1-8b</td>
           <td><code>openrouter</code></td>
           <td><code class="model-id">meta-llama/llama-3.1-8b-instruct</code></td>
-          <td><span class="role-badge" style="background:#dcfce7;color:#16a34a">student</span> </td>
+          <td><span class="role-badge" style="background:#dbeafe;color:#2563eb">teacher</span> <span class="role-badge" style="background:#dcfce7;color:#16a34a">student</span> <span class="role-badge" style="background:#f3e8ff;color:#9333ea">judge</span> </td>
           <td class="small-text">temperature=0.7, max_tokens=512</td>
-          <td class="small-text">—</td>
+          <td class="small-text"><span class="role-badge" style="background:#dbeafe;color:#2563eb;font-size:0.75rem">teacher</span>: temperature=0.8, max_tokens=768<br><span class="role-badge" style="background:#dcfce7;color:#16a34a;font-size:0.75rem">student</span>: temperature=0.7, max_tokens=512<br><span class="role-badge" style="background:#f3e8ff;color:#9333ea;font-size:0.75rem">judge</span>: temperature=0.0, max_tokens=256<br></td>
         </tr>
         <tr>
           <td class="model-name">🔴 mistral-small</td>
           <td><code>openrouter</code></td>
           <td><code class="model-id">mistralai/mistral-small-24b</code></td>
-          <td><span class="role-badge" style="background:#dcfce7;color:#16a34a">student</span> </td>
+          <td><span class="role-badge" style="background:#dbeafe;color:#2563eb">teacher</span> <span class="role-badge" style="background:#dcfce7;color:#16a34a">student</span> <span class="role-badge" style="background:#f3e8ff;color:#9333ea">judge</span> </td>
           <td class="small-text">temperature=0.7, max_tokens=512</td>
-          <td class="small-text">—</td>
+          <td class="small-text"><span class="role-badge" style="background:#dbeafe;color:#2563eb;font-size:0.75rem">teacher</span>: temperature=0.8, max_tokens=768<br><span class="role-badge" style="background:#dcfce7;color:#16a34a;font-size:0.75rem">student</span>: temperature=0.7, max_tokens=512<br><span class="role-badge" style="background:#f3e8ff;color:#9333ea;font-size:0.75rem">judge</span>: temperature=0.0, max_tokens=256<br></td>
         </tr>
         <tr>
           <td class="model-name">🔴 deepseek-v3</td>
           <td><code>openrouter</code></td>
           <td><code class="model-id">deepseek/deepseek-chat</code></td>
-          <td><span class="role-badge" style="background:#dcfce7;color:#16a34a">student</span> </td>
+          <td><span class="role-badge" style="background:#dbeafe;color:#2563eb">teacher</span> <span class="role-badge" style="background:#dcfce7;color:#16a34a">student</span> <span class="role-badge" style="background:#f3e8ff;color:#9333ea">judge</span> </td>
           <td class="small-text">temperature=0.7, max_tokens=512</td>
-          <td class="small-text">—</td>
+          <td class="small-text"><span class="role-badge" style="background:#dbeafe;color:#2563eb;font-size:0.75rem">teacher</span>: temperature=0.8, max_tokens=768<br><span class="role-badge" style="background:#dcfce7;color:#16a34a;font-size:0.75rem">student</span>: temperature=0.7, max_tokens=512<br><span class="role-badge" style="background:#f3e8ff;color:#9333ea;font-size:0.75rem">judge</span>: temperature=0.0, max_tokens=256<br></td>
         </tr>
         <tr>
           <td class="model-name">🔴 qwen2.5-72b</td>
           <td><code>openrouter</code></td>
           <td><code class="model-id">qwen/qwen-2.5-72b-instruct</code></td>
-          <td><span class="role-badge" style="background:#dcfce7;color:#16a34a">student</span> </td>
+          <td><span class="role-badge" style="background:#dbeafe;color:#2563eb">teacher</span> <span class="role-badge" style="background:#dcfce7;color:#16a34a">student</span> <span class="role-badge" style="background:#f3e8ff;color:#9333ea">judge</span> </td>
           <td class="small-text">temperature=0.7, max_tokens=512</td>
-          <td class="small-text">—</td>
+          <td class="small-text"><span class="role-badge" style="background:#dbeafe;color:#2563eb;font-size:0.75rem">teacher</span>: temperature=0.8, max_tokens=768<br><span class="role-badge" style="background:#dcfce7;color:#16a34a;font-size:0.75rem">student</span>: temperature=0.7, max_tokens=512<br><span class="role-badge" style="background:#f3e8ff;color:#9333ea;font-size:0.75rem">judge</span>: temperature=0.0, max_tokens=256<br></td>
         </tr></tbody>
     </table>
   </div>
@@ -697,24 +697,24 @@ Return only a JSON object where each key is a rubric factor name and each value 
         <tr>
           <td class="phase-name">Data Generation</td>
           <td><span class="mode-badge mode-keep">Keep</span></td>
-          <td class="calls-count"><b>1,600</b></td>
-          <td class="phase-note">400 items × 4 active teachers <span class="batch-badge">batch: openai, anthropic, gemini</span></td>
+          <td class="calls-count"><b>4,000</b></td>
+          <td class="phase-note">400 items × 10 active teachers <span class="batch-badge">batch: openai, anthropic, gemini</span></td>
         </tr>
         <tr>
           <td class="phase-name">Response Collection</td>
           <td><span class="mode-badge mode-new">New</span></td>
-          <td class="calls-count"><b>32,000</b></td>
-          <td class="phase-note">3200 datapoints × 10 students <span class="batch-badge">batch: openai, anthropic, gemini</span></td>
+          <td class="calls-count"><b>56,000</b></td>
+          <td class="phase-note">5600 datapoints × 10 students <span class="batch-badge">batch: openai, anthropic, gemini</span></td>
         </tr>
         <tr>
           <td class="phase-name">Evaluation</td>
           <td><span class="mode-badge mode-new">New</span></td>
-          <td class="calls-count"><b>160,000</b></td>
-          <td class="phase-note">32000 responses × 5 judges <span class="batch-badge">batch: openai, anthropic, gemini</span></td>
+          <td class="calls-count"><b>560,000</b></td>
+          <td class="phase-note">56000 responses × 10 judges <span class="batch-badge">batch: openai, anthropic, gemini</span></td>
         </tr>
         <tr class="total-row">
           <td colspan="2">Total LLM Calls</td>
-          <td class="calls-count"><b>193,600</b></td>
+          <td class="calls-count"><b>620,000</b></td>
           <td class="phase-note">Upper-bound estimate across all models</td>
         </tr>
       </tbody>
@@ -729,7 +729,7 @@ Return only a JSON object where each key is a rubric factor name and each value 
       Estimates use average token-count heuristics and current prices from
       <code>benchmark/provider_pricing.yaml</code>. Actual cost may vary by ±30%.
     </p>
-    <p class="savings-note">💚 Batch API saves an estimated <b>$112.76</b> vs. real-time pricing (50% discount applied).</p>
+    <p class="savings-note">💚 Batch API saves an estimated <b>$197.99</b> vs. real-time pricing (47% discount applied).</p>
     <div class="cost-grid">
       <div class="cost-col">
         <h4>Per Phase</h4>
@@ -739,11 +739,11 @@ Return only a JSON object where each key is a rubric factor name and each value 
             <th style="text-align:right">Cost</th>
             <th style="text-align:right">Batch saving</th>
           </tr></thead>
-          <tbody><tr class="zero-row"><td class='phase-name'>Attribute Mapping</td><td class='calls-count'>—</td><td class='cost-val'>—</td><td class='saving-val'>—</td></tr><tr class="zero-row"><td class='phase-name'>Rubric Mapping</td><td class='calls-count'>—</td><td class='cost-val'>—</td><td class='saving-val'>—</td></tr><tr><td class='phase-name'>Data Generation</td><td class='calls-count'>1,600</td><td class='cost-val'>$0.80</td><td class='saving-val'><span class='saving'>−$0.74</span></td></tr><tr><td class='phase-name'>Response Collection</td><td class='calls-count'>32,000</td><td class='cost-val'>$11.91</td><td class='saving-val'><span class='saving'>−$10.74</span></td></tr><tr><td class='phase-name'>Evaluation</td><td class='calls-count'>160,000</td><td class='cost-val'>$101.28</td><td class='saving-val'><span class='saving'>−$101.28</span></td></tr></tbody>
+          <tbody><tr class="zero-row"><td class='phase-name'>Attribute Mapping</td><td class='calls-count'>—</td><td class='cost-val'>—</td><td class='saving-val'>—</td></tr><tr class="zero-row"><td class='phase-name'>Rubric Mapping</td><td class='calls-count'>—</td><td class='cost-val'>—</td><td class='saving-val'>—</td></tr><tr><td class='phase-name'>Data Generation</td><td class='calls-count'>4,000</td><td class='cost-val'>$2.18</td><td class='saving-val'><span class='saving'>−$1.96</span></td></tr><tr><td class='phase-name'>Response Collection</td><td class='calls-count'>56,000</td><td class='cost-val'>$20.84</td><td class='saving-val'><span class='saving'>−$18.79</span></td></tr><tr><td class='phase-name'>Evaluation</td><td class='calls-count'>560,000</td><td class='cost-val'>$201.54</td><td class='saving-val'><span class='saving'>−$177.24</span></td></tr></tbody>
           <tfoot><tr class="total-row">
             <td colspan="2"><b>Total</b></td>
-            <td class="cost-val"><b>$113.99</b></td>
-            <td class="saving-val"><span class="saving">−$112.76</span></td>
+            <td class="cost-val"><b>$224.56</b></td>
+            <td class="saving-val"><span class="saving">−$197.99</span></td>
           </tr></tfoot>
         </table>
       </div>
@@ -755,7 +755,7 @@ Return only a JSON object where each key is a rubric factor name and each value 
             <th style="text-align:right">Cost</th>
             <th>Models</th>
           </tr></thead>
-          <tbody><tr><td>🟠 <b>anthropic</b> <span class="batch-badge" style="font-size:0.72rem">batch</span></td><td class='calls-count'>70,400</td><td class='cost-val'>$67.49</td><td class='small-text'>claude-sonnet-4-6, claude-3-5-haiku</td></tr><tr><td>🟢 <b>openai</b> <span class="batch-badge" style="font-size:0.72rem">batch</span></td><td class='calls-count'>71,200</td><td class='cost-val'>$43.62</td><td class='small-text'>gpt-4o, gpt-4o-mini</td></tr><tr><td>🔵 <b>gemini</b> <span class="batch-badge" style="font-size:0.72rem">batch</span></td><td class='calls-count'>35,600</td><td class='cost-val'>$1.65</td><td class='small-text'>gemini-2.0-flash</td></tr><tr><td>🔴 <b>openrouter</b> </td><td class='calls-count'>16,400</td><td class='cost-val'>$1.23</td><td class='small-text'>llama-3.3-70b, llama-3.1-8b, mistral-small, deepseek-v3, qwen2.5-72b</td></tr></tbody>
+          <tbody><tr><td>🟠 <b>anthropic</b> <span class="batch-badge" style="font-size:0.72rem">batch</span></td><td class='calls-count'>124,000</td><td class='cost-val'>$119.32</td><td class='small-text'>claude-sonnet-4-6, claude-3-5-haiku</td></tr><tr><td>🟢 <b>openai</b> <span class="batch-badge" style="font-size:0.72rem">batch</span></td><td class='calls-count'>124,000</td><td class='cost-val'>$75.81</td><td class='small-text'>gpt-4o, gpt-4o-mini</td></tr><tr><td>🔴 <b>openrouter</b> </td><td class='calls-count'>310,000</td><td class='cost-val'>$26.58</td><td class='small-text'>llama-3.3-70b, llama-3.1-8b, mistral-small, deepseek-v3, qwen2.5-72b</td></tr><tr><td>🔵 <b>gemini</b> <span class="batch-badge" style="font-size:0.72rem">batch</span></td><td class='calls-count'>62,000</td><td class='cost-val'>$2.86</td><td class='small-text'>gemini-2.0-flash</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -770,7 +770,7 @@ Return only a JSON object where each key is a rubric factor name and each value 
     <p><b>Batch API enabled:</b> <span class="batch-badge">openai/data_generation</span>, <span class="batch-badge">openai/response_collection</span>, <span class="batch-badge">openai/evaluation</span>, <span class="batch-badge">anthropic/data_generation</span>, <span class="batch-badge">anthropic/response_collection</span>, <span class="batch-badge">anthropic/evaluation</span>, <span class="batch-badge">gemini/data_generation</span>, <span class="batch-badge">gemini/response_collection</span>, <span class="batch-badge">gemini/evaluation</span> &nbsp;(50% cost reduction per API provider)</p>
     <br>
     <h4 style="font-size:0.85rem;color:#374151;margin-bottom:8px">Per-model call quotas</h4>
-    <table class="quota-table"><thead><tr><th>Model</th><th>Max calls</th></tr></thead><tbody><tr><td>gpt-4o</td><td>27,000</td></tr><tr><td>gpt-4o-mini</td><td>27,000</td></tr><tr><td>claude-sonnet-4-6</td><td>27,000</td></tr><tr><td>claude-3-5-haiku</td><td>27,000</td></tr><tr><td>gemini-2.0-flash</td><td>27,000</td></tr><tr><td>llama-3.3-70b</td><td>3,000</td></tr><tr><td>llama-3.1-8b</td><td>2,500</td></tr><tr><td>mistral-small</td><td>2,500</td></tr><tr><td>deepseek-v3</td><td>2,500</td></tr><tr><td>qwen2.5-72b</td><td>2,500</td></tr></tbody></table>
+    <table class="quota-table"><thead><tr><th>Model</th><th>Max calls</th></tr></thead><tbody><tr><td>gpt-4o</td><td>60,000</td></tr><tr><td>gpt-4o-mini</td><td>60,000</td></tr><tr><td>claude-sonnet-4-6</td><td>60,000</td></tr><tr><td>claude-3-5-haiku</td><td>60,000</td></tr><tr><td>gemini-2.0-flash</td><td>60,000</td></tr><tr><td>llama-3.3-70b</td><td>60,000</td></tr><tr><td>llama-3.1-8b</td><td>60,000</td></tr><tr><td>mistral-small</td><td>60,000</td></tr><tr><td>deepseek-v3</td><td>60,000</td></tr><tr><td>qwen2.5-72b</td><td>60,000</td></tr></tbody></table>
   </div>
 
 </div>

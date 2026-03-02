@@ -17,9 +17,12 @@
 # Model design
 # ─# ─# ─# ─# ─# ─
 #   • 10 SOTA models, API-only (no local GPU required)
-#   • 5 frontier API models play ALL THREE roles (teacher + student + judge)
-#   • 5 open models via OpenRouter play student (+ Llama 70B plays teacher)
+#   • All 10 LLM models play ALL THREE roles (teacher + student + judge)
+#   • 4 benchmark virtual teachers (xsum, codesearchnet-python, aeslc,
+#     wikitablequestions) play teacher only (pre-ingested, no API calls)
 #   • Batch API enabled for OpenAI, Anthropic, and Gemini → 50% cost reduction
+#   • OpenRouter models (llama-3.3-70b, llama-3.1-8b, mistral-small,
+#     deepseek-v3, qwen2.5-72b) use real-time API (no batch discount)
 #
 # Rubric design
 # ─# ─# ─# ─# ─# ─# ─
@@ -30,17 +33,20 @@
 #     email_composition   → content_fidelity  [BA: BERTScore-F1]
 #     data_interpretation → numerical_accuracy [BA: exact-match accuracy]
 #
-# Cost estimate (100 items/task per teacher, 4 tasks, batch pricing)
-# ═══════════════════════════════════════════════════════════════════
-#   Track A:  4 benchmark teachers (xsum, codesearchnet-python, aeslc,
-#             wikitablequestions) — pre-ingested, 0 API calls
-#   Track B:  4 LLM teachers (gpt-4o, gpt-4o-mini, gemini-2.0-flash,
-#             llama-3.3-70b) — generate 100 items × 4 tasks each
+# Cost estimate (100 items/task per teacher, 4 tasks, batch pricing where available)
+# ══════════════════════════════════════════════════════════════════════════════════
+#   Track A:  4 benchmark virtual teachers — pre-ingested, 0 API calls
+#   Track B:  10 LLM teachers — each generates 100 items × 4 tasks = 400 calls
 #
-#   Phase 3 (synthetic):  4 LLM teachers × 400 items       ≈  $3
-#   Phase 4 (responses): 10 students × 8 teachers × 400    ≈ $30
-#   Phase 5 (evaluation): 3 judges × 10s × 8t × 400        ≈ $36
-#   Total estimated                                         ≈ $69
+#   Datapoints per task:  10 LLM × 100 + 1 benchmark × 100 = 1,100
+#   Total Phase 3 datapoints: 4,400  (400 benchmark + 4,000 synthetic)
+#
+#   Phase 3 (synthetic):  10 LLM teachers × 400 items          ≈  $8
+#   Phase 4 (responses):  10 students × 4,400 datapoints       ≈ $44
+#   Phase 5 (evaluation): 10 judges × 44,000 responses         ≈ $440
+#   ─────────────────────────────────────────────────────────────────
+#   Total estimated                                             ≈ $492
+#   (Batch discount applied to OpenAI/Anthropic/Gemini; OpenRouter is real-time)
 #   (Run `coeval describe --config benchmark/paper_dual_track.yaml` for exact estimate)
 #
 # Setup
@@ -158,8 +164,11 @@ models:
       model: claude-sonnet-4-6
       temperature: 0.7
       max_tokens: 512
-    roles: [student, judge]
+    roles: [teacher, student, judge]
     role_parameters:
+      teacher:
+        temperature: 0.8
+        max_tokens: 768
       student:
         temperature: 0.7
         max_tokens: 512
@@ -173,8 +182,11 @@ models:
       model: claude-3-5-haiku-20241022
       temperature: 0.7
       max_tokens: 512
-    roles: [student, judge]
+    roles: [teacher, student, judge]
     role_parameters:
+      teacher:
+        temperature: 0.8
+        max_tokens: 768
       student:
         temperature: 0.7
         max_tokens: 512
@@ -200,7 +212,7 @@ models:
         temperature: 0.0
         max_tokens: 256
 
-  # ── Open models via OpenRouter (student; Llama-70B also teacher) ─────────
+  # ── Open models via OpenRouter (all roles — no batch discount) ──────────
 
   - name: llama-3.3-70b
     interface: openrouter
@@ -208,7 +220,7 @@ models:
       model: meta-llama/llama-3.3-70b-instruct
       temperature: 0.7
       max_tokens: 512
-    roles: [teacher, student]
+    roles: [teacher, student, judge]
     role_parameters:
       teacher:
         temperature: 0.8
@@ -216,6 +228,9 @@ models:
       student:
         temperature: 0.7
         max_tokens: 512
+      judge:
+        temperature: 0.0
+        max_tokens: 256
 
   - name: llama-3.1-8b
     interface: openrouter
@@ -223,7 +238,17 @@ models:
       model: meta-llama/llama-3.1-8b-instruct
       temperature: 0.7
       max_tokens: 512
-    roles: [student]
+    roles: [teacher, student, judge]
+    role_parameters:
+      teacher:
+        temperature: 0.8
+        max_tokens: 768
+      student:
+        temperature: 0.7
+        max_tokens: 512
+      judge:
+        temperature: 0.0
+        max_tokens: 256
 
   - name: mistral-small
     interface: openrouter
@@ -231,7 +256,17 @@ models:
       model: mistralai/mistral-small-24b
       temperature: 0.7
       max_tokens: 512
-    roles: [student]
+    roles: [teacher, student, judge]
+    role_parameters:
+      teacher:
+        temperature: 0.8
+        max_tokens: 768
+      student:
+        temperature: 0.7
+        max_tokens: 512
+      judge:
+        temperature: 0.0
+        max_tokens: 256
 
   - name: deepseek-v3
     interface: openrouter
@@ -239,7 +274,17 @@ models:
       model: deepseek/deepseek-chat
       temperature: 0.7
       max_tokens: 512
-    roles: [student]
+    roles: [teacher, student, judge]
+    role_parameters:
+      teacher:
+        temperature: 0.8
+        max_tokens: 768
+      student:
+        temperature: 0.7
+        max_tokens: 512
+      judge:
+        temperature: 0.0
+        max_tokens: 256
 
   - name: qwen2.5-72b
     interface: openrouter
@@ -247,7 +292,17 @@ models:
       model: qwen/qwen-2.5-72b-instruct
       temperature: 0.7
       max_tokens: 512
-    roles: [student]
+    roles: [teacher, student, judge]
+    role_parameters:
+      teacher:
+        temperature: 0.8
+        max_tokens: 768
+      student:
+        temperature: 0.7
+        max_tokens: 512
+      judge:
+        temperature: 0.0
+        max_tokens: 256
 
 
 # ─── TASKS ─────────────────────────────────────────────────────────────────
@@ -578,31 +633,28 @@ experiment:
       response_collection: true
       evaluation:          true
 
-  # ── Per-model quota (safety ceiling) ───────────────────────────────────────────
-  # Phase 3 (LLM teacher):    4 teachers × 4 tasks × 100 items  = 1,600 (400/teacher)
-  # Phase 4 (student):        10 students × 2,000 datapoints     = 20,000 (2,000/student)
-  #   (datapoints: 5 teachers × 100 items × 4 tasks = 2,000 total)
-  # Phase 5 (judge):          3 judges × 20,000 responses        = 60,000 (20,000/judge)
-  # Per-model max = (teacher_calls + student_calls + judge_calls) × 1.2 headroom
+  # ── Per-model quota (safety ceiling) ─────────────────────────────────────────
+  # All 10 LLM models: teacher (400) + student (4,400) + judge (44,000) = 48,800
+  # Per-model max = 48,800 × 1.2 headroom ≈ 59,000 → set to 60,000
   quota:
-    gpt-4o:             # teacher (400) + student (2,000) + judge (20,000) = 22,400
-      max_calls: 27000
-    gpt-4o-mini:        # teacher (400) + student (2,000) + judge (0)      = 2,400
-      max_calls: 27000
-    claude-sonnet-4-6:  # student (2,000) + judge (20,000)                 = 22,000
-      max_calls: 27000
-    claude-3-5-haiku:   # student (2,000) + judge (20,000)                 = 22,000
-      max_calls: 27000
-    gemini-2.0-flash:   # teacher (400) + student (2,000) + judge (20,000) = 22,400
-      max_calls: 27000
-    llama-3.3-70b:      # teacher (400) + student (2,000)                  = 2,400
-      max_calls: 3000
-    llama-3.1-8b:       # student (2,000)
-      max_calls: 2500
-    mistral-small:      # student (2,000)
-      max_calls: 2500
-    deepseek-v3:        # student (2,000)
-      max_calls: 2500
-    qwen2.5-72b:        # student (2,000)
-      max_calls: 2500
+    gpt-4o:
+      max_calls: 60000
+    gpt-4o-mini:
+      max_calls: 60000
+    claude-sonnet-4-6:
+      max_calls: 60000
+    claude-3-5-haiku:
+      max_calls: 60000
+    gemini-2.0-flash:
+      max_calls: 60000
+    llama-3.3-70b:
+      max_calls: 60000
+    llama-3.1-8b:
+      max_calls: 60000
+    mistral-small:
+      max_calls: 60000
+    deepseek-v3:
+      max_calls: 60000
+    qwen2.5-72b:
+      max_calls: 60000
 

@@ -782,28 +782,31 @@ class TestDualTrackConfig:
             f"extra: {student_models - expected}"
         )
 
-    def test_judges_are_5_frontier_models(self, dual_cfg):
-        """All 5 frontier API models serve as judge (all-roles design)."""
+    def test_judges_are_all_10_llm_models(self, dual_cfg):
+        """All 10 LLM models serve as judge (all-roles design)."""
         judges = [m for m in dual_cfg.models if 'judge' in m.roles]
         judge_names = {j.name for j in judges}
-        # The 5 frontier models should all be judges
         expected_judges = {
-            'gpt-4o', 'gpt-4o-mini', 'claude-sonnet-4-6',
-            'claude-3-5-haiku', 'gemini-2.0-flash',
+            'gpt-4o', 'gpt-4o-mini', 'claude-sonnet-4-6', 'claude-3-5-haiku',
+            'gemini-2.0-flash', 'llama-3.3-70b', 'llama-3.1-8b',
+            'mistral-small', 'deepseek-v3', 'qwen2.5-72b',
         }
         assert expected_judges == judge_names, (
             f"Judge mismatch. Missing: {expected_judges - judge_names}, "
             f"extra: {judge_names - expected_judges}"
         )
 
-    def test_teachers_include_gpt4o_llama_and_benchmarks(self, dual_cfg):
+    def test_teachers_are_all_10_llm_plus_4_benchmarks(self, dual_cfg):
+        """All 10 LLM models + 4 benchmark virtual teachers have the teacher role."""
         teacher_names = {m.name for m in dual_cfg.models if 'teacher' in m.roles}
-        assert 'gpt-4o' in teacher_names
-        assert 'llama-3.3-70b' in teacher_names
-        assert 'xsum' in teacher_names
-        assert 'codesearchnet-python' in teacher_names
-        assert 'aeslc' in teacher_names
-        assert 'wikitablequestions' in teacher_names
+        # All 10 LLM models
+        for name in ('gpt-4o', 'gpt-4o-mini', 'claude-sonnet-4-6', 'claude-3-5-haiku',
+                     'gemini-2.0-flash', 'llama-3.3-70b', 'llama-3.1-8b',
+                     'mistral-small', 'deepseek-v3', 'qwen2.5-72b'):
+            assert name in teacher_names, f"{name} should be a teacher"
+        # 4 benchmark virtual teachers
+        for name in ('xsum', 'codesearchnet-python', 'aeslc', 'wikitablequestions'):
+            assert name in teacher_names, f"Benchmark teacher {name} should be present"
 
     def test_each_task_has_100_items(self, dual_cfg):
         for task in dual_cfg.tasks:
