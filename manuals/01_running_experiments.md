@@ -16,6 +16,57 @@ export ANTHROPIC_API_KEY="sk-ant-..."   # if using Anthropic models
 
 ---
 
+## New Providers (Groq, DeepSeek, Mistral, DeepInfra, Cerebras)
+
+CoEval supports five additional OpenAI-compatible providers via the `openai_compat` interface module. All use the same configuration pattern with a dedicated `interface` identifier.
+
+| Interface | Provider | Env var | Notable strength |
+|-----------|----------|---------|-----------------|
+| `groq` | Groq | `GROQ_API_KEY` | ~500 tok/s — ideal for large-scale Phase 4 response collection |
+| `deepseek` | DeepSeek (direct) | `DEEPSEEK_API_KEY` | ~2× cheaper than OpenRouter for DeepSeek-V3 ($0.07/1M input) |
+| `mistral` | Mistral AI (direct) | `MISTRAL_API_KEY` | Same price as OpenRouter but direct SLAs; Codestral available only here |
+| `deepinfra` | DeepInfra | `DEEPINFRA_API_KEY` | Competitive pricing on Llama and Qwen models; reliable uptime |
+| `cerebras` | Cerebras | `CEREBRAS_API_KEY` | ~1000 tok/s sustained throughput on wafer-scale hardware |
+
+**Configuration example:**
+
+```yaml
+models:
+  - name: llama-3-8b-groq
+    interface: groq
+    parameters:
+      model: llama-3.1-8b-instant
+      temperature: 0.7
+      max_tokens: 512
+    roles: [student]
+
+  - name: deepseek-v3
+    interface: deepseek
+    parameters:
+      model: deepseek-chat
+      temperature: 0.7
+      max_tokens: 512
+    roles: [student]
+```
+
+**Key file format** (`~/.coeval/keys.yaml` or project root `keys.yaml`):
+
+```yaml
+providers:
+  groq:      gsk-...
+  deepseek:  sk-...
+  mistral:   ...
+  deepinfra: di-...
+  cerebras:  csk-...
+```
+
+**Notes:**
+- None of these providers offer a batch discount — all run real-time only.
+- `interface: auto` routing prefers the cheapest provider that has credentials configured; DeepSeek direct is cheaper than OpenRouter for DeepSeek-V3.
+- See [`manuals/04_provider_pricing.md`](04_provider_pricing.md) §1 and §4.2 for full pricing details and recommended use cases.
+
+---
+
 ## 1. Writing a Config File
 
 Every experiment is described by a single YAML file. The minimal structure is:

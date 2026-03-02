@@ -332,4 +332,64 @@ experiment:
 
 ---
 
+---
+
+## 6. Benchmark Virtual Teachers — Naming Convention
+
+When using `interface: benchmark` to supply pre-ingested dataset responses as teacher output (instead of making LLM API calls), the model name in the config determines which ingested data file is loaded.
+
+### How it works
+
+A model with `interface: benchmark` acts as a virtual teacher. Its responses are read directly from pre-ingested JSONL files produced by `coeval ingest` or `benchmark/setup_mixed.py`. No LLM API calls are made for this model.
+
+### Naming convention
+
+The benchmark teacher's `name` field should match the dataset identifier used during ingestion:
+
+```yaml
+models:
+  - name: benchmark          # resolves to the default ingested dataset
+    interface: benchmark
+    roles: [teacher]
+
+  - name: benchmark-xsum     # resolves to the xsum-ingested dataset
+    interface: benchmark
+    roles: [teacher]
+```
+
+The virtual interface looks for pre-ingested JSONL files named:
+```
+phase3_datapoints/{task_id}.{model_name}.datapoints.jsonl
+```
+
+So a model named `benchmark-xsum` with task `text_summarization` will load:
+```
+phase3_datapoints/text_summarization.benchmark-xsum.datapoints.jsonl
+```
+
+### Recommended naming pattern
+
+Use descriptive names that identify the source dataset:
+
+| Model name | Dataset source |
+|------------|---------------|
+| `benchmark` | Default / unspecified ingested data |
+| `benchmark-xsum` | XSum summarization dataset |
+| `benchmark-aeslc` | AESLC email subject-line corpus |
+| `benchmark-codesearchnet` | CodeSearchNet code+docstring pairs |
+| `benchmark-wikitableqa` | WikiTableQuestions dataset |
+
+### Example (from benchmark/mixed.yaml)
+
+```yaml
+models:
+  - name: benchmark
+    interface: benchmark
+    roles: [teacher]          # supplies reference outputs from real datasets
+
+  - name: gpt-4o-mini
+    interface: openai
+    roles: [student, judge]   # responds to and evaluates teacher-generated prompts
+```
+
 *Prices as of 2026-03-02. Verify at provider pricing pages before running large experiments.*
