@@ -28,6 +28,13 @@ A model assigned `roles: [judge]`. Judges participate in **Phase 5**: they score
 
 ---
 
+### Role Parameters
+Per-role overrides for model inference settings. Declaring `role_parameters:` on a model entry applies different `temperature`, `max_tokens`, or other generation parameters depending on whether the model is acting as teacher, student, or judge — without duplicating the model entry. For example, a teacher might use `temperature: 0.8` for creative data generation while the same model judges at `temperature: 0.0` for deterministic scoring.
+
+→ [Architecture — Role Assignment](README/10-architecture.md#role-assignment) · [Configuration — Models](README/04-configuration.md#models)
+
+---
+
 ## Data & Attributes
 
 ### Datapoint
@@ -62,6 +69,27 @@ The evaluation criteria — a dict mapping named dimension labels to scoring gui
 A named placeholder `{...}` in a CoEval prompt template, filled with task-specific data before the prompt is sent to a model. Built-in slots include `{task_description}`, `{output_description}`, `{target_attributes}`, `{nuanced_attributes}`, and `{rubric}`. Custom templates can override the built-in ones at task level or per model using the `prompt_library` block in the task config, giving full control over what each model sees.
 
 → [Configuration — Prompt Templates](README/04-configuration.md#prompt-templates)
+
+---
+
+### Label Attributes
+A list of target attribute keys designated as ground-truth labels for classification and information-extraction tasks. When `label_attributes` is set on a task, the pipeline can use judge-free exact-match scoring via `LabelEvaluator` — the student's response is compared directly against the reference label extracted from the datapoint, with no LLM judge required. Example: `label_attributes: [sentiment]` for a sentiment task; `label_attributes: [entity_type, entity_value]` for NER.
+
+→ [Configuration — Tasks](README/04-configuration.md#tasks) · [Benchmark Datasets](README/07-benchmarks.md)
+
+---
+
+### Task Category
+An optional string field (`category`) that assigns each task to a display group — typically `'benchmark'` for real-dataset tasks or `'synthetic'` for LLM-generated tasks. The category has no effect on pipeline behaviour; it is used only for visual grouping and colour-coding in the `coeval describe` HTML output and analysis reports.
+
+→ [Configuration — Tasks](README/04-configuration.md#tasks)
+
+---
+
+### Attribute Seeding
+Optional seed dictionaries (`target_attributes_seed`, `nuanced_attributes_seed`) that pre-populate part of the attribute space when `target_attributes: auto` or `nuanced_attributes: auto` is set. Phase 1 teachers propose additional values beyond the seed, enabling a hybrid manual + automatic design where you guarantee certain dimensions are always present while allowing the LLM to discover others.
+
+→ [Configuration — Tasks](README/04-configuration.md#tasks) · [Architecture — Phase 1](README/10-architecture.md#phase-1--attribute-mapping-attribute_mapping)
 
 ---
 
@@ -100,6 +128,20 @@ One complete evaluation run, defined by a single YAML config file. An experiment
 Controls how judges score responses in Phase 5. `single` issues one API call per response and returns all rubric dimension scores at once (lower cost). `per_factor` issues one call *per rubric dimension* per response, scoring each dimension in isolation (higher cost, finer-grained analysis, eliminates cross-dimension influence).
 
 → [Architecture — Phase 5](README/10-architecture.md#phase-5--evaluation-evaluation) · [Configuration — Rubric & Evaluation Mode](README/04-configuration.md#rubric--evaluation-mode)
+
+---
+
+### Label Evaluation
+A judge-free evaluation path for classification and information-extraction tasks. When `label_attributes` is declared on a task, the `LabelEvaluator` compares student responses directly against the reference labels from the datapoint using exact-match or custom match functions — no LLM judge call is needed in Phase 5. Supports multiclass classification, multi-label classification, and structured IE. Produces per-label precision/recall and overall accuracy alongside any LLM judge scores.
+
+→ [Configuration — Tasks](README/04-configuration.md#tasks) · [Developer Guide](developer_guide.md)
+
+---
+
+### Generation Retries
+A per-experiment setting (`generation_retries`, default: 2) that controls how many times Phases 3 and 5 will retry a failed API call or malformed response before writing a broken record. Set to 0 to disable retries. Broken records are flagged in `meta.json` and can be repaired with `coeval repair`.
+
+→ [Configuration — Experiment Settings](README/04-configuration.md#experiment-settings) · [Resume & Recovery](README/09-recovery.md)
 
 ---
 
@@ -214,6 +256,41 @@ Setting `rubric: auto` delegates rubric generation to teacher models in **Phase 
 
 ---
 
+### Describe
+`coeval describe --config PATH` generates a self-contained HTML summary of an experiment configuration — models, tasks, rubric, phase execution plan, estimated call budget, batch settings, and quotas. No API calls are made unless `--probe` is passed, which adds a live latency measurement per model. Useful for reviewing a config before running it or sharing a plan with stakeholders.
+
+→ [CLI Reference — describe](cli_reference.md#coeval-describe)
+
+---
+
+### Ingest
+`coeval ingest --run PATH --benchmarks NAME` loads pre-downloaded standard benchmark datasets (MMLU, HumanEval, TruthfulQA, HellaSwag, MedQA, GSM8K) as Phase 3 datapoints into an existing run, using a virtual `<benchmark>-benchmark` teacher model. After ingestion, resume the experiment with `--continue` to run Phases 4–5 on the new teacher. The command is idempotent — re-running it skips items already written.
+
+→ [CLI Reference — ingest](cli_reference.md#coeval-ingest) · [Benchmark Datasets](README/07-benchmarks.md)
+
+---
+
+### Models Command
+`coeval models` lists all available text-generation models from every configured provider (OpenAI, Anthropic, Gemini, etc.). Use `--providers` to restrict the list and `--verbose` for detailed metadata including context window sizes. Useful for discovering the correct model ID string to use in an experiment config.
+
+→ [CLI Reference — models](cli_reference.md#coeval-models)
+
+---
+
+### Selective Model Execution
+The `--only-models MODEL[,MODEL...]` flag on `coeval run` restricts which models participate in a run. The filter applies to the correct phase: teachers in Phase 3, students in Phase 4, judges in Phase 5. Useful for running a subset of models without re-running the full pipeline, or for parallelising expensive runs across separate processes.
+
+→ [CLI Reference — run](cli_reference.md#coeval-run)
+
+---
+
+### Status & Batch Polling
+`coeval status --run PATH` shows the current completion state of an experiment — which phases are done, how many records are written, and whether any batch jobs are pending. Adding `--fetch-batches` polls provider APIs for in-progress batch jobs and downloads completed results, writing them to storage so the experiment can continue.
+
+→ [CLI Reference — status](cli_reference.md#coeval-status)
+
+---
+
 ## Infrastructure
 
 ### Keys File
@@ -241,6 +318,21 @@ Per-phase setting that controls what happens when output files already exist. `N
 All experiment artifacts are written under `{storage_folder}/{experiment_id}/`. Phase outputs follow predictable naming conventions: `{task}.attributes.json` (Phase 1), `{task}.rubric.json` (Phase 2), `{task}__{teacher}.datapoints.jsonl` (Phase 3), `{task}__{teacher}__{student}.responses.jsonl` (Phase 4), `{task}__{teacher}__{judge}.evaluations.jsonl` (Phase 5). A `meta.json` tracks phase completion and a `run.log` contains structured logs.
 
 → [Architecture — Storage Layout](README/10-architecture.md#storage-layout)
+
+---
+
+### Non-LLM Metrics
+Reference-based evaluation metrics used alongside (or instead of) LLM judges for benchmark tasks. Implemented in `Public/benchmark/compute_scores.py`. Supported metrics:
+
+| Metric | Default for | Description |
+|--------|-------------|-------------|
+| `bertscore` | XSum, AESLC | Semantic similarity using BERT embeddings (requires `bert-score` package) |
+| `bleu` | CodeSearchNet | BLEU-4 corpus overlap score (requires `nltk`) |
+| `exact_match` | MCQ tasks | Exact string match against the correct label |
+
+Non-LLM metrics are applied via `python -m benchmark.compute_scores` after Phase 4 as a supplementary evaluation layer; they do not replace LLM judges but provide an objective reference score. The `label_attributes` feature provides per-response exact-match scoring inline with the pipeline.
+
+→ [Benchmark Datasets](README/07-benchmarks.md) · [Configuration — Tasks](README/04-configuration.md#tasks)
 
 ---
 

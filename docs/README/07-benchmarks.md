@@ -38,20 +38,23 @@ The two modes are fully compatible: Phases 4 and 5 behave identically regardless
 | `codesearchnet` | `code_explanation` | validation | ~10K (Python) | BLEU-4 vs. reference docstring |
 | `aeslc` | `email_composition` | validation | ~1K | BERTScore-F1 vs. reference email |
 | `wikitablequestions` | `data_interpretation` | validation | 2,831 | Exact-match accuracy |
+| `arc-challenge` | `science_reasoning` | test | 1,172 | Exact-match accuracy |
+| `race` | `reading_comprehension` | test | ~4.9K (high-school) | Exact-match accuracy |
+| `sciq` | `science_qa` | test | 1,000 | Exact-match accuracy |
 
-Additional datasets available via `coeval ingest`: `mmlu`, `hellaswag`, `truthfulqa`, `humaneval`, `medqa`, `gsm8k`, `arc-challenge`, `race`, `sciq`.
+> **Two ingestion systems:** The 7 datasets above use `Public/benchmark/loaders/` and are set up with `python -m benchmark.setup_mixed` (xsum, codesearchnet, aeslc, wikitablequestions) or `python -m benchmark.setup_education` (arc-challenge, race, sciq). A separate set of built-in CLI adapters (`Code/runner/benchmarks/registry.py`) is available via `coeval ingest`: `mmlu`, `hellaswag`, `truthfulqa`, `humaneval`, `medqa`, `gsm8k`.
 
 Loader files:
 
 | Loader file | Dataset | Domain |
 |---|---|---|
-| `benchmark/loaders/xsum.py` | XSum | Text summarization |
-| `benchmark/loaders/codesearchnet.py` | CodeSearchNet | Code explanation |
-| `benchmark/loaders/aeslc.py` | AESLC | Email composition |
-| `benchmark/loaders/wikitablequestions.py` | WikiTableQuestions | Data interpretation |
-| `benchmark/loaders/arc_challenge.py` | ARC-Challenge | Science reasoning (MCQ) |
-| `benchmark/loaders/race.py` | RACE | Reading comprehension (MCQ) |
-| `benchmark/loaders/sciq.py` | SciQ | Science questions (MCQ) |
+| `Public/benchmark/loaders/xsum.py` | XSum | Text summarization |
+| `Public/benchmark/loaders/codesearchnet.py` | CodeSearchNet | Code explanation |
+| `Public/benchmark/loaders/aeslc.py` | AESLC | Email composition |
+| `Public/benchmark/loaders/wikitablequestions.py` | WikiTableQuestions | Data interpretation |
+| `Public/benchmark/loaders/arc_challenge.py` | ARC-Challenge | Science reasoning (MCQ) |
+| `Public/benchmark/loaders/race.py` | RACE | Reading comprehension (MCQ) |
+| `Public/benchmark/loaders/sciq.py` | SciQ | Science questions (MCQ) |
 
 ---
 
@@ -74,7 +77,7 @@ This section catalogues widely-used public benchmarks by domain. CoEval can supp
 | **GPQA** | Graduate-level science MCQ (Diamond set) | 448 | Accuracy | ❌ planned | [arxiv](https://arxiv.org/abs/2311.12022) |
 | **MBPP** | Python beginner coding problems | 374 | Pass@1 | ❌ planned | [arxiv](https://arxiv.org/abs/2108.07732) |
 
-> **Reading the table:** CoEval ✅ means the dataset can be used as a virtual teacher via `coeval ingest <name>` or is already pre-ingested. ❌ planned means the loader is not yet implemented but ingestion via custom JSONL is possible.
+> **Reading the table:** ✅ `pre-ingested` = set up via `python -m benchmark.setup_*` scripts (`Public/benchmark/loaders/`). ✅ `coeval ingest` = CLI adapter in `Code/runner/benchmarks/registry.py`. ❌ planned = loader not yet implemented; custom JSONL ingestion via `coeval ingest --dataset` is still possible.
 
 ---
 
@@ -193,6 +196,21 @@ This section catalogues widely-used public benchmarks by domain. CoEval can supp
 
 ---
 
+## Planned Benchmarks
+
+The following benchmarks are on the roadmap. No loader exists yet, but you can still use them by converting to JSONL and running `coeval ingest --dataset your_file.jsonl`.
+
+| Benchmark | Priority | Blocker | Notes |
+|-----------|----------|---------|-------|
+| **MATH** | High | Symbolic math eval (LaTeX) | Requires expression normalisation before exact-match |
+| **BIG-Bench Hard** | High | 23 sub-tasks, heterogeneous formats | Needs per-task attribute maps |
+| **MBPP** | Medium | Code execution sandbox for Pass@1 | Static BLEU alternative available |
+| **GPQA** | Medium | Restricted access (Diamond set) | Requires NDA agreement from maintainers |
+
+To add a loader, follow the [Writing a Loader](#writing-a-loader-for-a-new-dataset) guide and submit a PR to `Public/benchmark/loaders/`.
+
+---
+
 ## Setup
 
 ### Mixed benchmark (XSum, CodeSearchNet, AESLC, WikiTableQuestions)
@@ -303,7 +321,7 @@ For benchmark-sourced records, additional fields are included:
 A loader is a Python module with a `load(task_id, n_items)` function:
 
 ```python
-# benchmark/loaders/my_dataset.py
+# Public/benchmark/loaders/my_dataset.py
 from .base import BenchmarkLoader
 
 class MyDatasetLoader(BenchmarkLoader):
@@ -329,16 +347,16 @@ class MyDatasetLoader(BenchmarkLoader):
         }
 ```
 
-Register it in `benchmark/loaders/__init__.py`:
+Register it in `Public/benchmark/loaders/__init__.py`:
 
 ```python
 _REGISTRY["my_dataset"] = (
     "benchmark.loaders.my_dataset.MyDatasetLoader",
-    "benchmark/configs/my_dataset_attribute_map.yaml",
+    "Public/benchmark/configs/my_dataset_attribute_map.yaml",
 )
 ```
 
-Create `benchmark/configs/my_dataset_attribute_map.yaml` and add the dataset to `benchmark/emit_datapoints.py`'s `_DATASETS` dict.
+Create `Public/benchmark/configs/my_dataset_attribute_map.yaml` and add the dataset to `Public/benchmark/emit_datapoints.py`'s `_DATASETS` dict.
 
 ---
 
@@ -584,8 +602,8 @@ Available metrics:
 Each benchmark has a default metric defined in `benchmark/compute_scores.py`'s `BENCHMARK_METRIC` dict. You can override with `--metric` if you want to compare alternatives.
 
 This fills `benchmark_native_score` in the Phase 3 JSONL files. These scores are used for two purposes:
-1. **Calibration** (`analysis/calibration.py`): Fits an OLS linear mapping from judge ensemble scores to benchmark-native ground truth — useful for detecting judge bias or drift.
-2. **Spearman ρ tables** (`analysis/paper_tables.py`): Computes rank correlation between judge scores and ground-truth metric — validates how well the ensemble captures model quality.
+1. **Calibration** (`Code/analyzer/calibration.py`): Fits an OLS linear mapping from judge ensemble scores to benchmark-native ground truth — useful for detecting judge bias or drift.
+2. **Spearman ρ tables** (`Code/analyzer/paper_tables.py`): Computes rank correlation between judge scores and ground-truth metric — validates how well the ensemble captures model quality.
 
 > **Note:** `benchmark_native_score` is **not** incorporated into the EES (Evaluation Ensemble Score) that drives model rankings. It is a separate validation signal used for calibration and correlation analysis only.
 
@@ -715,7 +733,7 @@ tasks:
 ## Frequently Asked Questions
 
 **Q: What benchmark datasets are available out of the box?**
-A: The `benchmark/setup_mixed.py` script ingests four datasets: XSum (BBC news summarization), CodeSearchNet (Python code explanation), AESLC (email subject-line composition), and WikiTableQuestions (table data interpretation). Additional datasets — including MMLU, HellaSwag, TruthfulQA, HumanEval, MedQA, GSM8K, ARC-Challenge, RACE, and SciQ — are available via `coeval ingest`.
+A: Two setup scripts cover seven pre-ingested datasets: `python -m benchmark.setup_mixed` ingests XSum, CodeSearchNet, AESLC, and WikiTableQuestions; `python -m benchmark.setup_education` ingests ARC-Challenge, RACE-High, and SciQ. An additional six datasets — MMLU, HellaSwag, TruthfulQA, HumanEval, MedQA, and GSM8K — are available via `coeval ingest` (built-in CLI adapters).
 
 **Q: What does `coeval ingest` do?**
 A: `coeval ingest` converts an external JSONL dataset into Phase 3 datapoint format, writing files to `benchmark/runs/{run-id}/phase3_datapoints/`. The input JSONL must have at minimum `prompt` and `reference_response` fields. Once ingested, the dataset can be used as a virtual teacher with `interface: benchmark` — no LLM API calls are made for Phase 3.
@@ -730,7 +748,7 @@ A: When emitting datapoints from a large benchmark, CoEval applies stratified sa
 A: Place their exported Phase 3 JSONL files in your `phase3_datapoints/` folder, create a config with `interface: benchmark` as the teacher, and run `coeval run` with phases set to skip Phase 3 (`attribute_mapping: Keep`, `rubric_mapping: Keep`, `data_generation: Keep`). Your student and judge models run against the original benchmark items without regenerating anything.
 
 **Q: How do I write a custom dataset loader for a new benchmark?**
-A: Create a Python module in `benchmark/loaders/` that subclasses `BenchmarkLoader` and implements `_load_dataset()` and `_to_record()`. Register it in `benchmark/loaders/__init__.py` with a dataset ID and attribute map path, then add it to `benchmark/emit_datapoints.py`'s `_DATASETS` dict. The loader is then available to `coeval ingest` and `benchmark/emit_datapoints.py`.
+A: Create a Python module in `Public/benchmark/loaders/` that subclasses `BenchmarkLoader` and implements `_load_dataset()` and `_to_record()`. Register it in `Public/benchmark/loaders/__init__.py` with a dataset ID and attribute map path, then add it to `Public/benchmark/emit_datapoints.py`'s `_DATASETS` dict. The loader is then available to `python -m benchmark.emit_datapoints` and setup scripts.
 
 ---
 

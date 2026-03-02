@@ -201,6 +201,49 @@ experiment:
 | `Extend` | Append only missing JSONL records; never rewrites existing data |
 | `Model` | Re-use existing teacher output directly (Phase 3 only) |
 
+### ExperimentConfig Field Reference
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `id` | `str` | required | Unique experiment identifier; used as the run folder name |
+| `storage_folder` | `str` | required | Root folder for all run output (relative to CWD or absolute) |
+| `phases` | `dict[str, str]` | all `New` | Per-phase execution mode (`New` / `Keep` / `Extend` / `Model`) |
+| `resume_from` | `str` \| `null` | `null` | Path to a prior run; reuses attribute and rubric files from it |
+| `quota` | `dict[str, {max_calls: int}]` | `{}` | Per-model API call ceiling; stops model gracefully when reached |
+| `batch` | `dict[str, {phase: bool}]` | `{}` | Enable Batch API per provider + phase (50% discount where supported) |
+| `probe_mode` | `"full"` \| `"resume"` \| `"disable"` | `"full"` | Model availability probe mode before the run starts |
+| `probe_on_fail` | `"abort"` \| `"warn"` | `"abort"` | Action when a model fails the probe check |
+| `estimate_cost` | `bool` | `false` | Print a cost estimate before the run starts |
+| `estimate_samples` | `int` | `2` | Number of live sample calls per model for cost estimation (0 = heuristics only) |
+| `log_level` | `str` | `"INFO"` | Python logging level (`DEBUG`, `INFO`, `WARNING`, `ERROR`) |
+| `generation_retries` | `int` | `2` | Number of retry attempts on API errors per generation call (≥ 0) |
+
+---
+
+## Validation Rules
+
+CoEval validates the config immediately on load. Validation errors include a rule identifier (V-01 through V-17) for quick diagnosis:
+
+| Rule | Field(s) | Condition |
+|------|----------|-----------|
+| **V-01** | `models`, `tasks` | Both must be present and non-empty |
+| **V-02** | `models[].name` | All model names must be unique |
+| **V-03** | `tasks[].name` | All task names must be unique |
+| **V-04** | `models[].name`, `tasks[].name`, `experiment.id` | Names may only contain letters, digits, `-`, `_`, `.`; no reserved separator `__` |
+| **V-05** | `models[].roles` | Each model must have ≥ 1 role; each role must be `teacher`, `student`, or `judge` |
+| **V-06** | `models[].interface` | Interface must be one of the 18 known identifiers (or `auto`) |
+| **V-07** | `models[].roles` | At least one teacher required for Phases 1–3; at least one student for Phase 4; at least one judge for Phase 5 |
+| **V-08** | `experiment.phases` | Phase mode `Model` is only valid for `data_generation` (Phase 3), not attribute or rubric phases |
+| **V-09** | `tasks[].rubric`, `experiment.resume_from` | `rubric: extend` requires `resume_from` to be set |
+| **V-10** | `experiment.resume_from` | If set, the source folder must exist on disk |
+| **V-11** | `experiment.storage_folder` + `id` | For new runs, the target run folder must not already exist |
+| **V-12** | `experiment.generation_retries` | Must be an integer ≥ 0 |
+| **V-13** | `experiment.batch` | Batch config may only reference batchable interfaces and valid phase names |
+| **V-14** | run folder / `meta.json` | When `--continue` is passed, the run folder and `meta.json` must already exist |
+| **V-15** | `experiment.probe_mode` | Must be `full`, `resume`, or `disable` |
+| **V-16** | `experiment.probe_on_fail` | Must be `abort` or `warn` |
+| **V-17** | `tasks[].label_attributes` | `label_attributes` values must be a subset of the `target_attributes` keys |
+
 ---
 
 ## Prompt Templates
