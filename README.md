@@ -162,7 +162,7 @@ YAML Config  →  Phase 1: Attribute Mapping   (teachers infer task dimensions)
 | **Auto rubric** | Teachers propose rubric factors; merge-and-deduplicate across N teachers |
 | **Multi-judge ensemble** | N judges → bias-resistant aggregate scores; outlier judges down-weighted |
 | **8 HTML reports** | Interactive charts, filterable tables, CSV export, fully self-contained (no CDN) |
-| **Model probe** | Verify all 15 interfaces are reachable before spending a dollar |
+| **Model probe** | Verify all 16 interfaces are reachable before spending a dollar |
 | **Virtual teachers** | Pre-ingested public datasets supply zero-cost Phase 3 ground truth |
 | **Label accuracy** | Judge-free exact-match for classification tasks (`label_attributes`) |
 
