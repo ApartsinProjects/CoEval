@@ -78,19 +78,32 @@ def mock_boto3(monkeypatch: pytest.MonkeyPatch):
 # Fixtures: Google Cloud mocks
 # ---------------------------------------------------------------------------
 
+def _google_cloud_patch(mock_aip: MagicMock, mock_gcs: MagicMock) -> dict:
+    """Return a sys.modules patch dict for Google Cloud libraries.
+
+    ``from google.cloud import aiplatform`` uses *attribute access* on the
+    ``google.cloud`` module object, not a sys.modules lookup, so we must wire
+    the attributes explicitly — otherwise the deferred import inside
+    ``VertexBatchRunner.run()`` receives a fresh auto-attribute MagicMock that
+    is NOT ``mock_aip``, causing the polling loop to spin forever.
+    """
+    google_cloud_mock = MagicMock()
+    google_cloud_mock.aiplatform = mock_aip
+    google_cloud_mock.storage = mock_gcs
+    return {
+        "google": MagicMock(),
+        "google.cloud": google_cloud_mock,
+        "google.cloud.aiplatform": mock_aip,
+        "google.cloud.storage": mock_gcs,
+    }
+
+
 @pytest.fixture()
 def mock_gcloud():
     """Patch sys.modules so that Google Cloud imports return MagicMocks."""
     mock_aip = MagicMock()
     mock_gcs = MagicMock()
-    google_mock = MagicMock()
-    google_cloud_mock = MagicMock()
-    with patch.dict(sys.modules, {
-        "google": google_mock,
-        "google.cloud": google_cloud_mock,
-        "google.cloud.aiplatform": mock_aip,
-        "google.cloud.storage": mock_gcs,
-    }):
+    with patch.dict(sys.modules, _google_cloud_patch(mock_aip, mock_gcs)):
         yield mock_aip, mock_gcs
 
 # ---------------------------------------------------------------------------
@@ -317,7 +330,12 @@ class TestBedrockRun:
                 runner.run()
 
     def _build_full_mock_boto3(self, output_lines):
-        """Construct a fully-wired boto3 MagicMock for a successful job flow."""
+        """Construct a fully-wired boto3 MagicMock for a successful job flow.
+
+        The inner mock_s3 and mock_bedrock are exposed as attributes
+        ``mock_b3._mock_s3`` and ``mock_b3._mock_bedrock`` so that
+        individual tests can inspect calls made to those service clients.
+        """
         mock_b3 = MagicMock()
         mock_s3 = MagicMock()
         mock_s3.put_object.return_value = {}
@@ -346,6 +364,9 @@ class TestBedrockRun:
             lambda svc, **kw: mock_s3 if svc == "s3" else mock_bedrock
         )
         mock_b3.Session.return_value = mock_session
+        # Expose inner mocks so tests can assert on specific service calls
+        mock_b3._mock_s3 = mock_s3
+        mock_b3._mock_bedrock = mock_bedrock
         return mock_b3
 
     def test_run_full_flow_returns_results(self):
@@ -427,8 +448,7 @@ class TestBedrockRun:
                 "batch_role_arn": "r",
             })
             runner.run()
-        mock_session = mock_b3.Session.return_value
-        mock_s3 = mock_session.client.return_value
+        mock_s3 = mock_b3._mock_s3  # side_effect routes client("s3") here
         assert mock_s3.put_object.called
         call_args = mock_s3.put_object.call_args
         assert call_args.kwargs.get("Bucket") == "test-bucket"
@@ -444,8 +464,7 @@ class TestBedrockRun:
                 "batch_role_arn": "arn:aws:iam::123:role/R",
             })
             runner.run()
-        mock_session = mock_b3.Session.return_value
-        mock_bedrock = mock_session.client.return_value
+        mock_bedrock = mock_b3._mock_bedrock  # side_effect routes non-s3 client here
         assert mock_bedrock.create_model_invocation_job.called
 
     def test_run_uses_iam_creds_from_add_params(self):
@@ -508,8 +527,7 @@ class TestBedrockRun:
                 "batch_role_arn": "arn:aws:iam::999:role/MyRole",
             })
             runner.run()
-        mock_session = mock_b3.Session.return_value
-        mock_bedrock = mock_session.client.return_value
+        mock_bedrock = mock_b3._mock_bedrock  # side_effect routes non-s3 client here
         create_kwargs = mock_bedrock.create_model_invocation_job.call_args.kwargs
         assert create_kwargs.get("roleArn") == "arn:aws:iam::999:role/MyRole"
 
@@ -758,12 +776,7 @@ class TestVertexRun:
             _make_vertex_output_line("r1", "Goodbye world"),
         ]
         mock_aip, mock_gcs = self._build_vertex_mocks(output_lines)
-        with patch.dict(sys.modules, {
-            "google": MagicMock(),
-            "google.cloud": MagicMock(),
-            "google.cloud.aiplatform": mock_aip,
-            "google.cloud.storage": mock_gcs,
-        }):
+        with patch.dict(sys.modules, _google_cloud_patch(mock_aip, mock_gcs)):
             runner = _vertex_runner(batch_gcs_bucket="gs://b", project="my-proj")
             params = {"model": "gemini-2.0-flash", "batch_gcs_bucket": "gs://b", "project": "my-proj"}
             runner.add("key-0", "prompt 0", params)
@@ -776,12 +789,7 @@ class TestVertexRun:
     def test_run_correlates_results_via_custom_id(self):
         output_lines = [_make_vertex_output_line("r0", "text for r0")]
         mock_aip, mock_gcs = self._build_vertex_mocks(output_lines)
-        with patch.dict(sys.modules, {
-            "google": MagicMock(),
-            "google.cloud": MagicMock(),
-            "google.cloud.aiplatform": mock_aip,
-            "google.cloud.storage": mock_gcs,
-        }):
+        with patch.dict(sys.modules, _google_cloud_patch(mock_aip, mock_gcs)):
             runner = _vertex_runner(batch_gcs_bucket="b", project="p")
             runner.add("my-special-key", "some prompt", {"model": "m", "batch_gcs_bucket": "b", "project": "p"})
             results = runner.run()
@@ -795,12 +803,7 @@ class TestVertexRun:
             _make_vertex_failed_line("r1"),
         ]
         mock_aip, mock_gcs = self._build_vertex_mocks(output_lines)
-        with patch.dict(sys.modules, {
-            "google": MagicMock(),
-            "google.cloud": MagicMock(),
-            "google.cloud.aiplatform": mock_aip,
-            "google.cloud.storage": mock_gcs,
-        }):
+        with patch.dict(sys.modules, _google_cloud_patch(mock_aip, mock_gcs)):
             runner = _vertex_runner(batch_gcs_bucket="b", project="p")
             params = {"model": "m", "batch_gcs_bucket": "b", "project": "p"}
             runner.add("k0", "p0", params)
@@ -813,12 +816,7 @@ class TestVertexRun:
     def test_run_calls_clear_after_completion(self):
         output_lines = [_make_vertex_output_line("r0", "hi")]
         mock_aip, mock_gcs = self._build_vertex_mocks(output_lines)
-        with patch.dict(sys.modules, {
-            "google": MagicMock(),
-            "google.cloud": MagicMock(),
-            "google.cloud.aiplatform": mock_aip,
-            "google.cloud.storage": mock_gcs,
-        }):
+        with patch.dict(sys.modules, _google_cloud_patch(mock_aip, mock_gcs)):
             runner = _vertex_runner(batch_gcs_bucket="b", project="p")
             runner.add("k0", "p0", {"model": "m", "batch_gcs_bucket": "b", "project": "p"})
             runner.run()
@@ -837,12 +835,7 @@ class TestVertexRun:
         mock_job.resource_name = "projects/p/batchJobs/fail123"
         mock_job.state.name = "JOB_STATE_FAILED"
         mock_aip.BatchPredictionJob.create.return_value = mock_job
-        with patch.dict(sys.modules, {
-            "google": MagicMock(),
-            "google.cloud": MagicMock(),
-            "google.cloud.aiplatform": mock_aip,
-            "google.cloud.storage": mock_gcs,
-        }):
+        with patch.dict(sys.modules, _google_cloud_patch(mock_aip, mock_gcs)):
             runner = _vertex_runner(batch_gcs_bucket="b", project="p")
             runner.add("k0", "p0", {"model": "m", "batch_gcs_bucket": "b", "project": "p"})
             with pytest.raises(RuntimeError, match="JOB_STATE_FAILED"):
@@ -851,12 +844,7 @@ class TestVertexRun:
     def test_run_uploads_input_to_gcs(self):
         output_lines = [_make_vertex_output_line("r0", "result")]
         mock_aip, mock_gcs = self._build_vertex_mocks(output_lines)
-        with patch.dict(sys.modules, {
-            "google": MagicMock(),
-            "google.cloud": MagicMock(),
-            "google.cloud.aiplatform": mock_aip,
-            "google.cloud.storage": mock_gcs,
-        }):
+        with patch.dict(sys.modules, _google_cloud_patch(mock_aip, mock_gcs)):
             runner = _vertex_runner(batch_gcs_bucket="my-bucket", project="p")
             runner.add("k0", "p0", {"model": "m", "batch_gcs_bucket": "my-bucket", "project": "p"})
             runner.run()
@@ -868,12 +856,7 @@ class TestVertexRun:
     def test_run_creates_batch_prediction_job(self):
         output_lines = [_make_vertex_output_line("r0", "result")]
         mock_aip, mock_gcs = self._build_vertex_mocks(output_lines)
-        with patch.dict(sys.modules, {
-            "google": MagicMock(),
-            "google.cloud": MagicMock(),
-            "google.cloud.aiplatform": mock_aip,
-            "google.cloud.storage": mock_gcs,
-        }):
+        with patch.dict(sys.modules, _google_cloud_patch(mock_aip, mock_gcs)):
             runner = _vertex_runner(batch_gcs_bucket="b", project="p")
             runner.add("k0", "p0", {"model": "gemini-2.0-flash", "batch_gcs_bucket": "b", "project": "p"})
             runner.run()
@@ -901,12 +884,7 @@ class TestVertexRun:
 
         mock_job.refresh.side_effect = do_refresh
         mock_aip.BatchPredictionJob.create.return_value = mock_job
-        with patch.dict(sys.modules, {
-            "google": MagicMock(),
-            "google.cloud": MagicMock(),
-            "google.cloud.aiplatform": mock_aip,
-            "google.cloud.storage": mock_gcs,
-        }):
+        with patch.dict(sys.modules, _google_cloud_patch(mock_aip, mock_gcs)):
             runner = _vertex_runner(batch_gcs_bucket="b", project="p")
             runner.add("k0", "p0", {"model": "m", "batch_gcs_bucket": "b", "project": "p"})
             results = runner.run()
@@ -916,12 +894,7 @@ class TestVertexRun:
     def test_run_normalizes_short_model_id_to_publisher_resource(self):
         output_lines = [_make_vertex_output_line("r0", "ok")]
         mock_aip, mock_gcs = self._build_vertex_mocks(output_lines)
-        with patch.dict(sys.modules, {
-            "google": MagicMock(),
-            "google.cloud": MagicMock(),
-            "google.cloud.aiplatform": mock_aip,
-            "google.cloud.storage": mock_gcs,
-        }):
+        with patch.dict(sys.modules, _google_cloud_patch(mock_aip, mock_gcs)):
             runner = _vertex_runner(batch_gcs_bucket="b", project="p")
             runner.add("k0", "p0", {
                 "model": "gemini-2.0-flash-001", "batch_gcs_bucket": "b", "project": "p"
@@ -1013,7 +986,11 @@ class TestCreateBatchRunnerFactory:
     def test_gemini_runner_returned_for_gemini(self):
         from runner.interfaces import create_batch_runner
         from runner.interfaces.gemini_batch import GeminiBatchRunner
-        runner = create_batch_runner("gemini")
+        # GeminiBatchRunner.__init__ calls genai.Client(api_key=...) — mock it
+        # so the test doesn't require a real GEMINI_API_KEY to be set.
+        mock_genai = MagicMock()
+        with patch.dict(sys.modules, {"google.genai": mock_genai, "google.genai.types": MagicMock()}):
+            runner = create_batch_runner("gemini")
         assert isinstance(runner, GeminiBatchRunner)
 
     def test_azure_runner_returned_for_azure_openai(self):
