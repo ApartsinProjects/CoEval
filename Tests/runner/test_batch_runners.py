@@ -63,6 +63,29 @@ def _make_vertex_failed_line(custom_id: str) -> str:
     })
 
 # ---------------------------------------------------------------------------
+# Pre-built sample JSONL bodies (constructed once at import time, reused by all
+# tests to avoid redundant json.dumps calls per test).
+# ---------------------------------------------------------------------------
+_BD_BODY_1   = _make_bedrock_output_line("r0", "Hello world").encode("utf-8")
+_BD_BODY_2   = (
+    _make_bedrock_output_line("r0", "Hello world") + "\n"
+    + _make_bedrock_output_line("r1", "Goodbye world")
+).encode("utf-8")
+_BD_BODY_ERR = (
+    _make_bedrock_output_line("r0", "OK") + "\n"
+    + _make_bedrock_error_line("r1")
+).encode("utf-8")
+_VX_BODY_1   = _make_vertex_output_line("r0", "Hello world")
+_VX_BODY_2   = (
+    _make_vertex_output_line("r0", "Hello world") + "\n"
+    + _make_vertex_output_line("r1", "Goodbye world")
+)
+_VX_BODY_ERR = (
+    _make_vertex_output_line("r0", "OK") + "\n"
+    + _make_vertex_failed_line("r1")
+)
+
+# ---------------------------------------------------------------------------
 # Fixtures: boto3 mock
 # ---------------------------------------------------------------------------
 
@@ -318,6 +341,67 @@ class TestBedrockValidateConfig:
 class TestBedrockRun:
     """Tests for BedrockBatchRunner.run()."""
 
+    # ── Shared mock infrastructure (built ONCE per class) ──────────────────
+    @pytest.fixture(scope="class")
+    def b3_infra(self):
+        """Boto3 mock hierarchy built once for the entire test class.
+
+        Individual tests adjust per-call behaviour by setting:
+          - ``b3_infra._mock_body.read.return_value``  (output JSONL bytes)
+          - ``b3_infra._mock_bedrock.get_model_invocation_job.return_value``
+            or ``.side_effect``  (job status / polling sequence)
+
+        The autouse *b3_reset* fixture restores sensible defaults before
+        each test and clears call counts so tests remain fully independent
+        without rebuilding the ~10-object MagicMock tree each time.
+        """
+        mock_b3 = MagicMock()
+        mock_s3 = MagicMock()
+        mock_body = MagicMock()
+        mock_s3.put_object.return_value = {}
+        mock_s3.get_object.return_value = {"Body": mock_body}
+        mock_paginator = MagicMock()
+        mock_paginator.paginate.return_value = [
+            {"Contents": [{"Key": "coeval/output/job/output.jsonl.out"}]}
+        ]
+        mock_s3.get_paginator.return_value = mock_paginator
+        mock_bedrock = MagicMock()
+        mock_session = MagicMock()
+        mock_session.client.side_effect = (
+            lambda svc, **kw: mock_s3 if svc == "s3" else mock_bedrock
+        )
+        mock_b3.Session.return_value = mock_session
+        # Expose inner mocks so tests can assert on specific service calls
+        mock_b3._mock_s3 = mock_s3
+        mock_b3._mock_bedrock = mock_bedrock
+        mock_b3._mock_body = mock_body
+        yield mock_b3
+
+    @pytest.fixture(autouse=True)
+    def b3_reset(self, b3_infra):
+        """Reset call counts and restore default job responses before each test.
+
+        Uses ``reset_mock(return_value=False, side_effect=False)`` to clear
+        call history while preserving the carefully-wired return values.
+        Mutable job responses (status, side_effect) are explicitly restored.
+        """
+        b3_infra._mock_s3.reset_mock(return_value=False, side_effect=False)
+        b3_infra._mock_bedrock.reset_mock(return_value=False, side_effect=False)
+        b3_infra._mock_body.reset_mock(return_value=False, side_effect=False)
+        # Restore defaults (tests may override before calling runner.run())
+        b3_infra._mock_body.read.return_value = _BD_BODY_1
+        b3_infra._mock_bedrock.create_model_invocation_job.return_value = {
+            "jobArn": "arn:aws:bedrock:us-east-1::batch/job123"
+        }
+        b3_infra._mock_bedrock.get_model_invocation_job.return_value = {
+            "status": "Completed",
+            "statistics": {"numberOfRecordsCompleted": 1, "numberOfRecordsFailed": 0},
+        }
+        b3_infra._mock_bedrock.get_model_invocation_job.side_effect = None
+        yield
+
+    # ── Tests ───────────────────────────────────────────────────────────────
+
     def test_run_returns_empty_dict_when_no_requests(self):
         runner = _bedrock_runner()
         assert runner.run() == {}
@@ -329,53 +413,13 @@ class TestBedrockRun:
             with pytest.raises(ImportError, match="boto3"):
                 runner.run()
 
-    def _build_full_mock_boto3(self, output_lines):
-        """Construct a fully-wired boto3 MagicMock for a successful job flow.
-
-        The inner mock_s3 and mock_bedrock are exposed as attributes
-        ``mock_b3._mock_s3`` and ``mock_b3._mock_bedrock`` so that
-        individual tests can inspect calls made to those service clients.
-        """
-        mock_b3 = MagicMock()
-        mock_s3 = MagicMock()
-        mock_s3.put_object.return_value = {}
-        output_body = ("\n".join(output_lines)).encode("utf-8")
-        mock_body = MagicMock()
-        mock_body.read.return_value = output_body
-        mock_s3.get_object.return_value = {"Body": mock_body}
-        mock_paginator = MagicMock()
-        mock_paginator.paginate.return_value = [
-            {"Contents": [{"Key": "coeval/output/job/output.jsonl.out"}]}
-        ]
-        mock_s3.get_paginator.return_value = mock_paginator
-        mock_bedrock = MagicMock()
-        mock_bedrock.create_model_invocation_job.return_value = {
-            "jobArn": "arn:aws:bedrock:us-east-1::batch/job123"
-        }
-        mock_bedrock.get_model_invocation_job.return_value = {
+    def test_run_full_flow_returns_results(self, b3_infra):
+        b3_infra._mock_body.read.return_value = _BD_BODY_2
+        b3_infra._mock_bedrock.get_model_invocation_job.return_value = {
             "status": "Completed",
-            "statistics": {
-                "numberOfRecordsCompleted": len(output_lines),
-                "numberOfRecordsFailed": 0,
-            },
+            "statistics": {"numberOfRecordsCompleted": 2, "numberOfRecordsFailed": 0},
         }
-        mock_session = MagicMock()
-        mock_session.client.side_effect = (
-            lambda svc, **kw: mock_s3 if svc == "s3" else mock_bedrock
-        )
-        mock_b3.Session.return_value = mock_session
-        # Expose inner mocks so tests can assert on specific service calls
-        mock_b3._mock_s3 = mock_s3
-        mock_b3._mock_bedrock = mock_bedrock
-        return mock_b3
-
-    def test_run_full_flow_returns_results(self):
-        output_lines = [
-            _make_bedrock_output_line("r0", "Hello world"),
-            _make_bedrock_output_line("r1", "Goodbye world"),
-        ]
-        mock_b3 = self._build_full_mock_boto3(output_lines)
-        with patch.dict(sys.modules, {"boto3": mock_b3}):
+        with patch.dict(sys.modules, {"boto3": b3_infra}):
             runner = _bedrock_runner(batch_s3_bucket="my-bucket", batch_role_arn="arn:r")
             params = {
                 "model": "anthropic.claude-3-haiku",
@@ -385,62 +429,40 @@ class TestBedrockRun:
             runner.add("user-key-0", "prompt 0", params)
             runner.add("user-key-1", "prompt 1", params)
             results = runner.run()
-        del mock_b3
         assert results["user-key-0"] == "Hello world"
         assert results["user-key-1"] == "Goodbye world"
 
-    def test_run_maps_failed_records_to_empty_string(self):
-        output_lines = [
-            _make_bedrock_output_line("r0", "OK"),
-            _make_bedrock_error_line("r1", "ThrottlingException"),
-        ]
-        mock_b3 = self._build_full_mock_boto3(output_lines)
-        with patch.dict(sys.modules, {"boto3": mock_b3}):
+    def test_run_maps_failed_records_to_empty_string(self, b3_infra):
+        b3_infra._mock_body.read.return_value = _BD_BODY_ERR
+        with patch.dict(sys.modules, {"boto3": b3_infra}):
             runner = _bedrock_runner(batch_s3_bucket="b", batch_role_arn="r")
             params = {"model": "m", "batch_s3_bucket": "b", "batch_role_arn": "r"}
             runner.add("k0", "p0", params)
             runner.add("k1", "p1", params)
             results = runner.run()
-        del mock_b3
         assert results["k0"] == "OK"
         assert results["k1"] == ""
 
-    def test_run_calls_clear_after_completion(self):
-        output_lines = [_make_bedrock_output_line("r0", "hi")]
-        mock_b3 = self._build_full_mock_boto3(output_lines)
-        with patch.dict(sys.modules, {"boto3": mock_b3}):
+    def test_run_calls_clear_after_completion(self, b3_infra):
+        with patch.dict(sys.modules, {"boto3": b3_infra}):
             runner = _bedrock_runner(batch_s3_bucket="b", batch_role_arn="r")
             runner.add("k0", "p0", {"model": "m", "batch_s3_bucket": "b", "batch_role_arn": "r"})
             runner.run()
-        del mock_b3
         assert len(runner) == 0
 
-    def test_run_raises_runtime_error_on_failed_job(self):
-        mock_b3 = MagicMock()
-        mock_s3 = MagicMock()
-        mock_s3.put_object.return_value = {}
-        mock_s3.get_paginator.return_value = MagicMock()
-        mock_bedrock = MagicMock()
-        mock_bedrock.create_model_invocation_job.return_value = {"jobArn": "arn:fail"}
-        mock_bedrock.get_model_invocation_job.return_value = {
+    def test_run_raises_runtime_error_on_failed_job(self, b3_infra):
+        b3_infra._mock_bedrock.get_model_invocation_job.return_value = {
             "status": "Failed",
             "failureMessage": "Internal server error",
         }
-        mock_session = MagicMock()
-        mock_session.client.side_effect = (
-            lambda svc, **kw: mock_s3 if svc == "s3" else mock_bedrock
-        )
-        mock_b3.Session.return_value = mock_session
-        with patch.dict(sys.modules, {"boto3": mock_b3}):
+        with patch.dict(sys.modules, {"boto3": b3_infra}):
             runner = _bedrock_runner(batch_s3_bucket="b", batch_role_arn="r")
             runner.add("k0", "p0", {"model": "m", "batch_s3_bucket": "b", "batch_role_arn": "r"})
             with pytest.raises(RuntimeError, match="Failed"):
                 runner.run()
 
-    def test_run_uploads_input_jsonl_to_s3(self):
-        output_lines = [_make_bedrock_output_line("r0", "hi")]
-        mock_b3 = self._build_full_mock_boto3(output_lines)
-        with patch.dict(sys.modules, {"boto3": mock_b3}):
+    def test_run_uploads_input_jsonl_to_s3(self, b3_infra):
+        with patch.dict(sys.modules, {"boto3": b3_infra}):
             runner = _bedrock_runner(batch_s3_bucket="test-bucket", batch_role_arn="r")
             runner.add("k0", "hello there", {
                 "model": "m",
@@ -448,15 +470,11 @@ class TestBedrockRun:
                 "batch_role_arn": "r",
             })
             runner.run()
-        mock_s3 = mock_b3._mock_s3  # side_effect routes client("s3") here
-        assert mock_s3.put_object.called
-        call_args = mock_s3.put_object.call_args
-        assert call_args.kwargs.get("Bucket") == "test-bucket"
+        assert b3_infra._mock_s3.put_object.called
+        assert b3_infra._mock_s3.put_object.call_args.kwargs.get("Bucket") == "test-bucket"
 
-    def test_run_creates_model_invocation_job(self):
-        output_lines = [_make_bedrock_output_line("r0", "hi")]
-        mock_b3 = self._build_full_mock_boto3(output_lines)
-        with patch.dict(sys.modules, {"boto3": mock_b3}):
+    def test_run_creates_model_invocation_job(self, b3_infra):
+        with patch.dict(sys.modules, {"boto3": b3_infra}):
             runner = _bedrock_runner(batch_s3_bucket="b", batch_role_arn="arn:aws:iam::123:role/R")
             runner.add("k0", "p0", {
                 "model": "anthropic.claude",
@@ -464,13 +482,10 @@ class TestBedrockRun:
                 "batch_role_arn": "arn:aws:iam::123:role/R",
             })
             runner.run()
-        mock_bedrock = mock_b3._mock_bedrock  # side_effect routes non-s3 client here
-        assert mock_bedrock.create_model_invocation_job.called
+        assert b3_infra._mock_bedrock.create_model_invocation_job.called
 
-    def test_run_uses_iam_creds_from_add_params(self):
-        output_lines = [_make_bedrock_output_line("r0", "result")]
-        mock_b3 = self._build_full_mock_boto3(output_lines)
-        with patch.dict(sys.modules, {"boto3": mock_b3}):
+    def test_run_uses_iam_creds_from_add_params(self, b3_infra):
+        with patch.dict(sys.modules, {"boto3": b3_infra}):
             runner = _bedrock_runner(batch_s3_bucket="b", batch_role_arn="r")
             runner.add("k0", "p0", {
                 "model": "m",
@@ -480,44 +495,25 @@ class TestBedrockRun:
                 "secret_access_key": "secretkey",
             })
             runner.run()
-        session_call_kwargs = mock_b3.Session.call_args.kwargs
+        session_call_kwargs = b3_infra.Session.call_args.kwargs
         assert session_call_kwargs.get("aws_access_key_id") == "AKIATEST"
         assert session_call_kwargs.get("aws_secret_access_key") == "secretkey"
 
-    def test_run_polls_until_terminal_status(self):
-        output_lines = [_make_bedrock_output_line("r0", "done")]
-        mock_b3 = MagicMock()
-        mock_s3 = MagicMock()
-        mock_s3.put_object.return_value = {}
-        mock_body = MagicMock()
-        mock_body.read.return_value = ("\n".join(output_lines)).encode("utf-8")
-        mock_s3.get_object.return_value = {"Body": mock_body}
-        mock_paginator = MagicMock()
-        mock_paginator.paginate.return_value = [{"Contents": [{"Key": "out.jsonl.out"}]}]
-        mock_s3.get_paginator.return_value = mock_paginator
-        mock_bedrock = MagicMock()
-        mock_bedrock.create_model_invocation_job.return_value = {"jobArn": "arn:x"}
-        mock_bedrock.get_model_invocation_job.side_effect = [
+    def test_run_polls_until_terminal_status(self, b3_infra):
+        b3_infra._mock_bedrock.get_model_invocation_job.side_effect = [
             {"status": "InProgress"},
             {"status": "InProgress"},
             {"status": "Completed", "statistics": {"numberOfRecordsCompleted": 1}},
         ]
-        mock_session = MagicMock()
-        mock_session.client.side_effect = (
-            lambda svc, **kw: mock_s3 if svc == "s3" else mock_bedrock
-        )
-        mock_b3.Session.return_value = mock_session
-        with patch.dict(sys.modules, {"boto3": mock_b3}):
+        with patch.dict(sys.modules, {"boto3": b3_infra}):
             runner = _bedrock_runner(batch_s3_bucket="b", batch_role_arn="r")
             runner.add("k0", "p0", {"model": "m", "batch_s3_bucket": "b", "batch_role_arn": "r"})
             results = runner.run()
-        assert mock_bedrock.get_model_invocation_job.call_count == 3
-        assert results["k0"] == "done"
+        assert b3_infra._mock_bedrock.get_model_invocation_job.call_count == 3
+        assert results["k0"] == "Hello world"
 
-    def test_run_passes_role_arn_to_create_job(self):
-        output_lines = [_make_bedrock_output_line("r0", "text")]
-        mock_b3 = self._build_full_mock_boto3(output_lines)
-        with patch.dict(sys.modules, {"boto3": mock_b3}):
+    def test_run_passes_role_arn_to_create_job(self, b3_infra):
+        with patch.dict(sys.modules, {"boto3": b3_infra}):
             runner = _bedrock_runner(
                 batch_s3_bucket="b", batch_role_arn="arn:aws:iam::999:role/MyRole"
             )
@@ -527,8 +523,7 @@ class TestBedrockRun:
                 "batch_role_arn": "arn:aws:iam::999:role/MyRole",
             })
             runner.run()
-        mock_bedrock = mock_b3._mock_bedrock  # side_effect routes non-s3 client here
-        create_kwargs = mock_bedrock.create_model_invocation_job.call_args.kwargs
+        create_kwargs = b3_infra._mock_bedrock.create_model_invocation_job.call_args.kwargs
         assert create_kwargs.get("roleArn") == "arn:aws:iam::999:role/MyRole"
 
 
@@ -734,6 +729,76 @@ class TestVertexValidateConfig:
 class TestVertexRun:
     """Tests for VertexBatchRunner.run()."""
 
+    # ── Shared mock infrastructure (built ONCE per class) ──────────────────
+    @pytest.fixture(scope="class")
+    def vx_infra(self):
+        """Vertex AI mock hierarchy built once for the entire test class.
+
+        Individual tests adjust per-call behaviour by setting:
+          - ``vx_infra[1]._mock_output_blob.download_as_text.return_value``
+            (output JSONL text)
+          - ``vx_infra[0]._mock_job.state.name``  (terminal / running state)
+          - ``vx_infra[0]._mock_job.refresh.side_effect``  (polling sim.)
+
+        The autouse *vx_reset* fixture restores sensible defaults before
+        each test and resets call counts so tests remain fully independent
+        without rebuilding the ~10-object MagicMock tree each time.
+
+        Yields:
+            Tuple[mock_aip, mock_gcs] — both with named inner mocks exposed.
+        """
+        mock_aip = MagicMock()
+        mock_gcs = MagicMock()
+        mock_input_blob = MagicMock()
+        mock_bucket = MagicMock()
+        mock_bucket.blob.return_value = mock_input_blob
+        mock_storage_client = MagicMock()
+        mock_storage_client.bucket.return_value = mock_bucket
+        mock_output_blob = MagicMock()
+        mock_output_blob.name = "coeval/output/job/predictions.jsonl"
+        mock_output_blob.download_as_text.return_value = _VX_BODY_1
+        mock_storage_client.list_blobs.return_value = [mock_output_blob]
+        mock_gcs.Client.return_value = mock_storage_client
+        mock_job = MagicMock()
+        mock_job.resource_name = "projects/p/locations/us-central1/batchPredictionJobs/123"
+        mock_job.state.name = "JOB_STATE_SUCCEEDED"
+        mock_aip.BatchPredictionJob.create.return_value = mock_job
+        # Expose inner mocks so tests can assert / mutate them directly
+        mock_aip._mock_job = mock_job
+        mock_gcs._mock_output_blob = mock_output_blob
+        mock_gcs._mock_storage_client = mock_storage_client
+        yield mock_aip, mock_gcs
+
+    @pytest.fixture(autouse=True)
+    def vx_reset(self, vx_infra):
+        """Reset call counts and restore default job state before each test.
+
+        Uses ``reset_mock(return_value=False, side_effect=False)`` to clear
+        call history while keeping the carefully-wired return values intact.
+        Mutable job state (``state.name``, ``refresh.side_effect``) and the
+        output blob text are explicitly restored to avoid inter-test leakage.
+        """
+        mock_aip, mock_gcs = vx_infra
+        mock_job = mock_aip._mock_job
+        mock_output_blob = mock_gcs._mock_output_blob
+        # Restore mutable state BEFORE resetting (order doesn't matter for
+        # these, but being explicit is clearer)
+        mock_job.state.name = "JOB_STATE_SUCCEEDED"
+        mock_job.refresh.side_effect = None
+        mock_output_blob.download_as_text.return_value = _VX_BODY_1
+        # Reset call counts (return_value=False → wired return values preserved)
+        mock_aip.reset_mock(return_value=False, side_effect=False)
+        mock_gcs.reset_mock(return_value=False, side_effect=False)
+        # Reset job mock separately (it's a plain attr, not an aip child mock)
+        mock_job.reset_mock(return_value=False, side_effect=False)
+        # Re-set state.name because reset_mock recurses into mock_job.state
+        # and some mock internals might clear __dict__ entries; belt+braces.
+        mock_job.state.name = "JOB_STATE_SUCCEEDED"
+        mock_job.refresh.side_effect = None
+        yield
+
+    # ── Tests ───────────────────────────────────────────────────────────────
+
     def test_run_returns_empty_dict_when_no_requests(self):
         runner = _vertex_runner()
         assert runner.run() == {}
@@ -750,150 +815,97 @@ class TestVertexRun:
             with pytest.raises(ImportError, match="google-cloud-aiplatform"):
                 runner.run()
 
-    def _build_vertex_mocks(self, output_lines: list):
-        """Return (mock_aip, mock_gcs) wired for a successful batch job."""
-        mock_aip = MagicMock()
-        mock_gcs = MagicMock()
-        mock_input_blob = MagicMock()
-        mock_bucket = MagicMock()
-        mock_bucket.blob.return_value = mock_input_blob
-        mock_storage_client = MagicMock()
-        mock_storage_client.bucket.return_value = mock_bucket
-        mock_output_blob = MagicMock()
-        mock_output_blob.name = "coeval/output/job/predictions.jsonl"
-        mock_output_blob.download_as_text.return_value = "\n".join(output_lines)
-        mock_storage_client.list_blobs.return_value = [mock_output_blob]
-        mock_gcs.Client.return_value = mock_storage_client
-        mock_job = MagicMock()
-        mock_job.resource_name = "projects/p/locations/us-central1/batchPredictionJobs/123"
-        mock_job.state.name = "JOB_STATE_SUCCEEDED"
-        mock_aip.BatchPredictionJob.create.return_value = mock_job
-        return mock_aip, mock_gcs
-
-    def test_run_full_flow_returns_results(self):
-        output_lines = [
-            _make_vertex_output_line("r0", "Hello world"),
-            _make_vertex_output_line("r1", "Goodbye world"),
-        ]
-        mock_aip, mock_gcs = self._build_vertex_mocks(output_lines)
+    def test_run_full_flow_returns_results(self, vx_infra):
+        mock_aip, mock_gcs = vx_infra
+        mock_gcs._mock_output_blob.download_as_text.return_value = _VX_BODY_2
         with patch.dict(sys.modules, _google_cloud_patch(mock_aip, mock_gcs)):
             runner = _vertex_runner(batch_gcs_bucket="gs://b", project="my-proj")
             params = {"model": "gemini-2.0-flash", "batch_gcs_bucket": "gs://b", "project": "my-proj"}
             runner.add("key-0", "prompt 0", params)
             runner.add("key-1", "prompt 1", params)
             results = runner.run()
-        del mock_aip, mock_gcs
         assert results["key-0"] == "Hello world"
         assert results["key-1"] == "Goodbye world"
 
-    def test_run_correlates_results_via_custom_id(self):
-        output_lines = [_make_vertex_output_line("r0", "text for r0")]
-        mock_aip, mock_gcs = self._build_vertex_mocks(output_lines)
+    def test_run_correlates_results_via_custom_id(self, vx_infra):
+        mock_aip, mock_gcs = vx_infra
+        mock_gcs._mock_output_blob.download_as_text.return_value = _make_vertex_output_line(
+            "r0", "text for r0"
+        )
         with patch.dict(sys.modules, _google_cloud_patch(mock_aip, mock_gcs)):
             runner = _vertex_runner(batch_gcs_bucket="b", project="p")
-            runner.add("my-special-key", "some prompt", {"model": "m", "batch_gcs_bucket": "b", "project": "p"})
+            runner.add("my-special-key", "some prompt", {
+                "model": "m", "batch_gcs_bucket": "b", "project": "p"
+            })
             results = runner.run()
-        del mock_aip, mock_gcs
         assert "my-special-key" in results
         assert results["my-special-key"] == "text for r0"
 
-    def test_run_handles_failed_requests(self):
-        output_lines = [
-            _make_vertex_output_line("r0", "OK"),
-            _make_vertex_failed_line("r1"),
-        ]
-        mock_aip, mock_gcs = self._build_vertex_mocks(output_lines)
+    def test_run_handles_failed_requests(self, vx_infra):
+        mock_aip, mock_gcs = vx_infra
+        mock_gcs._mock_output_blob.download_as_text.return_value = _VX_BODY_ERR
         with patch.dict(sys.modules, _google_cloud_patch(mock_aip, mock_gcs)):
             runner = _vertex_runner(batch_gcs_bucket="b", project="p")
             params = {"model": "m", "batch_gcs_bucket": "b", "project": "p"}
             runner.add("k0", "p0", params)
             runner.add("k1", "p1", params)
             results = runner.run()
-        del mock_aip, mock_gcs
         assert results["k0"] == "OK"
         assert results["k1"] == ""
 
-    def test_run_calls_clear_after_completion(self):
-        output_lines = [_make_vertex_output_line("r0", "hi")]
-        mock_aip, mock_gcs = self._build_vertex_mocks(output_lines)
+    def test_run_calls_clear_after_completion(self, vx_infra):
+        mock_aip, mock_gcs = vx_infra
         with patch.dict(sys.modules, _google_cloud_patch(mock_aip, mock_gcs)):
             runner = _vertex_runner(batch_gcs_bucket="b", project="p")
             runner.add("k0", "p0", {"model": "m", "batch_gcs_bucket": "b", "project": "p"})
             runner.run()
-        del mock_aip, mock_gcs
         assert len(runner) == 0
 
-    def test_run_raises_runtime_error_on_failed_state(self):
-        mock_aip = MagicMock()
-        mock_gcs = MagicMock()
-        mock_storage_client = MagicMock()
-        mock_bucket = MagicMock()
-        mock_bucket.blob.return_value = MagicMock()
-        mock_storage_client.bucket.return_value = mock_bucket
-        mock_gcs.Client.return_value = mock_storage_client
-        mock_job = MagicMock()
-        mock_job.resource_name = "projects/p/batchJobs/fail123"
-        mock_job.state.name = "JOB_STATE_FAILED"
-        mock_aip.BatchPredictionJob.create.return_value = mock_job
+    def test_run_raises_runtime_error_on_failed_state(self, vx_infra):
+        mock_aip, mock_gcs = vx_infra
+        mock_aip._mock_job.state.name = "JOB_STATE_FAILED"
         with patch.dict(sys.modules, _google_cloud_patch(mock_aip, mock_gcs)):
             runner = _vertex_runner(batch_gcs_bucket="b", project="p")
             runner.add("k0", "p0", {"model": "m", "batch_gcs_bucket": "b", "project": "p"})
             with pytest.raises(RuntimeError, match="JOB_STATE_FAILED"):
                 runner.run()
 
-    def test_run_uploads_input_to_gcs(self):
-        output_lines = [_make_vertex_output_line("r0", "result")]
-        mock_aip, mock_gcs = self._build_vertex_mocks(output_lines)
+    def test_run_uploads_input_to_gcs(self, vx_infra):
+        mock_aip, mock_gcs = vx_infra
         with patch.dict(sys.modules, _google_cloud_patch(mock_aip, mock_gcs)):
             runner = _vertex_runner(batch_gcs_bucket="my-bucket", project="p")
             runner.add("k0", "p0", {"model": "m", "batch_gcs_bucket": "my-bucket", "project": "p"})
             runner.run()
-        mock_storage_client = mock_gcs.Client.return_value
+        mock_storage_client = mock_gcs._mock_storage_client
         assert mock_storage_client.bucket.called
-        bucket_arg = mock_storage_client.bucket.call_args.args[0]
-        assert bucket_arg == "my-bucket"
+        assert mock_storage_client.bucket.call_args.args[0] == "my-bucket"
 
-    def test_run_creates_batch_prediction_job(self):
-        output_lines = [_make_vertex_output_line("r0", "result")]
-        mock_aip, mock_gcs = self._build_vertex_mocks(output_lines)
+    def test_run_creates_batch_prediction_job(self, vx_infra):
+        mock_aip, mock_gcs = vx_infra
         with patch.dict(sys.modules, _google_cloud_patch(mock_aip, mock_gcs)):
             runner = _vertex_runner(batch_gcs_bucket="b", project="p")
             runner.add("k0", "p0", {"model": "gemini-2.0-flash", "batch_gcs_bucket": "b", "project": "p"})
             runner.run()
         assert mock_aip.BatchPredictionJob.create.called
 
-    def test_run_polls_until_terminal_state(self):
-        mock_aip = MagicMock()
-        mock_gcs = MagicMock()
-        output_lines = [_make_vertex_output_line("r0", "final")]
-        mock_storage_client = MagicMock()
-        mock_bucket = MagicMock()
-        mock_bucket.blob.return_value = MagicMock()
-        mock_storage_client.bucket.return_value = mock_bucket
-        mock_output_blob = MagicMock()
-        mock_output_blob.name = "coeval/output/job/predictions.jsonl"
-        mock_output_blob.download_as_text.return_value = "\n".join(output_lines)
-        mock_storage_client.list_blobs.return_value = [mock_output_blob]
-        mock_gcs.Client.return_value = mock_storage_client
-        mock_job = MagicMock()
-        mock_job.resource_name = "projects/p/batchJobs/poll123"
+    def test_run_polls_until_terminal_state(self, vx_infra):
+        mock_aip, mock_gcs = vx_infra
+        mock_job = mock_aip._mock_job
         mock_job.state.name = "JOB_STATE_RUNNING"
 
         def do_refresh():
             mock_job.state.name = "JOB_STATE_SUCCEEDED"
 
         mock_job.refresh.side_effect = do_refresh
-        mock_aip.BatchPredictionJob.create.return_value = mock_job
         with patch.dict(sys.modules, _google_cloud_patch(mock_aip, mock_gcs)):
             runner = _vertex_runner(batch_gcs_bucket="b", project="p")
             runner.add("k0", "p0", {"model": "m", "batch_gcs_bucket": "b", "project": "p"})
             results = runner.run()
         assert mock_job.refresh.call_count == 1
-        assert results["k0"] == "final"
+        assert results["k0"] == "Hello world"
 
-    def test_run_normalizes_short_model_id_to_publisher_resource(self):
-        output_lines = [_make_vertex_output_line("r0", "ok")]
-        mock_aip, mock_gcs = self._build_vertex_mocks(output_lines)
+    def test_run_normalizes_short_model_id_to_publisher_resource(self, vx_infra):
+        mock_aip, mock_gcs = vx_infra
         with patch.dict(sys.modules, _google_cloud_patch(mock_aip, mock_gcs)):
             runner = _vertex_runner(batch_gcs_bucket="b", project="p")
             runner.add("k0", "p0", {
