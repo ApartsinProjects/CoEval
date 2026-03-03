@@ -1,0 +1,68 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2c6fad', 'lineColor': '#555', 'secondaryColor': '#E8F4FD', 'tertiaryColor': '#FFF8E1', 'fontSize': '16px'}}}%%
+flowchart TD
+    subgraph INPUT["📥  Inputs"]
+        direction LR
+        YAML["YAML Config\n(tasks, models, modes)"]
+        BM["Benchmark Data\n(optional)"]
+    end
+
+    subgraph P1["Phase 1 · Attribute Mapping"]
+        direction TB
+        P1A["Teacher LLMs\n(generative mode)\nor Static dict"]
+        P1B["Target Attributes\n{complexity, tone, …}"]
+        P1C["Nuanced Attributes\n{domain, style, …}"]
+        P1A --> P1B & P1C
+    end
+
+    subgraph P2["Phase 2 · Rubric Construction"]
+        direction TB
+        P2A["Teacher LLMs\nor Benchmark rubric"]
+        P2B["Rubric Criteria\nwith descriptions\n& weights"]
+        P2A --> P2B
+    end
+
+    subgraph P3["Phase 3 · Datapoint Generation"]
+        direction TB
+        P3A["Stratified Sampling\nover attribute space"]
+        P3B["Teacher LLMs\n(generate prompts\n+ reference answers)"]
+        P3C["Datapoint Store\n(prompt, ref_answer,\nattr_vector)"]
+        P3A --> P3B --> P3C
+    end
+
+    subgraph P4["Phase 4 · Response Collection"]
+        direction TB
+        P4A["Student LLMs\n(async batch)"]
+        P4B["Response Store\n(model_id, text)"]
+        P4A --> P4B
+    end
+
+    subgraph P5["Phase 5 · Ensemble Scoring"]
+        direction TB
+        P5A["Judge LLMs\n(independent)"]
+        P5B["Score Aggregation\n(SPA / WPA / κ)"]
+        P5C["Calibration\n(OLS α, β)"]
+        P5D["score_norm ∈ [0,1]\nper student × criterion"]
+        P5A --> P5B --> P5C --> P5D
+    end
+
+    subgraph OUT["📊  Outputs"]
+        direction LR
+        RPT["HTML Reports\n(summary, judges,\nstudents, teachers)"]
+        CSV["Excel / CSV\nExport"]
+        BMS["Benchmark\nScores"]
+    end
+
+    YAML & BM --> P1
+    P1 --> P2
+    P2 --> P3
+    P3 --> P4
+    P4 --> P5
+    P5 --> OUT
+
+    style INPUT fill:#EBF5FB,stroke:#2980B9
+    style OUT   fill:#E8F8F5,stroke:#1ABC9C
+    style P1    fill:#FFF9C4,stroke:#F39C12
+    style P2    fill:#FFF9C4,stroke:#F39C12
+    style P3    fill:#FDEDEC,stroke:#E74C3C
+    style P4    fill:#FDEDEC,stroke:#E74C3C
+    style P5    fill:#EBF5FB,stroke:#2980B9
