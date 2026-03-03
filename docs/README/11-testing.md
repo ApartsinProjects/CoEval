@@ -4,7 +4,7 @@
 
 ---
 
-CoEval ships with a comprehensive test suite covering config validation, all 18 model interfaces, cost estimation, resume logic, CLI dispatch, batch runners, and all eight HTML report types.
+CoEval ships with a comprehensive test suite covering config validation, all 18 model interfaces, cost estimation, resume logic, CLI dispatch, batch runners, all eight HTML report types, and the complete 5-phase pipeline including the runner orchestrator.
 
 ## Running the Tests
 
@@ -49,7 +49,9 @@ pytest Tests/analyzer/test_reports_playwright.py -v
 | `test_storage.py` / `test_storage_extended.py` | Filesystem I/O, EES phase storage |
 | `test_prompts.py` | Prompt template rendering |
 | `test_repair.py` | `coeval repair` subcommand |
+| `test_phase1_phase2.py` | Phase 1 (attribute mapping) and Phase 2 (rubric mapping): Keep/static/auto/extend branches, error accumulation, quota enforcement |
 | `test_phase4_phase5.py` | Phase 4 (response collection) and Phase 5 (evaluation) logic |
+| `test_runner_orchestrator.py` | `run_experiment()` orchestrator: dry-run, phase ordering, PartialPhaseFailure vs. RuntimeError stop logic, continue_in_place skip logic, only_models flag |
 | `test_benchmarks.py` | Benchmark dataset loading and ingest pipeline |
 | `test_utils.py` | Shared utility functions |
 
@@ -99,14 +101,14 @@ The test suite is designed to run in any CI environment with Python ≥ 3.10:
     pytest Tests/ -v --tb=short
 ```
 
-Expected: **622+ tests passing** in `Tests/runner/`, `Tests/benchmark/`, plus Playwright tests in `Tests/analyzer/`.
+Expected: **1300+ tests passing** in `Tests/runner/`, `Tests/benchmark/`, plus Playwright tests in `Tests/analyzer/`.
 
 ---
 
 ## Frequently Asked Questions
 
 **Q: How do I run the full test suite?**
-A: From the project root, run `pytest Tests/runner Tests/benchmark -v`. This runs 622+ unit tests. The Playwright tests in `Tests/analyzer/test_reports_playwright.py` require a separate `playwright install chromium` step.
+A: From the project root, run `pytest Tests/runner Tests/benchmark -v`. This runs 1300+ unit tests. The Playwright tests in `Tests/analyzer/test_reports_playwright.py` require a separate `playwright install chromium` step.
 
 **Q: Do the tests make real API calls to provider endpoints?**
 A: No. All API calls in probe and interface tests are mocked at the SDK level. Credential-sensitive tests use an autouse `monkeypatch` fixture that sets `COEVAL_KEYS_FILE` to `/dev/null`, preventing any interaction with real key files at `~/.coeval/keys.yaml` or the project root.

@@ -20,8 +20,17 @@ def run_phase1(
     pool: ModelPool,
     quota: QuotaTracker,
     phase_mode: str,
+    only_models: set[str] | None = None,
 ) -> None:
-    """Execute Phase 1 for all tasks according to phase_mode."""
+    """Execute Phase 1 for all tasks according to phase_mode.
+
+    Parameters
+    ----------
+    only_models:
+        Accepted but not used — Phase 1 builds task-level attribute maps from
+        teacher models and is not filtered by model.  Present for API
+        compatibility with the runner's phase-dispatch loop.
+    """
     teachers = cfg.get_models_by_role('teacher')
     errors: list[str] = []
 
