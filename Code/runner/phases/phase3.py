@@ -1,6 +1,7 @@
 """Phase 3 — Data Generation (REQ-7.1, REQ-7.4, §4, §5.3.4, §6.2.4)."""
 from __future__ import annotations
 
+import itertools
 import json
 import random
 from collections import defaultdict
@@ -230,6 +231,15 @@ def _generate_batch_datapoints(
             params = teacher.get_parameters_for_role('teacher')
             logger.info(f"Phase 3: {label} — queuing {to_generate} datapoint(s)")
 
+            # Aligned with paper v2 methodology - Algorithm 1 (§3.5): use
+            # stratified cycling for target attributes when spec is 'all'.
+            if task.sampling.target == 'all' and target_attrs:
+                target_sequence = _make_target_cycle(
+                    target_attrs, to_generate, logger=logger, label=label
+                )
+            else:
+                target_sequence = None
+
             for i in range(to_generate):
                 if quota.is_exhausted(teacher_id):
                     logger.warning(
@@ -239,8 +249,11 @@ def _generate_batch_datapoints(
                     break
 
                 seq = seq_start + i
-                # Sample attributes independently for each datapoint
-                sampled_target = _sample_attrs(target_attrs, task.sampling.target)
+                # Use pre-built stratified sequence when available, else random
+                if target_sequence is not None:
+                    sampled_target = target_sequence[i]
+                else:
+                    sampled_target = _sample_attrs(target_attrs, task.sampling.target)
                 sampled_nuanced = _sample_attrs(nuanced_attrs, task.sampling.nuance)
 
                 prompt = get_prompt(
@@ -386,6 +399,17 @@ def _generate_datapoints(
     target_attrs = storage.read_target_attrs(task_id)
     nuanced_attrs = storage.read_nuanced_attrs(task_id)
 
+    # Aligned with paper v2 methodology - Algorithm 1 (§3.5): pre-build the
+    # ordered sequence of target-attribute assignments using stratified cycling.
+    # When target_spec == 'all', use full Cartesian cycling; otherwise fall back
+    # to per-item random sampling for non-exhaustive target specs.
+    if task.sampling.target == 'all' and target_attrs:
+        target_sequence = _make_target_cycle(
+            target_attrs, to_generate, logger=logger, label=label
+        )
+    else:
+        target_sequence = None  # use per-item _sample_attrs below
+
     iface = pool.get(teacher)
     params = teacher.get_parameters_for_role('teacher')
 
@@ -401,7 +425,11 @@ def _generate_datapoints(
             break
 
         seq = seq_start + i
-        sampled_target = _sample_attrs(target_attrs, task.sampling.target)
+        # Use pre-built stratified sequence when available, else random sampling
+        if target_sequence is not None:
+            sampled_target = target_sequence[i]
+        else:
+            sampled_target = _sample_attrs(target_attrs, task.sampling.target)
         sampled_nuanced = _sample_attrs(nuanced_attrs, task.sampling.nuance)
 
         prompt = get_prompt(
@@ -478,8 +506,57 @@ def _generate_datapoints(
 # ---------------------------------------------------------------------------
 
 
+def _make_target_cycle(
+    target_attrs: dict[str, list],
+    total: int,
+    logger: 'RunLogger | None' = None,
+    label: str = '',
+) -> list[dict[str, str]]:
+    """Build the ordered list of target-attribute assignments for Algorithm 1.
+
+    Aligned with paper v2 methodology - Algorithm 1 (§3.5):
+    - Compute perms = CartesianProduct(A_target.values()).
+    - If N >= |perms|: use itertools.cycle(perms) — each combination appears
+      at least floor(N/|perms|) times per teacher.
+    - If N < |perms|: sample without replacement from the permutation space,
+      maximising coverage by drawing distinct combinations first.
+
+    Returns a list of length `total`, one target-attr dict per datapoint slot.
+    """
+    if not target_attrs:
+        return [{} for _ in range(total)]
+
+    keys = list(target_attrs.keys())
+    value_lists = [target_attrs[k] for k in keys]
+    all_perms = list(itertools.product(*value_lists))
+
+    if not all_perms:
+        return [{} for _ in range(total)]
+
+    n_perms = len(all_perms)
+
+    if total < n_perms:
+        # N < |perms|: sample without replacement (Algorithm 1, line 2a note)
+        if logger is not None:
+            logger.warning(
+                f"Phase 3: {label} N={total} < |perms|={n_perms}: "
+                "not all attribute combinations will be sampled. "
+                "Sampling without replacement for maximal coverage."
+            )
+        chosen = random.sample(all_perms, total)
+        return [dict(zip(keys, combo)) for combo in chosen]
+    else:
+        # N >= |perms|: use circular iterator (Algorithm 1, line 4)
+        cycle_iter = itertools.cycle(all_perms)
+        return [dict(zip(keys, next(cycle_iter))) for _ in range(total)]
+
+
 def _sample_attrs(attr_map: dict[str, list], target_spec) -> dict[str, str]:
-    """Sample a subset of attribute key-value pairs per the spec algorithm."""
+    """Sample a subset of attribute key-value pairs per the spec algorithm.
+
+    Used for nuanced attributes (random per-item sampling) and for cases
+    where target_attrs is not provided as a full dict to _make_target_cycle.
+    """
     if not attr_map:
         return {}
 

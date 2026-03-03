@@ -188,6 +188,16 @@ class ModelPool:
                 "Check that Phase 3 correctly skips benchmark teachers."
             )
 
+        # Metric judge — deterministic metric computation, no LLM interface.
+        # Phase 5 dispatches to runner.metric_judge directly.
+        if iface == 'metric':
+            raise ValueError(
+                f"Model '{model_cfg.name}' uses the 'metric' interface which "
+                "computes deterministic metrics (BERTScore, BLEU, exact_match) "
+                "without an LLM. It cannot be called through the ModelPool. "
+                "Phase 5 handles metric judges via runner.metric_judge."
+            )
+
         # HuggingFace (GPU-based): evict other HF models from VRAM first
         self._evict_hf_models(keep=model_cfg.name)
         hf_token = (

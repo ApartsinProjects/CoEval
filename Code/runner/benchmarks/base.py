@@ -60,6 +60,19 @@ class BenchmarkAdapter(ABC):
     default_split: str = 'test'
     """Default split name used when no split is specified in ``load()``."""
 
+    benchmark_metric: str | None = None
+    """Default metric for this benchmark (e.g. ``"bertscore"``, ``"bleu"``,
+    ``"exact_match"``).
+
+    When set, ``coeval ingest`` will automatically inject the corresponding
+    metric factor into the task rubric and add a metric judge model to the
+    config.  Set to ``None`` (default) for benchmarks that rely on
+    ``label_eval`` or LLM-only judging.
+
+    The value must be one of the metrics defined in
+    ``runner.metric_judge.SUPPORTED_METRICS``.
+    """
+
     # --------------------------------------------------------------------------
     # Abstract interface
     # --------------------------------------------------------------------------

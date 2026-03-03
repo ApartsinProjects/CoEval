@@ -12,9 +12,28 @@ and the calibration parameters are stored in a JSON file in the experiment
 folder.  The calibrated scores can then be used to recompute Spearman ρ and
 MAE against the benchmark ground truth (as reported in Table 8 of the paper).
 
+.. warning:: **3-level ordinal limitation — calibration is NOT recommended
+   by default.**
+
+   LLM judges currently return only three ordinal score levels:
+   High (1.0), Medium (0.5), and Low (0.0).  The OLS regression therefore
+   operates on at most **3 unique input values**, which is fundamentally
+   insufficient for a reliable linear fit.  The resulting α and β
+   coefficients are highly sensitive to score distribution and may not
+   generalise.
+
+   Calibration is **disabled by default** in ``paper_tables.py`` (Table 8).
+   It should only be enabled when:
+
+   - The experiment uses **metric judges** (``interface: metric``) that
+     produce continuous [0, 1] scores (e.g. BERTScore, BLEU), giving the
+     OLS fit a meaningful range of input values.
+   - You explicitly pass ``--enable-calibration`` to the paper tables CLI
+     or set ``calibration_enabled=True`` programmatically.
+
 Usage
 -----
-    from analyzer.calibration import fit_calibration, apply_calibration, \
+    from analyzer.calibration import fit_calibration, apply_calibration, \\
         load_or_fit_calibration
 
     params = fit_calibration(raw_scores, gt_scores)

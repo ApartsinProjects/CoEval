@@ -255,20 +255,12 @@ def compute_teacher_scores(
         v1 = sum(v1_vals) / len(v1_vals) if v1_vals else 0.0
 
         # ---------------------------------------------------------------
-        # Formula 2 — average per-datapoint student spread (REQ-A-5.5.2)
+        # Formula 2 — S2 = sqrt(V1) (REQ-A-5.5.2)
+        # Aligned with paper v2 methodology - S2 definition (§3.8, Table 1)
+        # S2(t) = sqrt(V1(t)); standard deviation of student means over
+        # teacher t's datapoints.  Same ranking as V1 but in score units.
         # ---------------------------------------------------------------
-        # spread(d, A) = std_dev over students of judge-avg score for that dp/aspect
-        dp_a_student_scores: dict[tuple[str, str], list[float]] = defaultdict(list)
-        for (dp, s, a), avg in dp_s_a_avg.items():
-            dp_a_student_scores[(dp, a)].append(avg)
-
-        s2_vals: list[float] = []
-        for vals in dp_a_student_scores.values():
-            if len(vals) >= 2:
-                s2_vals.append(statistics.stdev(vals))
-            else:
-                s2_vals.append(0.0)
-        s2 = sum(s2_vals) / len(s2_vals) if s2_vals else 0.0
+        s2 = math.sqrt(v1) if v1 >= 0.0 else 0.0
 
         # ---------------------------------------------------------------
         # Formula 3 — range of per-student averages (REQ-A-5.5.3)
@@ -369,23 +361,41 @@ class RobustFilterResult(NamedTuple):
     robust_count: int
     judge_scores: dict[str, JudgeScoreResult]
     teacher_scores: dict[str, TeacherScoreResult]
-    consistent_fractions: dict[str, float]   # dp_id -> fraction
+    consistent_fractions: dict[str, float]   # dp_id -> fraction of (s,c) pairs passing theta test
     agreement_metric: str
-    agreement_threshold: float
+    # Aligned with paper v2 methodology - D* filter parameters
+    agreement_threshold: float      # kept for backward compat; equals theta
+    theta: float                    # paper v2 §3.8: score spread tolerance (default 0.05)
+    q_fraction: float               # paper v2 §3.8: fraction of J* that must be within theta (default 0.5)
     teacher_score_formula: str
     judge_selection: str
-    q: int                          # consistency minimum (ceil(|J*|/2))
+    q: int                          # = ceil(q_fraction * |J*|)
     diagnostics: dict               # for the diagnostic printout
 
 
 def robust_filter(
     model: EESDataModel,
     judge_selection: str = 'top_half',
-    agreement_metric: str = 'spa',
-    agreement_threshold: float = 1.0,
+    agreement_metric: str = 'wpa',
+    # Aligned with paper v2 methodology - D* filter: q=0.5*|J*|, theta=0.05
+    q_fraction: float = 0.5,
+    theta: float = 0.05,
+    # Backward-compat alias for theta (old API used agreement_threshold)
+    agreement_threshold: float | None = None,
     teacher_score_formula: str = 'v1',
 ) -> RobustFilterResult:
-    """Three-step robust filtering algorithm (REQ-A-5.7)."""
+    """Three-step robust filtering algorithm (REQ-A-5.7).
+
+    D* filter (paper v2 §3.8): datapoint d is retained if, for every student s
+    and every criterion c, at least q = q_fraction * |J*| judges satisfy
+    |score_adj - mean_score| <= theta.  Defaults: q_fraction=0.5, theta=0.05.
+
+    agreement_threshold is a backward-compatibility alias for theta; if both
+    are supplied, agreement_threshold takes precedence.
+    """
+    # Backward compatibility: if old agreement_threshold kwarg was passed, use it as theta
+    if agreement_threshold is not None:
+        theta = agreement_threshold
     units = model.units
     judges = model.judges
     teachers = model.teachers
@@ -440,10 +450,15 @@ def robust_filter(
     }
 
     # ------------------------------------------------------------------
-    # Step 3 — Filter to robust datapoints
+    # Step 3 — Filter to robust datapoints (D*)
+    # Aligned with paper v2 methodology - D* filter (§3.8 Eq.)
+    # Retain datapoint d iff for every (s, c) pair, at least
+    # q = ceil(q_fraction * |J*|) judges satisfy
+    # |score_adj - mean_score_(d,s,c)| <= theta.
     # ------------------------------------------------------------------
     J_star_set = set(J_star)
-    q = math.ceil(len(J_star) / 2) if J_star else 1
+    # q_fraction=0.5 and theta=0.05 are the paper v2 defaults
+    q = math.ceil(q_fraction * len(J_star)) if J_star else 1
 
     consistent_fractions: dict[str, float] = {}
     D_robust: set[str] = set()
@@ -465,28 +480,47 @@ def robust_filter(
             (u.student_model_id, u.rubric_aspect) for u in dp_units
         }
 
-        consistent_count = 0
+        # Paper v2 §3.8: d is retained if ALL (s, c) pairs pass the theta test.
+        # A pair passes iff at least q judges are within theta of the mean.
+        all_pairs_pass = True
         for student, aspect in pairs:
             pair_units = [
                 u for u in dp_units
                 if u.student_model_id == student and u.rubric_aspect == aspect
             ]
-            n_judges = len(pair_units)
-            if n_judges < q:
-                # Insufficient coverage — treat as not-consistent
-                continue
-            # Check all scores are equal
-            first_score = pair_units[0].score
-            if all(u.score == first_score for u in pair_units):
-                consistent_count += 1
+            if not pair_units:
+                all_pairs_pass = False
+                break
+            # Compute mean calibrated score for this (d, s, c) tuple
+            mean_score = sum(u.score_norm for u in pair_units) / len(pair_units)
+            # Count judges within theta of the mean
+            within_theta = sum(
+                1 for u in pair_units
+                if abs(u.score_norm - mean_score) <= theta
+            )
+            if within_theta < q:
+                all_pairs_pass = False
+                break
 
-        if pairs:
-            fraction = consistent_count / len(pairs)
-        else:
-            fraction = 0.0
+        # consistent_fractions records fraction of pairs that pass (for diagnostics)
+        passing_pairs = 0
+        for student, aspect in pairs:
+            pair_units = [
+                u for u in dp_units
+                if u.student_model_id == student and u.rubric_aspect == aspect
+            ]
+            if pair_units:
+                mean_score = sum(u.score_norm for u in pair_units) / len(pair_units)
+                within_theta = sum(
+                    1 for u in pair_units
+                    if abs(u.score_norm - mean_score) <= theta
+                )
+                if within_theta >= q:
+                    passing_pairs += 1
 
+        fraction = passing_pairs / len(pairs) if pairs else 0.0
         consistent_fractions[dp_id] = fraction
-        if fraction >= agreement_threshold:
+        if all_pairs_pass and pairs:
             D_robust.add(dp_id)
 
     # ------------------------------------------------------------------
@@ -507,7 +541,10 @@ def robust_filter(
         'T_star_count': len(T_star_dps),
         'all_count': len(all_dp_ids),
         'robust_count': len(D_robust),
-        'agreement_threshold': agreement_threshold,
+        # Aligned with paper v2 methodology - D* filter: theta and q_fraction
+        'agreement_threshold': theta,   # backward-compat alias
+        'theta': theta,
+        'q_fraction': q_fraction,
         'q': q,
     }
 
@@ -522,7 +559,10 @@ def robust_filter(
         teacher_scores=teacher_scores,
         consistent_fractions=consistent_fractions,
         agreement_metric=agreement_metric,
-        agreement_threshold=agreement_threshold,
+        # Aligned with paper v2 methodology - D* filter parameters
+        agreement_threshold=theta,   # backward-compat alias
+        theta=theta,
+        q_fraction=q_fraction,
         teacher_score_formula=teacher_score_formula,
         judge_selection=judge_selection,
         q=q,

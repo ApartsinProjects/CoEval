@@ -644,15 +644,26 @@ def table7_sampling_ablation(model: EESDataModel, out_dir: Path) -> None:
 # Table 8: Judge calibration effect
 # ---------------------------------------------------------------------------
 
-def table8_calibration(model: EESDataModel, out_dir: Path) -> None:
+def table8_calibration(model: EESDataModel, out_dir: Path,
+                       calibration_enabled: bool = False) -> None:
     """Table 8: Effect of judge calibration on ensemble reliability.
 
-    When benchmark scores are available, fits OLS calibration (analyzer.calibration)
-    and reports ρ and MAE before and after calibration.
-    When not available, shows placeholder values from the paper.
-    """
-    from .calibration import fit_calibration, apply_calibration
+    .. warning::
 
+       Calibration is **disabled by default**.  LLM judges currently return
+       only three ordinal levels (High / Medium / Low → 1.0 / 0.5 / 0.0),
+       so the OLS fit operates on just 3 unique input values.  This makes
+       the linear regression unreliable and its coefficients unstable.
+       Enable calibration explicitly with ``calibration_enabled=True`` or
+       ``--enable-calibration`` on the CLI only if you understand this
+       limitation (e.g. when using metric judges that produce continuous
+       [0, 1] scores).
+
+    When *calibration_enabled* is True **and** benchmark scores are available,
+    fits OLS calibration (analyzer.calibration) and reports ρ and MAE before
+    and after calibration.  Otherwise emits a note explaining why calibration
+    was skipped.
+    """
     bm_scores = _load_benchmark_scores(model)
 
     header = [
@@ -663,7 +674,17 @@ def table8_calibration(model: EESDataModel, out_dir: Path) -> None:
     ]
     rows: list[list[str]] = []
 
-    if not bm_scores:
+    if not calibration_enabled:
+        # Calibration disabled by default — emit informational row
+        rows = [
+            ["Disabled (default)", "—", "—", "—"],
+        ]
+        note = (
+            " Calibration is disabled by default because LLM judges produce only "
+            "3 ordinal score levels (High/Medium/Low), making OLS unreliable. "
+            "Pass --enable-calibration to opt in."
+        )
+    elif not bm_scores:
         # Placeholder from paper
         rows = [
             ["None (raw scores)", "0.843", "0.412", "18.3%"],
@@ -672,6 +693,8 @@ def table8_calibration(model: EESDataModel, out_dir: Path) -> None:
         ]
         note = " (paper values — benchmark scores not yet computed for this run)"
     else:
+        from .calibration import fit_calibration, apply_calibration
+
         coeval_dp = _coeval_scores_by_dp(model)
         common = sorted(set(coeval_dp) & set(bm_scores))
         cx = [coeval_dp[d] for d in common]
@@ -806,6 +829,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", default="paper/tables", help="Output directory")
     parser.add_argument("--partial-ok", action="store_true",
                         help="Suppress warning for incomplete experiments")
+    parser.add_argument(
+        "--enable-calibration", action="store_true", default=False,
+        help=(
+            "Enable OLS calibration in Table 8.  Disabled by default because "
+            "LLM judges produce only 3 ordinal score levels (High/Medium/Low), "
+            "making the OLS fit unreliable.  Enable when using metric judges "
+            "that return continuous [0, 1] scores."
+        ),
+    )
     args = parser.parse_args(argv)
 
     out_dir = Path(args.out)
@@ -830,7 +862,7 @@ def main(argv: list[str] | None = None) -> int:
     table5_student_scores(model, out_dir)
     table6_ensemble_ablation(model, out_dir)
     table7_sampling_ablation(model, out_dir)
-    table8_calibration(model, out_dir)
+    table8_calibration(model, out_dir, calibration_enabled=args.enable_calibration)
     table9_positional_bias(model, out_dir)
     _write_summary(model, out_dir)
 

@@ -410,3 +410,104 @@ def test_role_parameters_no_override():
     params = cfg.models[0].get_parameters_for_role('student')
     # student has no role_parameters entry → base params unchanged
     assert params == cfg.models[0].parameters
+
+
+# ---------------------------------------------------------------------------
+# V-18: metric rubric factors must reference supported metrics
+# ---------------------------------------------------------------------------
+
+def test_v18_metric_factor_valid():
+    """Rubric with a valid metric factor passes validation."""
+    raw = _minimal_raw(
+        task_overrides={
+            'rubric': {
+                'accuracy': 'Good output.',
+                'bertscore_f1': {
+                    'metric': 'bertscore',
+                    'description': 'BERTScore F1 similarity',
+                },
+            },
+        },
+    )
+    errors = validate_config(_cfg(raw))
+    # No V-18 error expected
+    assert not any('V-18' in e for e in errors), f"Unexpected V-18 error: {errors}"
+
+
+def test_v18_metric_factor_invalid_metric():
+    """Rubric with an unsupported metric name triggers V-18 error."""
+    raw = _minimal_raw(
+        task_overrides={
+            'rubric': {
+                'accuracy': 'Good output.',
+                'rouge_l': {
+                    'metric': 'rouge',
+                    'description': 'ROUGE-L overlap',
+                },
+            },
+        },
+    )
+    errors = validate_config(_cfg(raw))
+    assert any('V-18' in e or 'rouge' in e.lower() for e in errors), (
+        f"Expected V-18 validation error for unsupported metric 'rouge', got: {errors}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# V-19: metric interface models must have 'judge' role
+# ---------------------------------------------------------------------------
+
+def test_v19_metric_interface_judge_role_valid():
+    """Model with interface='metric' and role='judge' passes validation."""
+    raw = _minimal_raw(
+        extra_models=[
+            {
+                'name': 'metric-bertscore',
+                'interface': 'metric',
+                'parameters': {'metric': 'bertscore'},
+                'roles': ['judge'],
+            }
+        ],
+    )
+    errors = validate_config(_cfg(raw))
+    assert not any('V-19' in e for e in errors), f"Unexpected V-19 error: {errors}"
+
+
+def test_v19_metric_interface_without_judge_role():
+    """Model with interface='metric' but no 'judge' role triggers V-19 error."""
+    raw = _minimal_raw(
+        extra_models=[
+            {
+                'name': 'metric-bertscore',
+                'interface': 'metric',
+                'parameters': {'metric': 'bertscore'},
+                'roles': ['student'],
+            }
+        ],
+    )
+    errors = validate_config(_cfg(raw))
+    assert any('V-19' in e or 'metric' in e.lower() for e in errors), (
+        f"Expected V-19 validation error for metric model without judge role, got: {errors}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# 'metric' interface is accepted
+# ---------------------------------------------------------------------------
+
+def test_metric_interface_in_valid_interfaces():
+    """'metric' is a valid interface value (no V-06 error)."""
+    raw = _minimal_raw(
+        extra_models=[
+            {
+                'name': 'metric-judge',
+                'interface': 'metric',
+                'parameters': {},
+                'roles': ['judge'],
+            }
+        ],
+    )
+    errors = validate_config(_cfg(raw))
+    assert not any('interface' in e.lower() and 'invalid' in e.lower() for e in errors), (
+        f"Unexpected interface validation error: {errors}"
+    )

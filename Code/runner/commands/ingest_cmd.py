@@ -110,6 +110,46 @@ def _existing_ids(path: Path) -> set[str]:
 
 
 # ---------------------------------------------------------------------------
+# Metric factor auto-injection
+# ---------------------------------------------------------------------------
+
+def _inject_metric_factor(
+    rubric: dict[str, Any],
+    adapter: Any,
+) -> dict[str, Any]:
+    """Auto-inject a metric factor into the rubric if the adapter declares one.
+
+    When ``adapter.benchmark_metric`` is set (e.g. ``"bertscore"``), the
+    corresponding default metric factor from ``METRIC_FACTOR_DEFS`` is merged
+    into the rubric.  Existing factors with the same name are not overwritten.
+    """
+    metric = getattr(adapter, 'benchmark_metric', None)
+    if not metric:
+        return rubric
+
+    from runner.metric_judge import make_metric_factor
+    try:
+        factor_name, factor_def = make_metric_factor(metric)
+    except ValueError:
+        # Unknown metric — skip injection silently (adapter misconfigured)
+        print(
+            f"[ingest] WARNING: benchmark_metric '{metric}' is not in "
+            f"SUPPORTED_METRICS — skipping metric factor injection",
+            file=sys.stderr,
+        )
+        return rubric
+
+    if factor_name in rubric:
+        print(f"[ingest] Metric factor '{factor_name}' already in rubric — keeping")
+        return rubric
+
+    rubric = dict(rubric)  # shallow copy to avoid mutating the adapter's dict
+    rubric[factor_name] = factor_def
+    print(f"[ingest] Auto-injected metric factor '{factor_name}' ({metric})")
+    return rubric
+
+
+# ---------------------------------------------------------------------------
 # Core ingest logic
 # ---------------------------------------------------------------------------
 
@@ -179,6 +219,8 @@ def ingest_benchmark(
     rubric_path = phase2_dir / f'{effective_task_name}.rubric.json'
     if not rubric_path.exists():
         rubric = adapter.get_rubric()
+        # Auto-inject metric factor if the adapter declares a benchmark_metric
+        rubric = _inject_metric_factor(rubric, adapter)
         _write_json(rubric_path, rubric)
         print(f"[ingest] Wrote Phase-2 rubric → {rubric_path.name}")
     else:
@@ -272,7 +314,12 @@ def _patch_config(
     teacher_id: str,
     task_name: str,
 ) -> dict:
-    """Ensure *cfg* contains the benchmark teacher model and task definitions."""
+    """Ensure *cfg* contains the benchmark teacher model and task definitions.
+
+    When the adapter declares ``benchmark_metric``, a metric judge model is
+    also added automatically (e.g. ``metric-bertscore`` with
+    ``interface: metric``).
+    """
     # --- Models ---
     models: list[dict] = cfg.setdefault('models', [])
     existing_model_names = {m.get('name') for m in models}
@@ -287,12 +334,30 @@ def _patch_config(
             },
         })
 
+    # --- Metric judge model (auto-inject if adapter declares benchmark_metric) ---
+    metric = getattr(adapter, 'benchmark_metric', None)
+    if metric:
+        metric_model_name = f'metric-{metric}'
+        if metric_model_name not in existing_model_names:
+            models.append({
+                'name': metric_model_name,
+                'interface': 'metric',
+                'roles': ['judge'],
+                'parameters': {
+                    'metric': metric,
+                },
+            })
+            print(f"[ingest] Auto-added metric judge model '{metric_model_name}'")
+
     # --- Tasks ---
     tasks: list[dict] = cfg.setdefault('tasks', [])
     existing_task_names = {t.get('name') for t in tasks}
     if task_name not in existing_task_names:
         schema = adapter.get_target_attribute_schema()
         label_attrs = adapter.get_label_attributes()
+        rubric = adapter.get_rubric()
+        # Auto-inject metric factor into task rubric
+        rubric = _inject_metric_factor(rubric, adapter)
         task_def: dict[str, Any] = {
             'name': task_name,
             'description': adapter.description,
@@ -304,7 +369,7 @@ def _patch_config(
                 'nuance': [0, 0],
                 'total': 0,
             },
-            'rubric': adapter.get_rubric(),
+            'rubric': rubric,
         }
         if label_attrs:
             task_def['label_attributes'] = label_attrs

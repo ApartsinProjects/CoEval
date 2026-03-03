@@ -54,20 +54,27 @@ Datapoints are generated via stratified sampling over $A_\text{target}$ permutat
 
 **Algorithm 1: Stratified Datapoint Generation**
 
+<!-- Aligned with paper v2 methodology: Algorithm 1 includes N < |perms| branch -->
 ```
 Input: Teachers T, attribute dicts A_target, A_nuanced, count N per teacher
 Output: Dataset D
 
 D ← []
-perms ← all_permutations(A_target)
+perms ← CartesianProduct(A_target.values())
+if N < |perms|:
+    warn("N < |perms|: not all attribute combinations will be sampled.")
+    // Sample without replacement from perms for maximal coverage
 for t in T:
-    cycle ← iterator cycling over perms
+    if N >= |perms|:
+        cycle ← itertools.cycle(perms)   // circular iterator
+    else:
+        cycle ← iter(random.sample(perms, N))  // without-replacement sample
     for i in 1..N:
         a_target ← next(cycle)
-        a_nuanced ← sample_one(A_nuanced)  // random draw per nuanced dim
+        a_nuanced ← {b: uniform_sample(vals) for (b, vals) in A_nuanced}
         a ← merge(a_target, a_nuanced)
         (p, r) ← LLM_generate(t, task_description, a)
-        d ← (new_id(), task_id, t.id, p, r, a)
+        d ← (uuid4(), task_id, t.id, p, r, a)
         D.append(d)
 return D
 ```
@@ -88,17 +95,21 @@ Each judge $j \in \mathcal{J}$ independently evaluates $(d, y_{d,s})$ against ea
 
 $$\sigma^\text{norm}_{j,d,s,c} = \begin{cases} 1.0 & \text{if } \sigma = \text{High} \\ 0.5 & \text{if } \sigma = \text{Medium} \\ 0.0 & \text{if } \sigma = \text{Low} \end{cases}$$
 
-The final ensemble score for student $s$ on datapoint $d$ is:
+The final ensemble score for student $s$ on datapoint $d$ uses calibrated scores $\hat{\sigma}^\text{adj}$ over the filtered judge set $\mathcal{J}^*$:
 
-$$\bar{e}_{d,s} = \frac{1}{|\mathcal{J}|} \sum_{j \in \mathcal{J}} \frac{1}{|\mathcal{R}|} \sum_{c \in \mathcal{R}} \sigma^\text{norm}_{j,d,s,c} \tag{1}$$
+$$\bar{e}_{d,s} = \frac{1}{|\mathcal{J}^*|} \sum_{j \in \mathcal{J}^*} \frac{1}{|\mathcal{R}|} \sum_{c \in \mathcal{R}} \hat{\sigma}^\text{adj}_{j,d,s,c} \tag{1}$$
+
+<!-- Aligned with paper v2 methodology: Eq. 1 uses J* and hat_sigma_adj (calibrated) -->
 
 Inter-judge reliability is measured by three metrics. Strict Pairwise Agreement (SPA) measures the fraction of judge pairs producing identical ordinal scores:
 
 $$\text{SPA} = \frac{1}{\binom{|\mathcal{J}|}{2}} \sum_{j_1 < j_2} \mathbf{1}[\sigma_{j_1} = \sigma_{j_2}] \tag{2}$$
 
-Weighted Pairwise Agreement (WPA) allows partial credit for adjacent ordinal levels:
+Weighted Pairwise Agreement (WPA) awards partial credit for adjacent ordinal levels with linear decay from 1.0 (exact agreement) to 0.0 (maximal disagreement). Since $\sigma^\text{norm} \in \{0.0, 0.5, 1.0\}$, the maximum possible difference is 1.0, so the denominator is 1.0 (not 2.0):
 
-$$\text{WPA} = \frac{1}{\binom{|\mathcal{J}|}{2}} \sum_{j_1 < j_2} \left(1 - \frac{|\sigma_{j_1} - \sigma_{j_2}|}{2}\right) \tag{3}$$
+$$\text{WPA} = \frac{1}{\binom{|\mathcal{J}|}{2}} \sum_{j_1 < j_2} \left(1 - |\sigma^\text{norm}_{j_1} - \sigma^\text{norm}_{j_2}|\right) \tag{3}$$
+
+<!-- Aligned with paper v2 methodology: Eq. 3 WPA denominator is 1.0, not 2.0 -->
 
 Cohen's $\kappa$ corrects for chance agreement:
 
@@ -122,7 +133,8 @@ After scoring, CoEval applies a three-stage filtering procedure to improve bench
 
 $$V_1(t) = \text{Var}_{s \in \mathcal{S}} \left(\mu_s(d)\right), \quad \mu_s(d) = \frac{1}{|\mathcal{J}^*||\mathcal{R}|} \sum_{j,c} \sigma^\text{norm}_{j,d,s,c}$$
 
-Supporting metrics include $S_2 = \text{StdDev}_s(\mu_s(d))$ and $R_3 = \max_s \mu_s(d) - \min_s \mu_s(d)$. The top $\lceil |\mathcal{T}|/2 \rceil$ teachers by $V_1$ form $\mathcal{T}^*$.
+Supporting metrics: $S_2(t) = \sqrt{V_1(t)}$ (standard deviation of student means, in score units) and $R_3(t) = \max_s \bar{\mu}_s^{(t)} - \min_s \bar{\mu}_s^{(t)}$ (range of student means). The top $\lceil |\mathcal{T}|/2 \rceil$ teachers by $V_1$ form $\mathcal{T}^*$.
+<!-- Aligned with paper v2 methodology: S2 = sqrt(V1), not StdDev over datapoints -->
 
 **Datapoint filtering ($\mathcal{D}^*$).** A datapoint $d$ is retained in $\mathcal{D}^*$ if at least $q$ judges agree on scores within tolerance $\theta$, ensuring only consistently-evaluable items remain.
 

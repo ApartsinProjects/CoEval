@@ -15,8 +15,12 @@ def export_benchmark(
     model: EESDataModel,
     out_path: Path,
     judge_selection: str = 'top_half',
-    agreement_metric: str = 'spa',
-    agreement_threshold: float = 1.0,
+    agreement_metric: str = 'wpa',
+    # Aligned with paper v2 methodology - D* filter defaults (§3.8)
+    theta: float = 0.05,
+    q_fraction: float = 0.5,
+    # Backward-compat alias: agreement_threshold maps to theta if provided
+    agreement_threshold: float | None = None,
     teacher_score_formula: str = 'v1',
     benchmark_format: str = 'jsonl',
 ) -> Path:
@@ -28,8 +32,8 @@ def export_benchmark(
         Loaded EES data model.
     out_path:
         Output file path (.jsonl or .parquet).
-    judge_selection, agreement_metric, agreement_threshold, teacher_score_formula:
-        Robust filtering parameters.
+    judge_selection, agreement_metric, theta, q_fraction, teacher_score_formula:
+        Robust filtering parameters (paper v2 §3.8).
     benchmark_format:
         'jsonl' or 'parquet'.
 
@@ -37,11 +41,14 @@ def export_benchmark(
     -------
     Path to the written output file.
     """
+    # Backward compatibility: if old agreement_threshold kwarg was passed, use it as theta
+    effective_theta = agreement_threshold if agreement_threshold is not None else theta
     rfr = robust_filter(
         model=model,
         judge_selection=judge_selection,
         agreement_metric=agreement_metric,
-        agreement_threshold=agreement_threshold,
+        theta=effective_theta,
+        q_fraction=q_fraction,
         teacher_score_formula=teacher_score_formula,
     )
 

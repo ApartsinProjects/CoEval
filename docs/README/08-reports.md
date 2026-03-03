@@ -162,7 +162,7 @@ All HTML reports include:
 Q(student) = mean over all valid (response, factor) units of score_norm
 ```
 
-where `score_norm ∈ {0.0, 0.5, 1.0}` (Low / Medium / High).
+where `score_norm ∈ {0.0, 0.5, 1.0}` for LLM judges (Low / Medium / High), or `score_norm ∈ [0.0, 1.0]` for metric judges.
 
 Rubric-weighted composite:
 ```
@@ -217,16 +217,20 @@ Computed at the response level across all 620 × 4 = 2,480 datapoints. Requires 
 All reports are built on top of the unified `EESDataModel` (loaded by `analyzer.loader.load_ees`). The key analytical unit is:
 
 ```
-(response_id, rubric_factor) → score ∈ {High, Medium, Low}
+(response_id, rubric_factor) → score
 ```
 
-Normalised to floats: `High=1.0`, `Medium=0.5`, `Low=0.0`.
+Scores come in two forms:
+- **LLM judges** produce ordinal scores: `High` (1.0), `Medium` (0.5), `Low` (0.0)
+- **Metric judges** (`interface: metric`) produce continuous float strings in [0, 1] (e.g. `"0.8423"`)
+
+Both are normalised to `score_norm ∈ [0.0, 1.0]` for analysis.
 
 **Validity classification.** A Phase 5 record is valid if:
 - The referenced Phase 4 response exists (not `MISSING_RESPONSE`)
 - The referenced Phase 3 datapoint exists (not `MISSING_DATAPOINT`)
 - All rubric factors are present in the scores (not `INCOMPLETE_SCORES`)
-- All score values are `High`, `Medium`, or `Low` (not `INVALID_SCORE_VALUE`)
+- All score values are `High`, `Medium`, `Low`, or a float in [0, 1] (not `INVALID_SCORE_VALUE`)
 
 Invalid records appear in the Excel `FailedRecords` sheet but are excluded from all aggregate statistics.
 
@@ -276,25 +280,166 @@ python -m analyzer.main \
 
 ---
 
-## Calibration API
+## Calibration: What, Why, When, and How
 
+> **⚠️ Calibration is disabled by default and is NOT recommended for most use cases.**
+>
+> LLM judges return only **3 ordinal score levels**: High (1.0), Medium (0.5), and Low (0.0).
+> The OLS linear regression therefore operates on at most **3 unique input values**, which is
+> fundamentally insufficient for a reliable fit. The resulting α and β coefficients are
+> highly sensitive to score distribution and may not generalise.
+>
+> Calibration should only be enabled when your experiment includes **metric judges**
+> (`interface: metric`) that produce continuous [0, 1] scores (e.g. BERTScore, BLEU,
+> exact_match), giving the OLS fit a meaningful range of input values. To opt in,
+> pass `--enable-calibration` to the paper tables CLI or set `calibration_enabled=True`
+> programmatically.
+
+### What calibration does
+
+LLM judges have systematic biases. One judge may score generously (all "High"), another may compress its range (everything "Medium"). These biases don't cancel out in a simple average — they distort the final rankings.
+
+**OLS calibration** fits a per-judge, per-task linear correction that aligns raw judge scores with benchmark ground truth:
+
+```
+calibrated_score = clip(α + β × raw_score,  0,  1)
+```
+
+| Parameter | Corrects | Example |
+|-----------|----------|---------|
+| **α** (intercept) | Baseline shift — judge systematically too generous or too harsh | Judge gives +0.1 on average → α pulls scores down |
+| **β** (slope) | Range compression — judge uses a narrow or wide score band | Judge scores cluster in 0.4–0.6 → β stretches to full range |
+
+If a judge's raw scores already align perfectly with ground truth, the fit converges to α ≈ 0, β ≈ 1 (identity — no correction needed). If variance is zero (judge gave every item the same score), calibration falls back to the identity function.
+
+### Why it matters
+
+Without calibration, the ensemble average inherits each judge's systematic bias. With calibration:
+
+| Metric | Before (raw) | After (calibrated) |
+|--------|-------------|-------------------|
+| Spearman ρ vs. benchmark | 0.715 | 0.871 |
+| MAE vs. benchmark | 0.16 | 0.07 |
+
+This 22% improvement in rank correlation is the difference between "moderately useful" and "highly reliable" rankings.
+
+### When calibration runs
+
+Calibration is **not** part of the 5-phase pipeline and is **disabled by default**. When explicitly enabled, it runs during **post-pipeline analysis**, after all phases are complete. The timeline:
+
+```
+Phase 3  → Benchmark loaders create datapoints with benchmark_native_score = null
+Phase 4  → Students respond to prompts
+         → compute_scores backfills benchmark_native_score per datapoint
+Phase 5  → Judges score responses → score_norm per (response, rubric_factor)
+         ─────────────────────────────────────────────────────────────
+         POST-PIPELINE:
+         → coeval analyze / paper_tables triggers calibration
+         → Pairs (score_norm, benchmark_native_score) per datapoint
+         → Fits OLS α, β per (judge, task) on 200-item holdout
+         → Outputs calibration_params.json
+```
+
+### Prerequisites
+
+Calibration requires **benchmark ground truth** to exist. This means:
+
+1. **Your experiment must include benchmark teachers** — i.e., you used `coeval ingest --benchmarks xsum gsm8k` to load public datasets into Phase 3.
+
+2. **`benchmark_native_score` must be populated** — either the loader set it directly, or you ran:
+   ```bash
+   python -m benchmark.compute_scores --run Runs/my-experiment
+   ```
+   This backfills each Phase 3 record's `benchmark_native_score` field using the benchmark's native metric (BERTScore-F1 for summarisation, BLEU-4 for code, exact-match for QA/MCQ).
+
+If no `benchmark_native_score` values exist, `load_or_fit_calibration()` returns an empty dict and calibration is silently skipped.
+
+### How to run calibration
+
+> **Note:** Calibration is opt-in. You must pass `--enable-calibration` explicitly.
+> Without this flag, Table 8 is generated with a "Disabled (default)" placeholder.
+
+**Option A: Via paper tables** (generates Table 8 with calibration analysis):
+```bash
+python -m analyzer.paper_tables --run Runs/medium-benchmark --out paper/tables --enable-calibration
+```
+
+**Option B: Programmatic API:**
 ```python
 from analyzer.calibration import fit_calibration, apply_calibration, load_or_fit_calibration
 from analyzer.loader import load_ees
 from pathlib import Path
 
-model = load_ees("benchmark/runs/paper-eval-v1")
+model = load_ees("Runs/paper-eval-v1")
 
-# Fit overall calibration
+# Fit per-judge, per-task calibration
 params = load_or_fit_calibration(model, out_dir=Path("paper/tables"), holdout_n=200)
-# params["gpt-4o"]["text_summarization"] → {alpha, beta, rho_raw, rho_calibrated, mae_raw, mae_calibrated}
-# params["_overall"] → aggregated across all judges/tasks
 
-# Apply to a list of raw scores
-calibrated = apply_calibration(raw_scores, params["_overall"]["alpha"], params["_overall"]["beta"])
+# Inspect per-judge results
+params["gpt-4o"]["text_summarization"]
+# → {alpha: -0.05, beta: 0.88, rho_raw: 0.71, rho_calibrated: 0.87,
+#    mae_raw: 0.16, mae_calibrated: 0.07, n_fit: 200, n_total: 620}
+
+# Inspect overall (aggregated across all judges and tasks)
+params["_overall"]
+# → {alpha: ..., beta: ..., rho_raw: ..., rho_calibrated: ..., ...}
+
+# Apply calibration to a list of raw scores
+calibrated = apply_calibration(raw_scores, params["_overall"]["alpha"],
+                               params["_overall"]["beta"])
 ```
 
-The result is cached in `paper/tables/calibration_params.json`.
+The result is cached in `paper/tables/calibration_params.json`. Delete this file (or pass `force=True`) to re-fit.
+
+### How to read the output
+
+The `calibration_params.json` file is structured as:
+```json
+{
+  "gpt-4o": {
+    "text_summarization": {
+      "alpha": -0.052,
+      "beta": 0.881,
+      "n_fit": 200,
+      "n_total": 620,
+      "rho_raw": 0.715,
+      "rho_calibrated": 0.871,
+      "mae_raw": 0.162,
+      "mae_calibrated": 0.071
+    },
+    "code_explanation": { ... }
+  },
+  "gpt-3.5-turbo": { ... },
+  "_overall": {
+    "alpha": -0.031,
+    "beta": 0.912,
+    "rho_raw": 0.711,
+    "rho_calibrated": 0.854,
+    ...
+  }
+}
+```
+
+**Interpreting the parameters:**
+
+| Value | Meaning |
+|-------|---------|
+| `alpha ≈ 0, beta ≈ 1` | Judge is already well-calibrated — no correction needed |
+| `alpha > 0` | Judge systematically under-scores (correction adds a baseline boost) |
+| `alpha < 0` | Judge systematically over-scores (correction pulls scores down) |
+| `beta > 1` | Judge compresses scores into a narrow range (correction stretches them) |
+| `beta < 1` | Judge uses an inflated range (correction compresses) |
+| `rho_calibrated > rho_raw` | Calibration improved alignment with ground truth |
+| `mae_calibrated < mae_raw` | Calibration reduced absolute prediction error |
+
+### What calibration does NOT do
+
+- It does **not** modify any Phase 5 evaluation files — raw scores remain untouched on disk.
+- It does **not** affect the HTML reports (dashboard, student report, etc.) — those show raw ensemble scores.
+- It is **not** applied during live pipeline execution — it is purely a post-hoc validation tool.
+- It does **not** require human labels — ground truth comes from benchmark-native metrics (BERTScore, BLEU, exact-match).
+
+Calibration answers the question: *"How much can we trust the judge ensemble's scores?"* It is a **trust metric**, not a correction applied to production output.
 
 ---
 

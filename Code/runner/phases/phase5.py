@@ -10,6 +10,7 @@ from ..config import CoEvalConfig, TaskConfig, ModelConfig
 from ..exceptions import PartialPhaseFailure
 from ..interfaces import ModelPool, create_batch_runner
 from ..logger import RunLogger
+from ..metric_judge import split_rubric, score_metric_factors
 from ..prompts import get_prompt
 from ..storage import ExperimentStorage
 from .utils import call_llm_json, call_llm_word, QuotaTracker, parse_json_text, parse_word_text
@@ -52,16 +53,36 @@ def run_phase5(
         if only_models is not None else all_judges
     )
 
-    # Split judges: network by interface vs HuggingFace
+    # Split judges: metric vs network vs HuggingFace
+    metric_judges: list[ModelConfig] = []
     by_iface: dict[str, list[ModelConfig]] = defaultdict(list)
     hf_judges: list[ModelConfig] = []
     for j in judges:
-        if j.interface == 'huggingface':
+        if j.interface == 'metric':
+            metric_judges.append(j)
+        elif j.interface == 'huggingface':
             hf_judges.append(j)
         else:
             by_iface[j.interface].append(j)
 
     errors: list[str] = []
+
+    # --- Metric judges: deterministic computation, no LLM call ---
+    for task in cfg.tasks:
+        for teacher in teachers:
+            for judge in metric_judges:
+                try:
+                    _evaluate_metric(
+                        task, teacher, judge, storage, logger, phase_mode,
+                    )
+                except Exception as exc:
+                    msg = (
+                        f"Phase 5: metric evaluation failed for "
+                        f"(task='{task.name}', teacher='{teacher.name}', "
+                        f"judge='{judge.name}'): {exc}"
+                    )
+                    logger.error(msg)
+                    errors.append(msg)
 
     # --- Network-based judges: batch or concurrent sequential ---
     for iface_name, iface_judges in by_iface.items():
@@ -147,6 +168,121 @@ def run_phase5(
 
 
 # ---------------------------------------------------------------------------
+# Metric judge path (deterministic computation, no LLM)
+# ---------------------------------------------------------------------------
+
+
+def _evaluate_metric(
+    task: TaskConfig,
+    teacher: ModelConfig,
+    judge: ModelConfig,
+    storage: ExperimentStorage,
+    logger: RunLogger,
+    phase_mode: str,
+) -> None:
+    """Evaluate responses using deterministic metric computation (no LLM call).
+
+    Metric judges only score rubric factors that have a ``"metric"`` key in their
+    definition.  LLM-evaluated factors are ignored.
+    """
+    task_id = task.name
+    teacher_id = teacher.name
+    judge_id = judge.name
+    label = f"(task='{task_id}', teacher='{teacher_id}', judge='{judge_id}')"
+
+    if phase_mode == 'Keep':
+        logger.info(f"Phase 5: {label} — Keep mode, skipping (metric)")
+        return
+
+    if phase_mode == 'Model' and storage.evaluation_file_exists(
+        task_id, teacher_id, judge_id
+    ):
+        logger.info(f"Phase 5: {label} — Model mode, file exists, skipping (metric)")
+        return
+
+    rubric = storage.read_rubric(task_id)
+    _, metric_factors = split_rubric(rubric)
+
+    if not metric_factors:
+        logger.info(f"Phase 5: {label} — no metric factors in rubric, skipping")
+        return
+
+    datapoints_index = storage.index_datapoints(task_id, teacher_id)
+
+    # Collect all responses
+    all_responses: list[dict] = []
+    for resp_path in storage.iter_response_files(task_id, teacher_id):
+        for line in resp_path.read_text(encoding='utf-8').splitlines():
+            line = line.strip()
+            if line:
+                all_responses.append(json.loads(line))
+
+    if not all_responses:
+        logger.warning(f"Phase 5: {label} — no responses found, skipping (metric)")
+        return
+
+    # Already-evaluated response IDs (for Extend mode)
+    evaluated_resp_ids = (
+        storage.get_evaluated_response_ids(task_id, teacher_id, judge_id)
+        if phase_mode == 'Extend' else set()
+    )
+
+    if phase_mode == 'Extend':
+        new_responses = [r for r in all_responses if r['id'] not in evaluated_resp_ids]
+        if not new_responses:
+            logger.info(f"Phase 5: {label} — Extend mode, no new responses (metric)")
+            return
+
+    logger.info(
+        f"Phase 5: {label} — scoring {len(all_responses)} responses with "
+        f"{len(metric_factors)} metric factor(s)"
+    )
+
+    for resp in all_responses:
+        if phase_mode == 'Extend' and resp['id'] in evaluated_resp_ids:
+            continue
+
+        dp_id = resp['datapoint_id']
+        if dp_id not in datapoints_index:
+            logger.error(
+                f"Phase 5: datapoint_id '{dp_id}' not found in index; "
+                f"skipping response '{resp['id']}' (metric)"
+            )
+            continue
+
+        dp = datapoints_index[dp_id]
+        reference_response = dp['reference_response']
+
+        try:
+            scores = score_metric_factors(
+                metric_factors,
+                hypothesis=resp['response'],
+                reference=reference_response,
+            )
+        except Exception as exc:
+            logger.error(
+                f"Phase 5: metric scoring failed for response '{resp['id']}' "
+                f"(judge='{judge_id}'): {exc}"
+            )
+            scores = {f: "0.0" for f in metric_factors}
+
+        eval_id = f"{resp['id']}__{judge_id}"
+        record: dict = {
+            'id': eval_id,
+            'response_id': resp['id'],
+            'datapoint_id': dp_id,
+            'task_id': task_id,
+            'teacher_model_id': teacher_id,
+            'judge_model_id': judge_id,
+            'scores': scores,
+            'evaluated_at': _now_iso(),
+        }
+        storage.append_evaluation(task_id, teacher_id, judge_id, record)
+
+    logger.info(f"Phase 5: {label} — done (metric)")
+
+
+# ---------------------------------------------------------------------------
 # Batch path (network interfaces with batch enabled)
 # ---------------------------------------------------------------------------
 
@@ -199,7 +335,9 @@ def _evaluate_batch(
                     logger.info(f"Phase 5: {label} — Model mode, file exists, skipping")
                     continue
 
-                rubric = storage.read_rubric(task_id)
+                full_rubric = storage.read_rubric(task_id)
+                # LLM judges only score non-metric factors
+                rubric, _ = split_rubric(full_rubric)
                 datapoints_index = storage.index_datapoints(task_id, teacher_id)
 
                 all_responses: list[dict] = []
@@ -482,7 +620,10 @@ def _evaluate(
         return
 
     # Load rubric and datapoints index (REQ-7.5)
-    rubric = storage.read_rubric(task_id)
+    # LLM judges only score non-metric factors; metric factors are handled
+    # by metric judges in _evaluate_metric().
+    full_rubric = storage.read_rubric(task_id)
+    rubric, _ = split_rubric(full_rubric)
     datapoints_index = storage.index_datapoints(task_id, teacher_id)
 
     # Collect all response files for this (task, teacher) pair

@@ -25,6 +25,9 @@ VALID_INTERFACES = {
     'groq', 'deepseek', 'mistral', 'deepinfra', 'cerebras', 'cohere', 'huggingface_api', 'ollama',
     # Virtual interface — benchmark data pre-written by `coeval ingest`; Phase 3 is skipped
     'benchmark',
+    # Metric judge — computes deterministic metrics (BERTScore, BLEU, exact_match)
+    # without LLM calls; Phase 5 dispatches to runner.metric_judge
+    'metric',
 }
 VALID_LOG_LEVELS = {'DEBUG', 'INFO', 'WARNING', 'ERROR'}
 VALID_EVAL_MODES = {'single', 'per_factor'}
@@ -520,6 +523,30 @@ def validate_config(
                 errors.append(
                     f"Task '{t.name}': label_attributes {unknown_labels} not found "
                     f"in target_attributes keys {list(t.target_attributes.keys())}"
+                )
+
+    # V-18: metric rubric factors must reference supported metrics
+    from .metric_judge import SUPPORTED_METRICS, is_metric_factor
+    for t in cfg.tasks:
+        if isinstance(t.rubric, dict):
+            for factor_name, factor_value in t.rubric.items():
+                if is_metric_factor(factor_value):
+                    metric_name = factor_value.get("metric", "")
+                    if metric_name not in SUPPORTED_METRICS:
+                        errors.append(
+                            f"Task '{t.name}': metric rubric factor "
+                            f"'{factor_name}' references unknown metric "
+                            f"'{metric_name}'. Supported: "
+                            f"{sorted(SUPPORTED_METRICS)}"
+                        )
+
+    # V-19: metric judges must have interface='metric' and specify a metric parameter
+    for m in cfg.models:
+        if m.interface == 'metric':
+            if 'judge' not in m.roles:
+                errors.append(
+                    f"Model '{m.name}' uses 'metric' interface but does not "
+                    f"have 'judge' role. Metric models can only be judges."
                 )
 
     return errors

@@ -147,6 +147,82 @@ class TestScoreNorm:
         # 'high' (lowercase) is not a recognised value
         assert score_norm('high') == 0.0
 
+    # --- Continuous scores from metric judges ---
+
+    def test_continuous_float_string(self):
+        """Metric judge float string like '0.8423' is parsed to float."""
+        assert score_norm('0.8423') == pytest.approx(0.8423)
+
+    def test_continuous_zero(self):
+        assert score_norm('0.0') == 0.0
+
+    def test_continuous_one(self):
+        assert score_norm('1.0') == 1.0
+
+    def test_continuous_clamps_above_one(self):
+        """Values > 1.0 are clamped to 1.0."""
+        assert score_norm('1.5') == 1.0
+
+    def test_continuous_clamps_below_zero(self):
+        """Values < 0.0 are clamped to 0.0."""
+        assert score_norm('-0.3') == 0.0
+
+    def test_continuous_four_decimals(self):
+        assert score_norm('0.1234') == pytest.approx(0.1234)
+
+
+# ---------------------------------------------------------------------------
+# is_valid_score()
+# ---------------------------------------------------------------------------
+
+class TestIsValidScore:
+    def test_high(self):
+        from analyzer.loader import is_valid_score
+        assert is_valid_score('High') is True
+
+    def test_medium(self):
+        from analyzer.loader import is_valid_score
+        assert is_valid_score('Medium') is True
+
+    def test_low(self):
+        from analyzer.loader import is_valid_score
+        assert is_valid_score('Low') is True
+
+    def test_float_in_range(self):
+        from analyzer.loader import is_valid_score
+        assert is_valid_score('0.842') is True
+
+    def test_float_zero(self):
+        from analyzer.loader import is_valid_score
+        assert is_valid_score('0.0') is True
+
+    def test_float_one(self):
+        from analyzer.loader import is_valid_score
+        assert is_valid_score('1.0') is True
+
+    def test_float_out_of_range(self):
+        from analyzer.loader import is_valid_score
+        assert is_valid_score('1.5') is False
+
+    def test_float_negative(self):
+        from analyzer.loader import is_valid_score
+        assert is_valid_score('-0.1') is False
+
+    def test_garbage(self):
+        from analyzer.loader import is_valid_score
+        assert is_valid_score('foobar') is False
+
+    def test_empty(self):
+        from analyzer.loader import is_valid_score
+        assert is_valid_score('') is False
+
+    def test_ordinal_unchanged(self):
+        """Ordinal scores still work as before."""
+        from analyzer.loader import is_valid_score
+        assert is_valid_score('High') is True
+        assert is_valid_score('Medium') is True
+        assert is_valid_score('Low') is True
+
 
 # ---------------------------------------------------------------------------
 # _iter_jsonl()

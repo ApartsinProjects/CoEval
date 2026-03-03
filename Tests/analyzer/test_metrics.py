@@ -599,20 +599,27 @@ class TestRobustFilter:
         rfr = robust_filter(_robust_model(tmp_path), agreement_threshold=0.0)
         assert len(rfr.D_robust) > 0
 
-    def test_threshold_one_requires_full_consistency(self, tmp_path):
-        """Threshold=1.0, all judges → only dp1/dp2 (J1,J2 fully agree) qualify."""
+    def test_strict_theta_excludes_disagreeing_datapoints(self, tmp_path):
+        """Paper v2 §3.8 D* filter: theta=0.0 (exact match) with all judges.
+
+        dp1/dp2: all judges give High (1.0), mean=1.0, deviation=0.0 <= 0.0 → pass.
+        dp3/dp4: J1=High(1.0), J2=Low(0.0), mean=0.5, deviation=0.5 > 0.0 → fail.
+        With q=ceil(0.5*2)=1, dp3/dp4 are excluded under theta=0.0.
+        Aligned with paper v2 methodology - D* filter (§3.8).
+        """
         rfr = robust_filter(
             _robust_model(tmp_path),
-            agreement_threshold=1.0,
+            theta=0.0,
             judge_selection='all',
         )
-        # dp3/dp4 have disagreement (High vs Low) → excluded
+        # dp3/dp4 have maximal disagreement (High vs Low, deviation=0.5 > 0.0) → excluded
         for dp_id in rfr.D_robust:
             assert dp_id in ('dp1', 'dp2')
 
-    def test_q_equals_ceil_half_j_star(self, tmp_path):
+    def test_q_equals_ceil_q_fraction_times_j_star(self, tmp_path):
+        """Paper v2 §3.8: q = ceil(q_fraction * |J*|), default q_fraction=0.5."""
         rfr = robust_filter(_robust_model(tmp_path), judge_selection='all')
-        assert rfr.q == math.ceil(len(rfr.J_star) / 2)
+        assert rfr.q == math.ceil(0.5 * len(rfr.J_star))
 
     def test_robust_count_matches_d_robust_len(self, tmp_path):
         rfr = robust_filter(_robust_model(tmp_path))

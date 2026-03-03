@@ -896,3 +896,152 @@ def test_phase5_quota_exhaustion_stops_early(tmp_path):
 
     evals = store.read_evaluations('task1', 'teacher1', 'judge1')
     assert len(evals) <= 2
+
+
+# ---------------------------------------------------------------------------
+# Phase 5 — metric judge tests
+# ---------------------------------------------------------------------------
+
+def test_phase5_metric_judge_no_llm_call(tmp_path):
+    """Metric judge produces evaluation scores without calling pool.get()."""
+    from runner.phases.phase5 import run_phase5
+
+    store = _make_store(tmp_path)
+    # Rubric with only a metric factor (exact_match)
+    rubric = {
+        'exact_match': {
+            'metric': 'exact_match',
+            'description': 'Exact string match',
+        },
+    }
+    task = _make_task(rubric=rubric)
+    teacher = _make_model('teacher1', roles=['teacher'])
+    metric_judge = _make_model('metric-em', interface='metric', roles=['judge'])
+
+    _seed_datapoints(store, 'task1', 'teacher1', n=2)
+    _seed_responses(store, 'task1', 'teacher1', 'student1', n=2)
+    store.write_rubric('task1', rubric)
+
+    cfg = _make_cfg_mock(
+        tasks=[task],
+        models_by_role_fn=lambda role: [teacher] if role == 'teacher' else [metric_judge],
+    )
+
+    iface = _FakeIface()  # should never be called
+    pool = _make_pool_mock(iface)
+    logger = _make_logger()
+    quota = QuotaTracker({})
+
+    run_phase5(cfg, store, logger, pool, quota, phase_mode='New')
+
+    # Verify evaluations were written
+    evals = store.read_evaluations('task1', 'teacher1', 'metric-em')
+    assert len(evals) == 2
+
+    # Verify pool.get() was never called (metric judges bypass the pool)
+    pool.get.assert_not_called()
+
+    # Verify scores are valid float strings (exact_match returns 0.0 or 1.0)
+    for e in evals:
+        assert 'exact_match' in e['scores']
+        score_val = float(e['scores']['exact_match'])
+        assert score_val == 0.0 or score_val == 1.0
+
+
+def test_phase5_llm_judge_skips_metric_factors(tmp_path):
+    """When rubric has both LLM and metric factors, LLM judge only sees LLM factors."""
+    from runner.phases.phase5 import run_phase5
+
+    store = _make_store(tmp_path)
+    # Mixed rubric: one LLM factor + one metric factor
+    rubric = {
+        'accuracy': 'Is the response accurate?',
+        'exact_match': {
+            'metric': 'exact_match',
+            'description': 'Exact string match',
+        },
+    }
+    task = _make_task(rubric=rubric)
+    teacher = _make_model('teacher1', roles=['teacher'])
+    llm_judge = _make_model('judge1', roles=['judge'])
+
+    _seed_datapoints(store, 'task1', 'teacher1', n=1)
+    _seed_responses(store, 'task1', 'teacher1', 'student1', n=1)
+    store.write_rubric('task1', rubric)
+
+    cfg = _make_cfg_mock(
+        tasks=[task],
+        models_by_role_fn=lambda role: [teacher] if role == 'teacher' else [llm_judge],
+    )
+
+    # LLM judge returns only 'accuracy' (the LLM factor)
+    iface = _FakeIface(response='{"accuracy": "High"}')
+    pool = _make_pool_mock(iface)
+    logger = _make_logger()
+    quota = QuotaTracker({})
+
+    run_phase5(cfg, store, logger, pool, quota, phase_mode='New')
+
+    evals = store.read_evaluations('task1', 'teacher1', 'judge1')
+    assert len(evals) == 1
+
+    # The LLM judge should have scored 'accuracy' only (not 'exact_match')
+    scores = evals[0]['scores']
+    assert 'accuracy' in scores
+    # exact_match should NOT be in the LLM judge's scores
+    assert 'exact_match' not in scores
+
+
+def test_phase5_mixed_rubric_both_judge_types(tmp_path):
+    """Rubric with both LLM and metric factors: both judge types produce
+    correct subsets of scores."""
+    from runner.phases.phase5 import run_phase5
+
+    store = _make_store(tmp_path)
+    rubric = {
+        'accuracy': 'Is the response accurate?',
+        'exact_match': {
+            'metric': 'exact_match',
+            'description': 'Exact string match',
+        },
+    }
+    task = _make_task(rubric=rubric)
+    teacher = _make_model('teacher1', roles=['teacher'])
+    llm_judge = _make_model('judge1', roles=['judge'])
+    metric_judge = _make_model('metric-em', interface='metric', roles=['judge'])
+
+    _seed_datapoints(store, 'task1', 'teacher1', n=2)
+    _seed_responses(store, 'task1', 'teacher1', 'student1', n=2)
+    store.write_rubric('task1', rubric)
+
+    def _models_by_role(role):
+        if role == 'teacher':
+            return [teacher]
+        return [llm_judge, metric_judge]
+
+    cfg = _make_cfg_mock(
+        tasks=[task],
+        models_by_role_fn=_models_by_role,
+    )
+
+    iface = _FakeIface(response='{"accuracy": "Medium"}')
+    pool = _make_pool_mock(iface)
+    logger = _make_logger()
+    quota = QuotaTracker({})
+
+    run_phase5(cfg, store, logger, pool, quota, phase_mode='New')
+
+    # LLM judge evaluations
+    llm_evals = store.read_evaluations('task1', 'teacher1', 'judge1')
+    assert len(llm_evals) == 2
+    for e in llm_evals:
+        assert 'accuracy' in e['scores']
+        assert 'exact_match' not in e['scores']
+
+    # Metric judge evaluations
+    metric_evals = store.read_evaluations('task1', 'teacher1', 'metric-em')
+    assert len(metric_evals) == 2
+    for e in metric_evals:
+        assert 'exact_match' in e['scores']
+        score_val = float(e['scores']['exact_match'])
+        assert 0.0 <= score_val <= 1.0

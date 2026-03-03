@@ -24,17 +24,24 @@ def write_robust_summary(
     model: EESDataModel,
     out_dir: Path,
     judge_selection: str = 'top_half',
-    agreement_metric: str = 'spa',
-    agreement_threshold: float = 1.0,
+    agreement_metric: str = 'wpa',
+    # Aligned with paper v2 methodology - D* filter defaults (§3.8)
+    theta: float = 0.05,
+    q_fraction: float = 0.5,
+    # Backward-compat alias: agreement_threshold maps to theta if provided
+    agreement_threshold: float | None = None,
     teacher_score_formula: str = 'v1',
     shared_plotly: Path | None = None,
 ) -> Path:
     """Generate Robust Student Summary Report (REQ-A-7.10)."""
+    # Backward compatibility: if old agreement_threshold kwarg was passed, use it as theta
+    effective_theta = agreement_threshold if agreement_threshold is not None else theta
     rfr = robust_filter(
         model=model,
         judge_selection=judge_selection,
         agreement_metric=agreement_metric,
-        agreement_threshold=agreement_threshold,
+        theta=effective_theta,
+        q_fraction=q_fraction,
         teacher_score_formula=teacher_score_formula,
     )
 

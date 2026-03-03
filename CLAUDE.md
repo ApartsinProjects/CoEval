@@ -97,7 +97,8 @@ Key subcommands:
 |------|---------|
 | `Code/runner/runner.py` | Orchestrates 5-phase pipeline |
 | `Code/runner/storage.py` | All filesystem I/O (EES) |
-| `Code/runner/config.py` | Config loading + validation (V-01…V-17) |
+| `Code/runner/config.py` | Config loading + validation (V-01…V-19) |
+| `Code/runner/metric_judge.py` | Non-LLM metric judges (BERTScore, BLEU, exact_match) |
 | `Code/runner/cli.py` | CLI entry point |
 | `Code/runner/phases/phase{1-5}.py` | Per-phase implementations |
 | `Code/runner/interfaces/pool.py` | `ModelPool` factory |
@@ -105,7 +106,7 @@ Key subcommands:
 | `Code/runner/interfaces/cost_estimator.py` | Cost/time estimates (`PRICE_TABLE`) |
 | `Code/runner/interfaces/registry.py` | Key loading + provider model listing |
 | `Code/runner/label_eval.py` | `LabelEvaluator` — classification tasks, no judge |
-| `Code/analyzer/calibration.py` | OLS calibration (α, β) judge vs benchmark GT |
+| `Code/analyzer/calibration.py` | OLS calibration (α, β) — disabled by default (3-level limitation) |
 | `Code/analyzer/paper_tables.py` | Tables 3–9; RAR, surface bias, calibration |
 | `Public/benchmark/loaders/base.py` | `BenchmarkLoader` ABC |
 | `Public/benchmark/loaders/__init__.py` | `_REGISTRY` — maps dataset name → loader |
@@ -150,6 +151,7 @@ cnn_dailymail, bigbench_hard/math_dataset (MATH).
 | `azure_ai` | None | `AZURE_AI_API_KEY` |
 | `openai_compat` | None | provider-specific |
 | `benchmark` | N/A (virtual) | none |
+| `metric` | N/A (deterministic) | none |
 | `auto` | resolves at load time | — |
 
 ---
@@ -203,11 +205,13 @@ cnn_dailymail, bigbench_hard/math_dataset (MATH).
 
 ## Config validation rules
 
-V-01 through V-17.  `validate_config()` in `Code/runner/config.py`.
+V-01 through V-19.  `validate_config()` in `Code/runner/config.py`.
 
 - V-15: `probe_mode` ∈ {`disable`, `full`, `resume`}
 - V-16: `probe_on_fail` ∈ {`abort`, `warn`}
 - V-17: `label_attributes` must be a subset of `target_attributes`
+- V-18: metric rubric factors must reference supported metrics (bertscore, bleu, exact_match)
+- V-19: metric interface models must have `judge` role
 
 ---
 
@@ -230,7 +234,35 @@ Phases 1–2: Keep mode; Phases 3–5: Extend mode.
 
 ---
 
-## Paper status (as of 2026-03-02)
+## Metric judges (v0.3.1)
+
+Non-LLM judges that compute deterministic metrics as rubric dimensions.
+Returns continuous [0, 1] scores instead of ordinal High/Medium/Low.
+
+- **Supported metrics**: `bertscore`, `bleu`, `exact_match`
+- **Interface**: `metric` (virtual — no LLM calls, no API keys)
+- **Rubric format**: metric factors are dicts with a `"metric"` key:
+  ```yaml
+  rubric:
+    accuracy: "All key facts are preserved"    # LLM-evaluated
+    bertscore_f1:                               # metric-evaluated
+      metric: bertscore
+      description: "BERTScore F1 similarity"
+  ```
+- **Phase 5 dispatch**: metric judges run first (deterministic, no batching).
+  LLM judges see only their qualitative factors — metric factors are filtered out.
+- **Module**: `Code/runner/metric_judge.py`
+
+## Calibration status
+
+OLS calibration (`Code/analyzer/calibration.py`) is **disabled by default**.
+LLM judges produce only 3 ordinal values (1.0, 0.5, 0.0), making OLS fit
+unreliable. Enable with `--enable-calibration` only when metric judges
+provide continuous scores.
+
+---
+
+## Paper status (as of 2026-03-03)
 
 - 7 sections + ethics + appendix written; 8 figures in `docs/paper/figures/`
 - **Numbers in `docs/paper/04_results.md` are FICTIONAL PLACEHOLDERS**

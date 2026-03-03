@@ -105,9 +105,31 @@ SCORE_MAP: dict[str, float] = {"High": 1.0, "Medium": 0.5, "Low": 0.0}
 VALID_SCORES: frozenset[str] = frozenset(SCORE_MAP.keys())
 
 
+def is_valid_score(score: str) -> bool:
+    """Check if a score string is valid (ordinal or continuous float)."""
+    if score in VALID_SCORES:
+        return True
+    try:
+        v = float(score)
+        return 0.0 <= v <= 1.0
+    except (ValueError, TypeError):
+        return False
+
+
 def score_norm(score: str) -> float:
-    """Convert ordinal score string to numeric value (REQ-A-5.1.1)."""
-    return SCORE_MAP.get(score, 0.0)
+    """Convert score string to numeric value.
+
+    Handles both ordinal LLM scores ("High"/"Medium"/"Low") and continuous
+    metric judge scores (e.g. "0.8423").  Metric judges return float strings
+    in [0, 1] which are parsed directly.
+    """
+    if score in SCORE_MAP:
+        return SCORE_MAP[score]
+    try:
+        v = float(score)
+        return max(0.0, min(1.0, v))
+    except (ValueError, TypeError):
+        return 0.0
 
 
 # ---------------------------------------------------------------------------
@@ -434,9 +456,9 @@ def _classify_eval_record(
             missing = expected_keys - set(scores.keys())
             if missing:
                 error_codes.append('INCOMPLETE_SCORES')
-        # Check score values
+        # Check score values (ordinal or continuous float from metric judges)
         for val in scores.values():
-            if val not in VALID_SCORES:
+            if not is_valid_score(val):
                 error_codes.append('INVALID_SCORE_VALUE')
                 break
     else:
