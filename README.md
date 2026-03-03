@@ -4,7 +4,6 @@
 [![Python ≥3.10](https://img.shields.io/badge/python-%E2%89%A53.10-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![Version 0.3.0](https://img.shields.io/badge/version-0.3.0-informational)](CHANGELOG.md)
 [![Tests 622 passing](https://img.shields.io/badge/tests-622%20passing-brightgreen)](docs/README/11-testing.md)
-[![Interfaces 18+](https://img.shields.io/badge/interfaces-18%2B-orange)](docs/README/05-providers.md)
 [![© 2026 Alexander Apartsin](https://img.shields.io/badge/%C2%A9%202026-Alexander%20Apartsin-red)](README.md)
 
 <p align="center">
