@@ -5,7 +5,6 @@
 [![Version 0.3.0](https://img.shields.io/badge/version-0.3.0-informational)](CHANGELOG.md)
 [![Tests 622 passing](https://img.shields.io/badge/tests-622%20passing-brightgreen)](docs/README/11-testing.md)
 [![Interfaces 18+](https://img.shields.io/badge/interfaces-18%2B-orange)](docs/README/05-providers.md)
-[![License MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 [![© 2026 Alexander Apartsin](https://img.shields.io/badge/%C2%A9%202026-Alexander%20Apartsin-red)](README.md)
 
 <p align="center">
@@ -296,7 +295,7 @@ YAML Config  →  Phase 1: Attribute Mapping   (teachers infer task dimensions)
 
 <div align="center">
 
-**CoEval** · Multi-Model LLM Evaluation Framework · MIT License
+**CoEval** · Multi-Model LLM Evaluation Framework
 
 *Designed for LLM developers, integrators, and evaluation practitioners who require robust model evaluation and ranking using custom use-case data and metrics.*
 
