@@ -299,4 +299,6 @@ YAML Config  →  Phase 1: Attribute Mapping   (teachers infer task dimensions)
 
 *Designed for LLM developers, integrators, and evaluation practitioners who require robust model evaluation and ranking using custom use-case data and metrics.*
 
+Copyright (c) 2026 Alexander Apartsin. All rights reserved.
+
 </div>
