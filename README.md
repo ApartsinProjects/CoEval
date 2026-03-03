@@ -6,6 +6,7 @@
 [![Tests 622 passing](https://img.shields.io/badge/tests-622%20passing-brightgreen)](docs/README/11-testing.md)
 [![Interfaces 18+](https://img.shields.io/badge/interfaces-18%2B-orange)](docs/README/05-providers.md)
 [![License MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
+[![© 2026 Alexander Apartsin](https://img.shields.io/badge/%C2%A9%202026-Alexander%20Apartsin-red)](README.md)
 
 <p align="center">
   <img src="docs/coeval_banner.jpg" alt="CoEval — Teacher · Student · Judge evaluation ensemble" width="860"/>
