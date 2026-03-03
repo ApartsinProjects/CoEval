@@ -57,8 +57,8 @@ class TestDirectories:
     def test_docs_samples_exists(self):
         assert (ROOT / "docs" / "samples").is_dir()
 
-    def test_archive_dir_exists(self):
-        assert (ROOT / "archive").is_dir()
+    def test_runs_dir_has_readme(self):
+        assert (ROOT / "Runs" / "README.md").is_file()
 
 
 # ---------------------------------------------------------------------------

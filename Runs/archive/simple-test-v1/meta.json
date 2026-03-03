@@ -1,1 +1,0 @@
-{"experiment_id": "simple-test-v1", "status": "completed", "created_at": "2026-02-24T12:11:22Z", "updated_at": "2026-02-24T12:12:02Z", "phases_completed": ["attribute_mapping", "rubric_mapping", "data_generation", "response_collection", "evaluation"], "phases_in_progress": [], "resume_from": null}
