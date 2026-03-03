@@ -159,11 +159,13 @@ Empirical results from medium-benchmark-v1 — 400 datapoints across four tasks 
 
 ## === FINAL ABSTRACT ===
 
-The absence of a scalable, criteria-grounded method for constructing task-specific LLM evaluation benchmarks represents a structural gap in applied NLP: static benchmarks are non-extensible and narrow in coverage, while LLM-as-judge approaches sacrifice measurement reliability for throughput. We present CoEval, a five-phase ensemble framework that coordinates multiple LLMs as teachers (constructing rubric-grounded, attribute-controlled evaluation items), students (providing candidate responses), and judges (scoring responses against explicit criteria) — requiring no human annotation at any stage. Three core technical contributions define CoEval: (1) stratified attribute sampling guaranteeing coverage of quality dimensions underrepresented in static benchmarks; (2) LLM-authored rubric construction that anchors scores to interpretable, task-specific criteria; and (3) OLS-calibrated multi-judge aggregation that corrects for verbosity and positional biases inherent in individual LLM judges.
+Static benchmarks are non-extensible, prohibitively expensive to construct for novel tasks, and -- critically -- do not reflect the specific data distributions, quality criteria, or edge cases of particular deployment contexts. LLM-as-judge approaches scale annotation throughput but introduce systematic biases: positional preference reverses 20--27% of pairwise rankings, and single-judge correlations with human ratings fall below rho = 0.40 on open-ended generation tasks. No existing method allows practitioners to automatically construct task-specific, attribute-controlled evaluation benchmarks with calibrated multi-judge scoring grounded in explicit rubric criteria.
 
-Empirical results from medium-benchmark-v1 — 400 datapoints across four tasks (text summarization, code explanation, email composition, data interpretation), five models (GPT-4o-mini, GPT-3.5-Turbo, Qwen2.5-0.5B/1.5B, SmolLM2-1.7B), 7,978 valid evaluations — demonstrate a total API cost of $5.89 and a runtime of 12.8 hours. Pairwise judge agreement spans kappa = 0.003 (SmolLM2-1.7B) to kappa = 0.422 (GPT-3.5-Turbo × GPT-4o-mini), substantiating discrimination-based ensemble selection. Under simulated comparative conditions pending a dedicated ground-truth alignment experiment, a three-judge CoEval ensemble achieves Spearman ρ = 0.871 with benchmark-native metrics — outperforming G-Eval (GPT-4, ρ = 0.711) and BERTScore (ρ = 0.472) — at 82.7% lower API cost than sequential non-batched evaluation. CoEval is fully open-source and configurable via a declarative YAML interface.
+CoEval addresses this gap by introducing a teacher/student/judge paradigm for self-evaluating LLM ensembles. Teacher LLMs define the evaluation space: they enumerate task-relevant quality attributes, author rubric criteria for each attribute, and generate reference (prompt, response) pairs through attribute-stratified sampling that guarantees coverage of the full quality dimension space -- including low-frequency conditions that uncontrolled generation systematically omits. Student LLMs produce candidate responses under evaluation. Judge LLMs independently score each response against the rubric, and OLS calibration corrects for verbosity and positional biases inherent in individual judges, enabling reliable ensemble aggregation without human annotation at any stage.
 
-**Word count: 245**
+We validate CoEval through medium-benchmark-v1, an experiment spanning four NLP tasks (text summarization, code explanation, email composition, data interpretation) and five models (GPT-4o-mini, GPT-3.5-Turbo, Qwen2.5-0.5B/1.5B, SmolLM2-1.7B). The pipeline produces 7,978 valid evaluations at a total API cost of $5.89 -- between 135 and 1,354 times cheaper than equivalent human annotation -- completing in 12.8 hours with no manual intervention. Pairwise judge agreement spans kappa = 0.003 (SmolLM2-1.7B, negligible) to kappa = 0.422 (GPT-3.5-Turbo x GPT-4o-mini, moderate), demonstrating that ensemble composition is a first-order variable in evaluation reliability. CoEval is fully open-source and configurable via a declarative YAML interface.
+
+**Word count: 248** *(restructured per editorial revision: removed contributions enumeration list; reframed around gap/concept/result arc; preserved all real empirical figures)*
 
 ---
 
@@ -187,11 +189,11 @@ The following figures and tables from the paper are directly relevant to claims 
 
 | Figure / Table | Relevance to Abstract |
 |---|---|
-| **Fig 1 — Architecture Overview** (`figures/diagrams/fig1_architecture.md`) | Illustrates the five-phase pipeline and teacher-student-judge role separation described in the abstract |
-| **Table 2 — Tasks, Attributes, Rubric Criteria** | Supports the rubric construction claim; shows 22 criteria across 4 tasks |
-| **Table 3 — Judge-Pair Agreement** (`figures/screenshots/fig2_judge_agreement.png`) | Provides the real kappa values (0.003–0.422) cited in the abstract |
-| **Table 4 — Teacher Discrimination Scores** (`figures/screenshots/fig5_teacher_discrimination.png`) | Supports discrimination-based teacher selection claim; SmolLM2 V1=0.0046 best |
-| **Table 7 — Cost and Runtime Breakdown** | Directly supports the $5.89 / 12.8-hour / 7,978-evaluations empirical claims |
-| **Table 8 — Benchmark Comparison (simulated)** | Source of the ρ = 0.871 / ρ = 0.711 / ρ = 0.472 simulated comparative claims |
-| **Fig 3 — Attribute Coverage** (`figures/screenshots/fig3_coverage.png`) | Supports stratified attribute sampling claim about rare-dimension coverage |
-| **Fig 8 — Ensemble Size Ablation (simulated)** | Supports the three-judge ensemble design choice mentioned in the abstract |
+| **Fig 1 -- Architecture Overview** (`figures/diagrams/fig1_architecture.md`) | Illustrates the five-phase pipeline and teacher-student-judge role separation described in the abstract |
+| **Table 4 -- Tasks, Attributes, Rubric Criteria** | Supports the rubric construction claim; shows 22 criteria across 4 tasks |
+| **Table 5 -- Judge-Pair Agreement** (`figures/screenshots/fig2_judge_agreement.png`) | Provides the real kappa values (0.003--0.422) cited in the abstract |
+| **Table 6 -- Teacher Discrimination Scores** (`figures/screenshots/fig5_teacher_discrimination.png`) | Supports discrimination-based teacher selection claim; SmolLM2-1.7B V1=0.0046 best |
+| **Table 8 -- Cost and Runtime Breakdown** | Directly supports the $5.89 / 12.8-hour / 7,978-evaluations empirical claims |
+| **Table 9 -- Benchmark Comparison (simulated)** | Source of the projected rho = 0.87 / rho = 0.71 / rho = 0.47 simulated comparative claims (pending EXP-001) |
+| **Fig 3 -- Attribute Coverage** (`figures/screenshots/fig3_coverage.png`) | Supports stratified attribute sampling claim about rare-dimension coverage |
+| **Fig 8 -- Ensemble Size Ablation (simulated)** | Supports the three-judge ensemble design choice mentioned in the abstract |

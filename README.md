@@ -216,6 +216,7 @@ Interactive HTML examples — click to open rendered in browser:
 | [Interaction Matrix](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/medium-benchmark/reports/interaction_matrix/index.html) | Teacher × Student pair quality heatmap — spot which combinations succeed or fail |
 | [Coverage Summary](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/medium-benchmark/reports/coverage_summary/index.html) | Attribute Coverage Ratio (ACR) and rare-attribute recall per task |
 | [Judge Report](https://htmlpreview.github.io/?https://raw.githubusercontent.com/ApartsinProjects/CoEval/master/Runs/medium-benchmark/reports/judge_report/index.html) | Judge-level bias rates, score calibration, inter-rater reliability |
+| [Annotated Report Guide](Docs/paperv2/report_samples.md) | Detailed annotated screenshots of every CoEval report with explanations of every visualization and metric |
 
 > **Generate all reports from a completed run:**
 > ```bash
@@ -237,6 +238,7 @@ Interactive HTML examples — click to open rendered in browser:
 | [Configuration Guide](docs/README/04-configuration.md) | YAML config schema: models, tasks, attributes, rubric, sampling, prompt overrides, experiment settings |
 | [Benchmark Datasets](docs/README/07-benchmarks.md) | Pre-ingested datasets, `coeval ingest`, `interface: benchmark` virtual teacher, reproducing published results |
 | [Testing Guide](docs/testing.md) | All 20 test files, how to run each suite, interpreting failures, CI/CD setup |
+| [System Feature Wishlist](Docs/paperv2/system_todo.md) | 35-item prioritized roadmap: 10 benchmark additions, 12 system features, 13 new report types |
 
 ---
 

@@ -226,3 +226,25 @@ Real data from medium-benchmark-v1; computed over all 4 tasks and 22 rubric crit
 | **Total** | | **10,400** | **5,340,000** | **1,100,000** | **$5.89** | **768 min** |
 
 *Note: Phases 1–2 used static mode (no API calls) in medium-benchmark-v1. Generative mode for these phases would add ~$0.10–$0.30 depending on model selection.*
+
+## A.1  CoEval Wizard: Interactive Configuration
+
+The CoEval wizard guides practitioners through task description, attribute axis specification, and model assignment via an LLM-assisted interactive session, producing a complete YAML configuration without manual authoring.
+
+[FIG:fig16_wizard1]
+[FIG:fig17_wizard2]
+[FIG:fig18_yaml_detail]
+
+## A.2  Detailed Evaluation Reports
+
+CoEval generates per-judge, per-criterion, and per-model HTML reports from every completed pipeline run. The following figures illustrate the depth of diagnostic information available to practitioners, using the medium-benchmark-v1 experiment as a representative example.
+
+[FIG:fig5_judge_consistency]
+[FIG:fig6_score_dist]
+[FIG:fig7_teacher]
+[FIG:fig14_student]
+[FIG:fig15_coverage]
+[FIG:fig19_judge_detail]
+[FIG:fig20_interaction_detail]
+[FIG:fig21_coverage_detail]
+[FIG:fig22_summary_detail]
