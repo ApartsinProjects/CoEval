@@ -302,7 +302,7 @@
     place (Appendix&nbsp;D), so CoEval directs each practitioner to the best model for their own use case where a
     single generic leaderboard would not. Ranking candidate models on a custom use case requires only this
     specification, and CoEval recovers the correct ground-truth ranking wherever one exists to check against
-    (Section&nbsp;5.1, Table&nbsp;3; the doubly-robust aggregator recovers the true ranking of thirteen models at
+    (Section&nbsp;5.1, Table&nbsp;2; the doubly-robust aggregator recovers the true ranking of thirteen models at
     Spearman&nbsp;0.95). The whole pipeline is open-source and reproducible from a single declarative
     configuration file.</li>
 </ul>
@@ -402,15 +402,8 @@
 <p>
   CoEval executes a declarative, five-phase pipeline specified in a single declarative configuration. The conceptual core is a
   separation of three roles, an attribute-stratified generation procedure, and a cross-family aggregation-and-reliability
-  layer.
+  layer; Appendix&nbsp;F shows the pipeline.
 </p>
-<figure class="nobox">
-  <img src="figures/f1_architecture.png" alt="CoEval five-phase pipeline with teacher, student, and judge role bands"/>
-  <figcaption><strong>Figure 1.</strong> The CoEval pipeline. A single pool of models rotates through three roles:
-    teachers map attributes, construct rubrics, and generate fresh benchmark items (Phases&nbsp;1&ndash;3); students
-    produce candidate responses (Phase&nbsp;4); and a cross-family judge ensemble scores them (Phase&nbsp;5). The entire
-    run is specified in one declarative configuration.</figcaption>
-</figure>
 
 <h3>3.1 Teacher, student, and judge roles</h3>
 <p>
@@ -486,25 +479,8 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   (multiple student responses per item), and across the family of correlation tests we control the false-discovery rate
   with the Benjamini&ndash;Hochberg procedure ($\alpha = 0.05$). The complete configuration (model identifiers,
   attribute strata, and prompts) is captured in a single declarative configuration file, and all artifacts are regenerable
-  from that specification. The full study produced <strong>7,978 valid evaluations</strong> across the four tasks.
+  from that specification (per-experiment judge panels are in Appendix&nbsp;F, Table&nbsp;F1). The full study produced <strong>7,978 valid evaluations</strong> across the four tasks.
 </p>
-<div class="tablewrap">
-<table class="data">
-  <caption><strong>Table 1.</strong> Experimental configurations. Judge panels differ by experiment: the
-    ground-truth anchor (Section&nbsp;5.1) uses a frontier cross-family panel; the reliability and bias studies
-    (Section&nbsp;5.2, Appendix&nbsp;E) use a deliberately heterogeneous panel that includes weak open-weight judges;
-    and the verticals (Section&nbsp;5.4, Appendix&nbsp;D) reuse one fixed cross-family panel. All students are
-    gpt-4o-mini, gpt-3.5-turbo, and llama-3.2-3b unless noted.</caption>
-  <thead><tr><th class="lbl">Experiment</th><th>Task(s)</th><th>Judge panel</th><th>Size</th></tr></thead>
-  <tbody>
-    <tr><td class="lbl">5.1 ground truth</td><td>SciQ, ARC (exact-match QA)</td><td>gpt-4o, claude-sonnet-4, gemini-2.5-flash</td><td>191 items / 573 resp.</td></tr>
-    <tr><td class="lbl">5.2 reliability (5.1 summ. anchor)</td><td>code (BLEU), news + text summ. (BERTScore)</td><td>gpt-4o-mini, gpt-3.5-turbo, claude-haiku, gemini-flash</td><td>3 tasks / 900 resp.</td></tr>
-    <tr><td class="lbl">5.2 + App.&nbsp;E, App.&nbsp;B</td><td>4-task medium study</td><td>gpt-4o-mini, gpt-3.5-turbo, qwen2.5-1.5b, smollm2-1.7b</td><td>7,978 eval.</td></tr>
-    <tr><td class="lbl">5.4 verticals</td><td>drug-interaction, clinical, legal</td><td>claude-haiku, gemini-flash, gpt-4o-mini</td><td>40 items each</td></tr>
-    <tr><td class="lbl">5.3 contamination</td><td>SciQ memorization</td><td>exact-match (no LLM judge)</td><td>200 memorized / 100 fresh</td></tr>
-  </tbody>
-</table>
-</div>
 
 <!-- ===================== 5. RESULTS ===================== -->
 <h2>5. Results</h2>
@@ -512,7 +488,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   Our experiments answer one question: <em>does CoEval reliably rank models for a use case when one cannot use a
   standard benchmark?</em> We organize the evidence accordingly. Section&nbsp;5.1 establishes that CoEval's label-free
   scores are <em>trustworthy</em>: they track objective ground truth ($\rho = 0.86$) and reproduce the true model
-  ranking (Table&nbsp;3), benchmarked against a single-judge G-Eval baseline. Section&nbsp;5.2 and Appendix&nbsp;E explain
+  ranking (Table&nbsp;2), benchmarked against a single-judge G-Eval baseline. Section&nbsp;5.2 and Appendix&nbsp;E explain
   <em>why</em> the judging is reliable with no human calibration: a cross-family ensemble whose composition (not size)
   governs reliability (Section&nbsp;5.2) and, as Appendix&nbsp;E shows, cancels the verbosity bias every single judge
   carries and structurally avoids self-preference; the auto-generated rubrics are themselves task-specialized with a shared quality core
@@ -538,7 +514,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 
 <div class="tablewrap">
 <table class="data">
-  <caption><strong>Table 2.</strong> Spearman correlation of CoEval accuracy scores with ground-truth correctness on
+  <caption><strong>Table 1.</strong> Spearman correlation of CoEval accuracy scores with ground-truth correctness on
     exact-match QA (SciQ, ARC-Challenge; 191 datapoints, 573 responses; datapoint-clustered 95% bootstrap CI). The
     frontier cross-family ensemble tracks ground truth at ρ = 0.86. The three frontier judges agree on every item;
     crucially, the weaker auxiliary judges they are contrasted against (Section&nbsp;5.2) disagree on 3&ndash;8
@@ -582,7 +558,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 </p>
 <p>
   Evaluation is a means to an end, <em>ranking</em> candidate models for a use case, so we verify that CoEval
-  scores yield the correct ranking. Figure&nbsp;2 and Table&nbsp;3 rank the three student models by their CoEval frontier-ensemble
+  scores yield the correct ranking. Figure&nbsp;1 and Table&nbsp;2 rank the three student models by their CoEval frontier-ensemble
   accuracy score and, independently, by ground-truth correctness. The two rankings are <strong>identical</strong>;
   CoEval's scores fall within $0.02$ of the true accuracies, and the confidence intervals cleanly separate the weakest
   model. Producing this ranking required a single configuration file and no human annotation: the core operation
@@ -590,14 +566,14 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 </p>
 <figure>
   <img src="figures/f4_correctness_corr.png" alt="CoEval ensemble score versus ground-truth accuracy per model; rankings identical"/>
-  <figcaption><strong>Figure 2.</strong> CoEval recovers the true model ranking with no labels. For each student model
+  <figcaption><strong>Figure 1.</strong> CoEval recovers the true model ranking with no labels. For each student model
     the CoEval frontier-ensemble accuracy score (green, datapoint-clustered 95% CI) and the held-out ground-truth
     accuracy (blue) coincide within 0.02, and the order <code>gpt-4o-mini</code> &gt; <code>gpt-3.5-turbo</code> &gt;
-    <code>llama-3.2-3b</code> is reproduced exactly (cf. Table&nbsp;3).</figcaption>
+    <code>llama-3.2-3b</code> is reproduced exactly (cf. Table&nbsp;2).</figcaption>
 </figure>
 <div class="tablewrap">
 <table class="data">
-  <caption><strong>Table 3.</strong> CoEval reproduces the ground-truth model ranking. Three student models ranked by
+  <caption><strong>Table 2.</strong> CoEval reproduces the ground-truth model ranking. Three student models ranked by
     CoEval frontier-ensemble accuracy score (datapoint-clustered 95% CI) and by exact-match ground truth; the orderings
     match.</caption>
   <thead>
@@ -645,7 +621,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 <h3>5.2 Ensemble reliability: composition, judge-choice regret, and a self-validating panel</h3>
 <p>
   The reliability of a judge ensemble is governed by its <em>composition</em>, not its size. We measure average-measures
-  inter-rater reliability $\mathrm{ICC}(3,k)$ as judges are added in descending order of agreement (Figure&nbsp;3).
+  inter-rater reliability $\mathrm{ICC}(3,k)$ as judges are added in descending order of agreement (Figure&nbsp;2).
   Reliability is <strong>non-monotone</strong>: a selected two-judge panel reaches $\mathrm{ICC}(3,k) = 0.70$, but
   appending lower-agreement judges <em>lowers</em> it to $0.45$ and then $0.40$. This is the Spearman&ndash;Brown
   relation (<a href="#appA">Appendix&nbsp;A</a>) operating in reverse: an added judge with low mean correlation $\bar{r}$ to the panel
@@ -667,7 +643,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 </p>
 <figure>
   <img src="figures/f2_icc_curve.png" alt="ICC(3,k) versus number of judges, peaking at the selected strong panel"/>
-  <figcaption><strong>Figure 3.</strong> Composition over size. Average-measures reliability ICC(3,&nbsp;<em>k</em>) as
+  <figcaption><strong>Figure 2.</strong> Composition over size. Average-measures reliability ICC(3,&nbsp;<em>k</em>) as
     judges are added in descending agreement order. A selected strong panel reaches ICC = 0.70; indiscriminately
     adding low-agreement judges lowers the mean inter-rater correlation faster than averaging compensates, so reliability
     falls. CoEval's consensus selection retains the high-agreement judges, delivering the reliable configuration
@@ -728,7 +704,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   helping on its own (item-weighting alone $0.94$, judge-weighting alone $0.92$) and most on the discriminative items
   where judge reliability matters. The aggregator is robust: injecting a random judge degrades the plain mean to $0.85$
   but leaves the doubly-robust ranking at $0.95$, with the rogue judge receiving weight $0.00$. Compared against standard
-  baselines on the same scores (Table&nbsp;4), the doubly-robust ranking matches or beats the best single judge (an
+  baselines on the same scores (Table&nbsp;3), the doubly-robust ranking matches or beats the best single judge (an
   oracle, since which judge is best is not knowable without labels), the unweighted panel (PoLL), and the median; its
   decisive advantage is robustness to a contaminated judge pool: adding rogue judges steadily degrades the unweighted
   mean (0.88, 0.85, 0.64) and even the median (0.94, 0.91, 0.71) at zero, one, and three rogue judges, while the
@@ -736,7 +712,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 </p>
 <div class="tablewrap">
 <table class="data">
-  <caption><strong>Table 4.</strong> Rank-recovery on thirteen candidate models (science QA and reasoning; gold =
+  <caption><strong>Table 3.</strong> Rank-recovery on thirteen candidate models (science QA and reasoning; gold =
     benchmark-native accuracy), comparing standard label-free baselines (best single judge, unweighted panel / PoLL,
     median) against the CoEval weights. Each CoEval weight helps on its own, and the two compose into the best recovery;
     the aggregator alone is robust to an injected random judge, which it gives weight 0.00. Values are the Spearman and
@@ -772,7 +748,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   verbatim non-duplication <em>corroborates</em> the structural guarantee: because items are synthesized fresh from the
   attribute specification on each run, they cannot have appeared in any model's <em>prior</em> training, and a model
   cannot retrieve them from a leaked copy of these widely-used benchmarks. (The scope from Section&nbsp;5.1 holds: this
-  applies to CoEval's generated items; the benchmark-grounded anchor of Table&nbsp;2 deliberately reuses public items to
+  applies to CoEval's generated items; the benchmark-grounded anchor of Table&nbsp;1 deliberately reuses public items to
   obtain objective ground truth.)
 </p>
 <p>
@@ -808,7 +784,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   On the drug-interaction vertical CoEval produces a <strong>clean, fully unanimous ranking</strong>: all three
   cross-family judges agree on the complete order <code>gpt-4o-mini</code>&nbsp;($0.770$) $>$ <code>gpt-3.5-turbo</code>
   &nbsp;($0.682$) $>$ <code>llama-3.2-3b</code>&nbsp;($0.497$), with non-overlapping confidence intervals separating every
-  model (Table&nbsp;5). The clinical and legal verticals are consistent: the ensemble ranks the smallest model weakest in
+  model (Table&nbsp;4). The clinical and legal verticals are consistent: the ensemble ranks the smallest model weakest in
   both, unanimously in clinical and two-of-three in legal (where the Anthropic judge ranks <code>gpt-3.5-turbo</code>
   lowest): genuine disagreement a single judge would hide and a diverse ensemble surfaces; on clinical the two
   stronger models are statistically close, which the overlapping intervals correctly expose. This is the operation the
@@ -829,7 +805,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 </p>
 <div class="tablewrap">
 <table class="data">
-  <caption><strong>Table 5.</strong> CoEval ranks three candidate models on three custom, contamination-free verticals
+  <caption><strong>Table 4.</strong> CoEval ranks three candidate models on three custom, contamination-free verticals
     generated from a task description with no labeled data. Scores are the cross-family ensemble mean ([0, 1]) with 95%
     bootstrap CI over 40 generated items. <code>llama-3.2-3b</code> ranks weakest in every vertical; the three judges
     agree unanimously on the full drug-interaction order, unanimously on the weakest clinical model, and two-of-three in legal.</caption>
@@ -1062,7 +1038,7 @@ $$\kappa \;=\; \frac{p_o - p_e}{1 - p_e},$$
 </p>
 <figure>
   <img src="figures/f5_rubric_heatmap.png" alt="Heatmap of pairwise semantic similarity between auto-generated rubric criteria"/>
-  <figcaption><strong>Figure 4.</strong> Pairwise semantic similarity of the 22 auto-generated rubric criteria across
+  <figcaption><strong>Figure 3.</strong> Pairwise semantic similarity of the 22 auto-generated rubric criteria across
     four tasks. Block structure along the diagonal reflects task specialization (within-task 0.342 &gt; cross-task
     0.294), while a recurring &ldquo;completeness&rdquo; dimension forms a cross-task cluster.</figcaption>
 </figure>
@@ -1074,7 +1050,7 @@ $$\kappa \;=\; \frac{p_o - p_e}{1 - p_e},$$
   legal analysis. The artifacts below are the <em>actual</em> output CoEval generated for each, from a single one-line
   task description and with no human labels. From that description the teacher inferred the attribute strata, synthesized
   $40$ contamination-free items stratified over them, and wrote a scoring rubric; the vendor-disjoint panel
-  (OpenAI&nbsp;+&nbsp;Anthropic&nbsp;+&nbsp;Google) then ranked three candidate models (Table&nbsp;5).
+  (OpenAI&nbsp;+&nbsp;Anthropic&nbsp;+&nbsp;Google) then ranked three candidate models (Table&nbsp;4).
 </p>
 <p>
   The pipeline is four templated calls to the teacher, all instantiated from the one-line
@@ -1155,7 +1131,7 @@ Output only the JSON. No explanation or markdown.</pre>
     negligence. Identify the relevant rule and determine if Alice can successfully hold the city liable."</em></li>
 </ul>
 <p>
-  Each item is scored on its rubric by the panel, producing the rankings in Table&nbsp;5. On DDI the three judges are
+  Each item is scored on its rubric by the panel, producing the rankings in Table&nbsp;4. On DDI the three judges are
   unanimous, <code>gpt-4o-mini</code> ($0.770$) &gt; <code>gpt-3.5-turbo</code> ($0.682$) &gt;
   <code>llama-3.2-3b</code> ($0.497$), with non-overlapping confidence intervals; on clinical reasoning the two stronger
   models are statistically close ($0.873$ vs $0.864$), which the overlapping intervals correctly expose. The entire path
@@ -1256,10 +1232,37 @@ Output only the JSON. No explanation or markdown.</pre>
   that controls for a judge's overall harshness gives $+0.04$ on clinical reasoning (95% CI $[-0.00, +0.08]$), $-0.04$ on
   legal, and $-0.04$ on drug-interaction: no systematic self-inflation survives. As an explicit safeguard,
   <em>vendor-disjoint aggregation</em> (when scoring a model, dropping any judge sharing its vendor family) leaves every
-  ranking in Tables&nbsp;3 and&nbsp;6 unchanged, with per-model scores shifting by at most $0.016$, confirming the
+  ranking in Tables&nbsp;2 and&nbsp;4 unchanged, with per-model scores shifting by at most $0.016$, confirming the
   cross-family rankings are already robust to same-family bias.
 </p>
 
+
+<!-- ===================== APPENDIX F ===================== -->
+<h2 id="appF">Appendix F. System overview and experimental configuration</h2>
+<figure class="nobox">
+  <img src="figures/f1_architecture.png" alt="CoEval five-phase pipeline with teacher, student, and judge role bands"/>
+  <figcaption><strong>Figure 4.</strong> The CoEval pipeline. A single pool of models rotates through three roles:
+    teachers map attributes, construct rubrics, and generate fresh benchmark items (Phases&nbsp;1&ndash;3); students
+    produce candidate responses (Phase&nbsp;4); and a cross-family judge ensemble scores them (Phase&nbsp;5). The entire
+    run is specified in one declarative configuration.</figcaption>
+</figure>
+<div class="tablewrap">
+<table class="data">
+  <caption><strong>Table F1.</strong> Experimental configurations. Judge panels differ by experiment: the
+    ground-truth anchor (Section&nbsp;5.1) uses a frontier cross-family panel; the reliability and bias studies
+    (Section&nbsp;5.2, Appendix&nbsp;E) use a deliberately heterogeneous panel that includes weak open-weight judges;
+    and the verticals (Section&nbsp;5.4, Appendix&nbsp;D) reuse one fixed cross-family panel. All students are
+    gpt-4o-mini, gpt-3.5-turbo, and llama-3.2-3b unless noted.</caption>
+  <thead><tr><th class="lbl">Experiment</th><th>Task(s)</th><th>Judge panel</th><th>Size</th></tr></thead>
+  <tbody>
+    <tr><td class="lbl">5.1 ground truth</td><td>SciQ, ARC (exact-match QA)</td><td>gpt-4o, claude-sonnet-4, gemini-2.5-flash</td><td>191 items / 573 resp.</td></tr>
+    <tr><td class="lbl">5.2 reliability (5.1 summ. anchor)</td><td>code (BLEU), news + text summ. (BERTScore)</td><td>gpt-4o-mini, gpt-3.5-turbo, claude-haiku, gemini-flash</td><td>3 tasks / 900 resp.</td></tr>
+    <tr><td class="lbl">5.2 + App.&nbsp;E, App.&nbsp;B</td><td>4-task medium study</td><td>gpt-4o-mini, gpt-3.5-turbo, qwen2.5-1.5b, smollm2-1.7b</td><td>7,978 eval.</td></tr>
+    <tr><td class="lbl">5.4 verticals</td><td>drug-interaction, clinical, legal</td><td>claude-haiku, gemini-flash, gpt-4o-mini</td><td>40 items each</td></tr>
+    <tr><td class="lbl">5.3 contamination</td><td>SciQ memorization</td><td>exact-match (no LLM judge)</td><td>200 memorized / 100 fresh</td></tr>
+  </tbody>
+</table>
+</div>
 
 </div>
 </body>
