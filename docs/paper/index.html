@@ -779,27 +779,14 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 
 <h3>5.3 Bias cancellation</h3>
 <p>
-  We test whether CoEval's ensemble cancels verbosity bias, the tendency to reward longer responses, on
-  the four-task <code>medium-benchmark</code> run, whose judge panel is <code>gpt-4o-mini</code> and
-  <code>gpt-3.5-turbo</code> (OpenAI) together with <code>qwen2.5-1.5b</code> and <code>smollm2-1.7b</code> (open-weight).
-  For each judge we compute the Pearson correlation between response length and assigned score. Individual judges carry
-  length biases of <em>mixed sign</em>: <code>gpt-3.5-turbo</code> shows $r = -0.177$ (penalizing length), while
-  <code>smollm2-1.7b</code> shows $r = +0.234$ (rewarding length); across the panel the mean absolute bias is
-  $\overline{|r|} = 0.153$. No single judge is length-neutral.
-</p>
-<p>
-  The cancellation mechanism is the <em>mixed sign</em> of these biases under averaging, which a diverse panel supplies.
-  We note a confound shared with self-preference (Section&nbsp;5.4): in this panel, sign-diversity is correlated with
-  both vendor family and model capability (the strong OpenAI judges penalize length; the small open-weight judges reward
-  it), so we attribute the cancellation to bias-sign diversity rather than to vendor family <em>per se</em>. The
-  practical recipe is the same: assemble judges whose idiosyncratic biases are unlikely to align, and vendor
-  diversity is a convenient, observable proxy for it.
-</p>
-<p>
-  The <strong>ensemble</strong> correlation between length and score is $r = +0.010$, with a 95% bootstrap confidence
-  interval of $[-0.039,\, +0.057]$ that <em>includes zero</em>, a 93% reduction in length-bias magnitude relative
-  to the per-judge mean. The mixed-sign individual biases cancel under the averaging of $\bar{s}_i$, leaving an aggregate
-  score that is statistically indistinguishable from length-neutral.
+  We test whether the ensemble cancels verbosity bias (rewarding longer responses) on the four-task
+  <code>medium-benchmark</code> run. Per judge, length biases are of <em>mixed sign</em>: <code>gpt-3.5-turbo</code>
+  penalizes length ($r = -0.177$), <code>smollm2-1.7b</code> rewards it ($r = +0.234$), with panel mean
+  $\overline{|r|} = 0.153$ and no judge length-neutral (Table&nbsp;5, Figure&nbsp;4). Averaging mixed-sign biases cancels
+  them: the <strong>ensemble</strong> length-score correlation is $r = +0.010$ (95% bootstrap CI $[-0.039,\, +0.057]$,
+  spanning zero), a 93% reduction relative to the per-judge mean and statistically indistinguishable from length-neutral.
+  The cancellation comes from bias-sign diversity, which in this panel is correlated with vendor family, so vendor
+  diversity is a convenient, observable proxy for assembling judges whose idiosyncratic biases are unlikely to align.
 </p>
 
 <div class="tablewrap">
@@ -828,32 +815,20 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 
 <h3>5.4 Cross-family self-preference: a design property</h3>
 <p>
-  Recent work establishes that judge&ndash;generator relatedness inflates scores: <em>Preference Leakage</em>
-  [<a href="#r15">15</a>] identifies same-model and same-family relatedness as a contamination vector, and
-  <em>Play Favorites</em> [<a href="#r16">16</a>] measures frontier models favoring same-family outputs.
-  CoEval addresses this <em>structurally</em>: by requiring the judge panel to be vendor-disjoint from the student under
-  test, it precludes a model from scoring its own family, eliminating the self-preference channel by design rather than
-  by post-hoc correction. Because no judge ever scores its own family, a same-family preference cannot enter the
-  aggregate in the first place, regardless of its magnitude on any individual model.
+  Recent work establishes that judge&ndash;generator relatedness inflates scores (<em>Preference Leakage</em>
+  [<a href="#r15">15</a>]; <em>Play Favorites</em> [<a href="#r16">16</a>]). CoEval addresses this <em>structurally</em>:
+  requiring the judge panel to be vendor-disjoint from the student under test precludes any model from scoring its own
+  family, so a same-family preference cannot enter the aggregate at all, regardless of its magnitude on any individual
+  model.
 </p>
 <p>
-  We also measure the residual same-family preference directly. The vertical case studies (Section&nbsp;5.6) include
-  <code>gpt-4o-mini</code> as both a judge and a candidate, which lets us isolate self-preference as a
-  difference-in-differences that controls for a judge's overall harshness (how much more the same-family judge favors the
-  in-family candidate over a rival than the cross-family judges do). Across the three verticals the residual effect is
-  small and inconsistent in sign, $+0.04$ on clinical reasoning (95% CI $[-0.00, +0.08]$), $-0.04$ on legal, and $-0.04$
-  on drug-interaction: in a cross-family panel no systematic self-inflation survives, consistent with vendor diversity
-  already neutralizing it. The structural guarantee makes this robustness automatic rather than incidental: because a
-  model never scores its own family, a same-family preference of any sign or magnitude cannot enter the aggregate.
-</p>
-<p>
-  Beyond the structural guarantee, CoEval can <em>explicitly</em> account for systematic same-family bias through
-  <em>vendor-disjoint aggregation</em>: when scoring a model under test, the ensemble drops any judge that shares the
-  model's vendor family, so no model contributes to its own family's score. Applying this correction to the rankings
-  of Tables&nbsp;3 and&nbsp;5 leaves <em>every</em> ranking unchanged, with per-model scores shifting by at most
-  $0.016$, a direct, auditable confirmation that the cross-family ensemble's rankings are already robust to
-  same-family bias. The correction is therefore available as a safeguard, and its null effect here is itself evidence
-  that vendor diversity, not a post-hoc adjustment, is doing the work.
+  Measured directly, the residual same-family preference is small and inconsistent in sign. Using
+  <code>gpt-4o-mini</code> as both a judge and a candidate in the verticals (Section&nbsp;5.6), a difference-in-differences
+  that controls for a judge's overall harshness gives $+0.04$ on clinical reasoning (95% CI $[-0.00, +0.08]$), $-0.04$ on
+  legal, and $-0.04$ on drug-interaction: no systematic self-inflation survives. As an explicit safeguard,
+  <em>vendor-disjoint aggregation</em> (when scoring a model, dropping any judge sharing its vendor family) leaves every
+  ranking in Tables&nbsp;3 and&nbsp;6 unchanged, with per-model scores shifting by at most $0.016$, confirming the
+  cross-family rankings are already robust to same-family bias.
 </p>
 
 <h3>5.5 Contamination resistance</h3>
