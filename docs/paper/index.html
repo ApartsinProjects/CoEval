@@ -490,17 +490,18 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 </p>
 <div class="tablewrap">
 <table class="data">
-  <caption><strong>Table 1.</strong> Experimental configurations. Judge panels differ by experiment because the
-    ground-truth anchor (5.1) uses a frontier cross-family panel while the bias and reliability studies (5.2&ndash;5.3)
-    use a deliberately heterogeneous panel that includes weak open-weight judges; the verticals (5.4, 5.7) reuse one
-    fixed cross-family panel. All students are gpt-4o-mini, gpt-3.5-turbo, and llama-3.2-3b unless noted.</caption>
+  <caption><strong>Table 1.</strong> Experimental configurations. Judge panels differ by experiment: the
+    ground-truth anchor (Section&nbsp;5.1) uses a frontier cross-family panel; the reliability and bias studies
+    (Section&nbsp;5.2, Appendix&nbsp;E) use a deliberately heterogeneous panel that includes weak open-weight judges;
+    and the verticals (Section&nbsp;5.4, Appendix&nbsp;D) reuse one fixed cross-family panel. All students are
+    gpt-4o-mini, gpt-3.5-turbo, and llama-3.2-3b unless noted.</caption>
   <thead><tr><th class="lbl">Experiment</th><th>Task(s)</th><th>Judge panel</th><th>Size</th></tr></thead>
   <tbody>
     <tr><td class="lbl">5.1 ground truth</td><td>SciQ, ARC (exact-match QA)</td><td>gpt-4o, claude-sonnet-4, gemini-2.5-flash</td><td>191 items / 573 resp.</td></tr>
     <tr><td class="lbl">5.2 reliability (5.1 summ. anchor)</td><td>code (BLEU), news + text summ. (BERTScore)</td><td>gpt-4o-mini, gpt-3.5-turbo, claude-haiku, gemini-flash</td><td>3 tasks / 900 resp.</td></tr>
-    <tr><td class="lbl">5.2&ndash;5.3, App. B</td><td>4-task medium study</td><td>gpt-4o-mini, gpt-3.5-turbo, qwen2.5-1.5b, smollm2-1.7b</td><td>7,978 eval.</td></tr>
-    <tr><td class="lbl">5.4, 5.6 verticals</td><td>drug-interaction, clinical, legal</td><td>claude-haiku, gemini-flash, gpt-4o-mini</td><td>40 items each</td></tr>
-    <tr><td class="lbl">5.5 contamination</td><td>SciQ memorization</td><td>exact-match (no LLM judge)</td><td>200 memorized / 100 fresh</td></tr>
+    <tr><td class="lbl">5.2 + App.&nbsp;E, App.&nbsp;B</td><td>4-task medium study</td><td>gpt-4o-mini, gpt-3.5-turbo, qwen2.5-1.5b, smollm2-1.7b</td><td>7,978 eval.</td></tr>
+    <tr><td class="lbl">5.4 verticals</td><td>drug-interaction, clinical, legal</td><td>claude-haiku, gemini-flash, gpt-4o-mini</td><td>40 items each</td></tr>
+    <tr><td class="lbl">5.3 contamination</td><td>SciQ memorization</td><td>exact-match (no LLM judge)</td><td>200 memorized / 100 fresh</td></tr>
   </tbody>
 </table>
 </div>
@@ -513,8 +514,8 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   scores are <em>trustworthy</em>: they track objective ground truth ($\rho = 0.86$) and reproduce the true model
   ranking (Table&nbsp;3), benchmarked against a single-judge G-Eval baseline. Section&nbsp;5.2 and Appendix&nbsp;E explain
   <em>why</em> the judging is reliable with no human calibration: a cross-family ensemble whose composition (not size)
-  governs reliability (5.2), which cancels the verbosity bias every single judge carries (5.3) and structurally avoids
-  self-preference (5.4); the auto-generated rubrics are themselves task-specialized with a shared quality core
+  governs reliability (Section&nbsp;5.2) and, as Appendix&nbsp;E shows, cancels the verbosity bias every single judge
+  carries and structurally avoids self-preference; the auto-generated rubrics are themselves task-specialized with a shared quality core
   (<a href="#appB">Appendix&nbsp;B</a>). Section&nbsp;5.3 verifies the second condition
   directly, that the generated items are <em>contamination-free</em>. Section&nbsp;5.4 exercises the complete tool on three custom verticals (drug interaction, clinical, legal) with no labeled data, and Appendix&nbsp;D shows that rankings are domain-specific: across four de-novo domains three different models take first place, so a generic leaderboard misdirects the practitioner that CoEval's per-domain ranking serves.
 </p>
