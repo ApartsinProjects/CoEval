@@ -337,9 +337,9 @@
   [<a href="#r11">11</a>], domain-specific construction [<a href="#r25">25</a>]).
   (iii)&nbsp;<em>LLM-as-judge</em> methods (G-Eval [<a href="#r2">2</a>], Prometheus&nbsp;2
   [<a href="#r3">3</a>], panels [<a href="#r5">5</a>]) provide label-free scoring but inherit
-  individual-judge biases. CoEval is, to our knowledge, the first to combine all three: contamination-free,
-  label-free, domain-targeted generation with a reliability-controlled cross-family judge ensemble, into a single
-  tool aimed at the no-data, untrusted-benchmark regime. We detail each line below.
+  individual-judge biases. CoEval unifies all three: contamination-free, label-free, domain-targeted generation with a
+  reliability-controlled cross-family judge ensemble, in a single framework for the no-data, untrusted-benchmark regime.
+  We detail each line below.
 </p>
 
 <h3>2.1 LLM-as-judge and judge panels</h3>
@@ -347,7 +347,8 @@
   MT-Bench and Chatbot Arena [<a href="#r1">1</a>] established LLM-as-judge as a scalable proxy for human
   preference, and documented its biases. G-Eval [<a href="#r2">2</a>] uses a single strong model with
   chain-of-thought to score generation quality against a user-supplied rubric, while Prometheus&nbsp;2
-  [<a href="#r3">3</a>] trains a dedicated open evaluator. These approaches are <em>single-judge</em>: they
+  [<a href="#r3">3</a>], PandaLM [<a href="#r34">34</a>], and JudgeLM [<a href="#r35">35</a>] train dedicated
+  open evaluators. These approaches are <em>single-judge</em>: they
   require the user to provide the rubric and inherit one model's biases. CoEval instead <em>generates</em> the rubric
   automatically from the task definition and aggregates across a diverse panel. FLAMe [<a href="#r4">4</a>]
   and JudgeBench [<a href="#r6">6</a>] study the reliability of judge models, and BiGGen-Bench
@@ -770,7 +771,8 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 <div class="tablewrap">
 <table class="data">
   <caption><strong>Table 5.</strong> Verbosity bias (Pearson <em>r</em> between response length and score) for representative
-    individual judges versus the CoEval ensemble. The ensemble CI includes zero.</caption>
+    individual judges versus the CoEval ensemble. Individual judges carry length biases of opposite sign that the ensemble
+    cancels to a residual centered near zero.</caption>
   <thead>
     <tr><th class="lbl">Judge</th><th>Length-bias $r$</th><th>95% bootstrap CI</th></tr>
   </thead>
@@ -979,14 +981,18 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 </p>
 
 <p>
-  <strong>Scope and limitations.</strong> Our ground-truth validation of the ranking operation uses objective
-  exact-match QA, where labels exist; on subjective custom domains (Section&nbsp;5.6) we rely on the cross-family
-  ensemble and report intervals rather than a held-out gold ranking, because by assumption none exists. We study up to
+  <strong>Scope and limitations.</strong> Three boundary conditions delimit the validated regime. First, judge accuracy
+  is anchored to ground truth on objective exact-match QA, where labels exist (Section&nbsp;5.1, $\rho = 0.86$); on the
+  subjective custom domains (Section&nbsp;5.6) the panel's trustworthiness rests on that accuracy anchor together with its
+  measured bias and reliability properties (Sections&nbsp;5.2&ndash;5.4), and rankings are reported as cross-family
+  intervals rather than against a held-out gold ranking, which by assumption does not exist. Human ratings are the natural
+  convergent check on these domains and are the primary direction for future validation. Second, the study spans up to
   thirteen candidate models across four exact-match QA tasks, three custom verticals, a four-domain divergence study
-  (Section&nbsp;5.7), and a thirteen-model rank-recovery check (Section&nbsp;5.2); broader model pools and additional
-  domains would further test generality. The contamination guarantee is structural (fresh per-run synthesis), validated both by zero verbatim
-  overlap and by a controlled memorization study (Section&nbsp;5.5); a verbatim n-gram test is not a membership test
-  against any model's full pretraining corpus.
+  (Section&nbsp;5.7), and a thirteen-model rank-recovery check (Section&nbsp;5.2); wider model pools and further domains
+  would extend the evidence. Third, the contamination guarantee is structural (fresh per-run synthesis), validated by zero
+  verbatim overlap and a controlled memorization study (Section&nbsp;5.5); verbatim n-gram overlap and membership-inference
+  probes such as Min-K% [<a href="#r36">36</a>] answer complementary questions, the former whether an item is reproduced,
+  the latter whether it was seen during pretraining.
 </p>
 <!-- ===================== 7. CONCLUSION ===================== -->
 <h2>7. Conclusion</h2>
@@ -1082,6 +1088,12 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   <li id="r33">Dawid, A. P., Skene, A. M. (1979). <em>Maximum Likelihood Estimation of Observer Error-Rates Using
     the EM Algorithm.</em> Journal of the Royal Statistical Society: Series C (Applied Statistics), 28(1), 20&ndash;28.
     <a href="https://doi.org/10.2307/2346806">doi.org/10.2307/2346806</a></li>
+  <li id="r34">Wang, Y., Yu, Z., Zeng, Z., et al. (2024). <em>PandaLM: An Automatic Evaluation Benchmark for LLM
+    Instruction Tuning Optimization.</em> ICLR. <a href="https://arxiv.org/abs/2306.05087">arxiv.org/abs/2306.05087</a></li>
+  <li id="r35">Zhu, L., Wang, X., Wang, X. (2023). <em>JudgeLM: Fine-tuned Large Language Models are Scalable
+    Judges.</em> <a href="https://arxiv.org/abs/2310.17631">arxiv.org/abs/2310.17631</a></li>
+  <li id="r36">Shi, W., Ajith, A., Xia, M., et al. (2024). <em>Detecting Pretraining Data from Large Language
+    Models.</em> ICLR. <a href="https://arxiv.org/abs/2310.16789">arxiv.org/abs/2310.16789</a></li>
 </ol>
 
 <!-- ===================== APPENDIX ===================== -->
