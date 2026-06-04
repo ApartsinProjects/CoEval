@@ -417,7 +417,7 @@
   this shift; Dynabench [<a href="#r14">14</a>] renews benchmarks with humans in the loop where CoEval renews without
   them; domain-specific judge sets [<a href="#r25">25</a>] target verticals such as medicine and law, which CoEval
   generates within the same pipeline; and Length-Controlled AlpacaEval [<a href="#r8">8</a>] debiases verbosity post hoc
-  on a single judge, where CoEval cancels it through panel diversity (Section&nbsp;5.3).
+  on a single judge, where CoEval cancels it through panel diversity (Appendix&nbsp;E).
 </p>
 
 <!-- ===================== 3. FRAMEWORK ===================== -->
@@ -442,7 +442,7 @@
   models are the systems under evaluation; they produce responses to the generated prompts. The <strong>judges</strong>
   score student responses against an automatically generated rubric. Role separation is the foundation for bias control:
   because the judge set is explicitly disjoint in <em>vendor family</em> from the student under test, CoEval structurally
-  precludes a model from scoring its own family, closing the self-preference channel by design (Section&nbsp;5.4). A
+  precludes a model from scoring its own family, closing the self-preference channel by design (Appendix&nbsp;E). A
   virtual <code>benchmark</code> teacher can also
   inject items from an existing dataset, allowing CoEval scores to be grounded against native metrics (Section&nbsp;5.1).
 </p>
@@ -474,7 +474,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   The panel $J$ is assembled to maximize <em>vendor-family diversity</em>: judges are drawn from distinct model families
   so that family-correlated biases (self-preference, shared training idiosyncrasies) do not reinforce one another. When
   individual judge biases have mixed sign across the panel, as we observe empirically for verbosity
-  (Section&nbsp;5.3), the averaging in $\bar{s}_i$ cancels them. This is the mechanism behind our central claim
+  (Appendix&nbsp;E), the averaging in $\bar{s}_i$ cancels them. This is the mechanism behind our central claim
   that <em>composition</em>, not panel size, drives reliability: a large same-family panel amplifies a shared bias,
   whereas a small cross-family panel cancels it. The default aggregator is the unweighted mean above, with "composition"
   enforced by judge <em>selection</em> (which judges enter $J$; Section&nbsp;5.2), so the scorer stays simple and
@@ -534,12 +534,12 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   Our experiments answer one question: <em>does CoEval reliably rank models for a use case when one cannot use a
   standard benchmark?</em> We organize the evidence accordingly. Section&nbsp;5.1 establishes that CoEval's label-free
   scores are <em>trustworthy</em>: they track objective ground truth ($\rho = 0.86$) and reproduce the true model
-  ranking (Table&nbsp;3), benchmarked against a single-judge G-Eval baseline. Sections&nbsp;5.2&ndash;5.4 explain
+  ranking (Table&nbsp;3), benchmarked against a single-judge G-Eval baseline. Section&nbsp;5.2 and Appendix&nbsp;E explain
   <em>why</em> the judging is reliable with no human calibration: a cross-family ensemble whose composition (not size)
   governs reliability (5.2), which cancels the verbosity bias every single judge carries (5.3) and structurally avoids
   self-preference (5.4); the auto-generated rubrics are themselves task-specialized with a shared quality core
-  (<a href="#appB">Appendix&nbsp;B</a>). Section&nbsp;5.5 verifies the second condition
-  directly, that the generated items are <em>contamination-free</em>. Section&nbsp;5.6 exercises the complete tool on three custom verticals (drug interaction, clinical, legal) with no labeled data, and Appendix&nbsp;D shows that rankings are domain-specific: across four de-novo domains three different models take first place, so a generic leaderboard misdirects the practitioner that CoEval's per-domain ranking serves.
+  (<a href="#appB">Appendix&nbsp;B</a>). Section&nbsp;5.3 verifies the second condition
+  directly, that the generated items are <em>contamination-free</em>. Section&nbsp;5.4 exercises the complete tool on three custom verticals (drug interaction, clinical, legal) with no labeled data, and Appendix&nbsp;D shows that rankings are domain-specific: across four de-novo domains three different models take first place, so a generic leaderboard misdirects the practitioner that CoEval's per-domain ranking serves.
 </p>
 
 <h3>5.1 Judge accuracy: agreement with ground truth and human ratings</h3>
@@ -599,7 +599,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   benchmark-grounded set). The cross-family ensemble is the low-regret alternative: it is never
   anti-correlated and needs no judge-selection oracle. The ensemble's
   decisive advantage on such open-ended tasks is <em>bias-robustness</em>: individual judges carry verbosity biases of
-  opposite sign that the ensemble provably cancels (Section&nbsp;5.3), paired with the contamination-resistant items
+  opposite sign that the ensemble provably cancels (Appendix&nbsp;E), paired with the contamination-resistant items
   CoEval <em>generates</em> rather than consumes; these are properties no single judge provides.
 </p>
 <p>
@@ -741,7 +741,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 </p>
 <p>
   The panel's two label-free quality signals, item discriminative power and judge agreement, compose into the
-  <em>doubly-robust ranking</em> of Section&nbsp;3.3, which leans on the items that separate models (Section&nbsp;5.6)
+  <em>doubly-robust ranking</em> of Section&nbsp;3.3, which leans on the items that separate models (Section&nbsp;5.4)
   and the judges that agree with the panel. On a benchmark-grounded check where gold accuracy is available (thirteen
   models ranked on science QA and reasoning, spanning <code>gpt-4o</code> down to <code>llama-3.2-1b</code>), it improves
   rank-recovery of the true model ordering from the plain mean's Spearman $0.88$ (Kendall $0.76$) to
@@ -777,61 +777,13 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 </table>
 </div>
 
-<h3>5.3 Bias cancellation</h3>
 <p>
-  We test whether the ensemble cancels verbosity bias (rewarding longer responses) on the four-task
-  <code>medium-benchmark</code> run. Per judge, length biases are of <em>mixed sign</em>: <code>gpt-3.5-turbo</code>
-  penalizes length ($r = -0.177$), <code>smollm2-1.7b</code> rewards it ($r = +0.234$), with panel mean
-  $\overline{|r|} = 0.153$ and no judge length-neutral (Table&nbsp;5, Figure&nbsp;4). Averaging mixed-sign biases cancels
-  them: the <strong>ensemble</strong> length-score correlation is $r = +0.010$ (95% bootstrap CI $[-0.039,\, +0.057]$,
-  spanning zero), a 93% reduction relative to the per-judge mean and statistically indistinguishable from length-neutral.
-  The cancellation comes from bias-sign diversity, which in this panel is correlated with vendor family, so vendor
-  diversity is a convenient, observable proxy for assembling judges whose idiosyncratic biases are unlikely to align.
+  The ensemble also cancels <em>verbosity bias</em> (mixed-sign per-judge length biases average to a
+  near-zero ensemble correlation) and, by vendor-disjoint construction, precludes same-family
+  <em>self-preference</em>; Appendix&nbsp;E reports both, including the residual-bias measurements.
 </p>
 
-<div class="tablewrap">
-<table class="data">
-  <caption><strong>Table 5.</strong> Verbosity bias (Pearson <em>r</em> between response length and score) for representative
-    individual judges versus the CoEval ensemble. Individual judges carry length biases of opposite sign that the ensemble
-    cancels to a residual centered near zero.</caption>
-  <thead>
-    <tr><th class="lbl">Judge</th><th>Length-bias $r$</th><th>95% bootstrap CI</th></tr>
-  </thead>
-  <tbody>
-    <tr><td class="lbl">gpt-3.5-turbo</td><td>&minus;0.177</td><td>&ndash;</td></tr>
-    <tr><td class="lbl">SmolLM2</td><td>+0.234</td><td>&ndash;</td></tr>
-    <tr><td class="lbl">Panel mean $\overline{|r|}$</td><td>0.153</td><td>&ndash;</td></tr>
-    <tr class="highlight"><td class="lbl">CoEval ensemble</td><td>+0.010</td><td>[&minus;0.039, +0.057]</td></tr>
-  </tbody>
-</table>
-</div>
-
-<figure>
-  <img src="figures/f3_verbosity_forest.png" alt="Forest plot of per-judge length-bias correlations with the ensemble near zero"/>
-  <figcaption><strong>Figure 4.</strong> Verbosity bias by judge. Each judge's Pearson correlation between response
-    length and score (point) with its 95% bootstrap CI; the ensemble (green) sits at <em>r</em> = +0.010 with a CI spanning zero.
-    Mixed-sign per-judge biases cancel under averaging.</figcaption>
-</figure>
-
-<h3>5.4 Cross-family self-preference: a design property</h3>
-<p>
-  Recent work establishes that judge&ndash;generator relatedness inflates scores (<em>Preference Leakage</em>
-  [<a href="#r15">15</a>]; <em>Play Favorites</em> [<a href="#r16">16</a>]). CoEval addresses this <em>structurally</em>:
-  requiring the judge panel to be vendor-disjoint from the student under test precludes any model from scoring its own
-  family, so a same-family preference cannot enter the aggregate at all, regardless of its magnitude on any individual
-  model.
-</p>
-<p>
-  Measured directly, the residual same-family preference is small and inconsistent in sign. Using
-  <code>gpt-4o-mini</code> as both a judge and a candidate in the verticals (Section&nbsp;5.6), a difference-in-differences
-  that controls for a judge's overall harshness gives $+0.04$ on clinical reasoning (95% CI $[-0.00, +0.08]$), $-0.04$ on
-  legal, and $-0.04$ on drug-interaction: no systematic self-inflation survives. As an explicit safeguard,
-  <em>vendor-disjoint aggregation</em> (when scoring a model, dropping any judge sharing its vendor family) leaves every
-  ranking in Tables&nbsp;3 and&nbsp;6 unchanged, with per-model scores shifting by at most $0.016$, confirming the
-  cross-family rankings are already robust to same-family bias.
-</p>
-
-<h3>5.5 Contamination resistance</h3>
+<h3>5.3 Contamination resistance</h3>
 <p>
   We test the contamination-resistance claim empirically. We take the 400 CoEval-generated items from the
   <code>medium-benchmark</code> study and measure their verbatim 13-gram overlap against a corpus of 491 items drawn
@@ -859,7 +811,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   items remove because no candidate can have trained on items synthesized after the fact.
 </p>
 
-<h3>5.6 Putting it together: domain case studies</h3>
+<h3>5.4 Putting it together: domain case studies</h3>
 <p>
   The preceding sections validate CoEval's components where ground truth is available. We now exercise the complete tool
   in its intended regime on three custom verticals, <em>drug&ndash;drug interaction reasoning</em>, <em>clinical
@@ -878,7 +830,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   On the drug-interaction vertical CoEval produces a <strong>clean, fully unanimous ranking</strong>: all three
   cross-family judges agree on the complete order <code>gpt-4o-mini</code>&nbsp;($0.770$) $>$ <code>gpt-3.5-turbo</code>
   &nbsp;($0.682$) $>$ <code>llama-3.2-3b</code>&nbsp;($0.497$), with non-overlapping confidence intervals separating every
-  model (Table&nbsp;6). The clinical and legal verticals are consistent: the ensemble ranks the smallest model weakest in
+  model (Table&nbsp;5). The clinical and legal verticals are consistent: the ensemble ranks the smallest model weakest in
   both, unanimously in clinical and two-of-three in legal (where the Anthropic judge ranks <code>gpt-3.5-turbo</code>
   lowest): genuine disagreement a single judge would hide and a diverse ensemble surfaces; on clinical the two
   stronger models are statistically close, which the overlapping intervals correctly expose. This is the operation the
@@ -899,7 +851,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 </p>
 <div class="tablewrap">
 <table class="data">
-  <caption><strong>Table 6.</strong> CoEval ranks three candidate models on three custom, contamination-free verticals
+  <caption><strong>Table 5.</strong> CoEval ranks three candidate models on three custom, contamination-free verticals
     generated from a task description with no labeled data. Scores are the cross-family ensemble mean ([0, 1]) with 95%
     bootstrap CI over 40 generated items. <code>llama-3.2-3b</code> ranks weakest in every vertical; the three judges
     agree unanimously on the full drug-interaction order, unanimously on the weakest clinical model, and two-of-three in legal.</caption>
@@ -972,15 +924,15 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 <p>
   Three boundary conditions delimit the validated regime. First, judge accuracy is anchored to objective exact-match QA,
   where labels exist (Section&nbsp;5.1, $\rho = 0.86$), and to human ratings on two public meta-evaluation benchmarks
-  (Section&nbsp;5.1, SummEval and LLMBar); on the subjective custom domains (Section&nbsp;5.6) the panel's trustworthiness
-  rests on those anchors together with its measured bias and reliability properties (Sections&nbsp;5.2&ndash;5.4), and
+  (Section&nbsp;5.1, SummEval and LLMBar); on the subjective custom domains (Section&nbsp;5.4) the panel's trustworthiness
+  rests on those anchors together with its measured bias and reliability properties (Section&nbsp;5.2 and Appendix&nbsp;E), and
   rankings are reported as cross-family intervals rather than against a held-out gold ranking, which by assumption does
   not exist. Task-specific human evaluation on those domains is the natural convergent check and the primary direction for
   future validation. Second, the study spans up to thirteen candidate models across four exact-match QA tasks, three
   custom verticals, a four-domain divergence study (Appendix&nbsp;D), and a thirteen-model rank-recovery check
   (Section&nbsp;5.2); wider model pools and further domains would extend the evidence. Third, the contamination guarantee
   is structural (fresh per-run synthesis), validated by zero verbatim overlap and a controlled memorization study
-  (Section&nbsp;5.5); verbatim n-gram overlap and membership-inference probes such as Min-K% [<a href="#r36">36</a>]
+  (Section&nbsp;5.3); verbatim n-gram overlap and membership-inference probes such as Min-K% [<a href="#r36">36</a>]
   answer complementary questions, the former whether an item is reproduced, the latter whether it was seen during
   pretraining.
 </p>
@@ -990,7 +942,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 <p>
   CoEval evaluates language models and involves no new human-subjects data collection. The human judgments used to
   validate the judge (Section&nbsp;5.1) come from existing public meta-evaluation benchmarks (SummEval, LLMBar) used
-  under their released licenses. The drug-interaction, clinical, and legal verticals (Section&nbsp;5.6) are illustrations
+  under their released licenses. The drug-interaction, clinical, and legal verticals (Section&nbsp;5.4) are illustrations
   of contamination-free benchmark generation, not validated decision-support systems, and should not be used for clinical
   or legal decisions. Because CoEval generates evaluation items and scores them with language models, generated items and
   rubrics can inherit model biases; the cross-family panel and the contamination checks mitigate but do not eliminate this
@@ -1132,19 +1084,19 @@ $$\kappa \;=\; \frac{p_o - p_e}{1 - p_e},$$
 </p>
 <figure>
   <img src="figures/f5_rubric_heatmap.png" alt="Heatmap of pairwise semantic similarity between auto-generated rubric criteria"/>
-  <figcaption><strong>Figure 5.</strong> Pairwise semantic similarity of the 22 auto-generated rubric criteria across
+  <figcaption><strong>Figure 4.</strong> Pairwise semantic similarity of the 22 auto-generated rubric criteria across
     four tasks. Block structure along the diagonal reflects task specialization (within-task 0.342 &gt; cross-task
     0.294), while a recurring &ldquo;completeness&rdquo; dimension forms a cross-task cluster.</figcaption>
 </figure>
 
 <h2 id="appC">Appendix C. Worked examples on data-scarce domains</h2>
 <p>
-  The three verticals of Section&nbsp;5.6 are domains where a practitioner typically has <em>no</em> labeled
+  The three verticals of Section&nbsp;5.4 are domains where a practitioner typically has <em>no</em> labeled
   benchmark and no trustworthy public one: drug&ndash;drug interaction (DDI) reasoning, clinical decision support, and
   legal analysis. The artifacts below are the <em>actual</em> output CoEval generated for each, from a single one-line
   task description and with no human labels. From that description the teacher inferred the attribute strata, synthesized
   $40$ contamination-free items stratified over them, and wrote a scoring rubric; the vendor-disjoint panel
-  (OpenAI&nbsp;+&nbsp;Anthropic&nbsp;+&nbsp;Google) then ranked three candidate models (Table&nbsp;6).
+  (OpenAI&nbsp;+&nbsp;Anthropic&nbsp;+&nbsp;Google) then ranked three candidate models (Table&nbsp;5).
 </p>
 <p>
   The pipeline is four templated calls to the teacher, all instantiated from the one-line
@@ -1225,7 +1177,7 @@ Output only the JSON. No explanation or markdown.</pre>
     negligence. Identify the relevant rule and determine if Alice can successfully hold the city liable."</em></li>
 </ul>
 <p>
-  Each item is scored on its rubric by the panel, producing the rankings in Table&nbsp;6. On DDI the three judges are
+  Each item is scored on its rubric by the panel, producing the rankings in Table&nbsp;5. On DDI the three judges are
   unanimous, <code>gpt-4o-mini</code> ($0.770$) &gt; <code>gpt-3.5-turbo</code> ($0.682$) &gt;
   <code>llama-3.2-3b</code> ($0.497$), with non-overlapping confidence intervals; on clinical reasoning the two stronger
   models are statistically close ($0.873$ vs $0.864$), which the overlapping intervals correctly expose. The entire path
@@ -1280,6 +1232,55 @@ Output only the JSON. No explanation or markdown.</pre>
   </tbody>
 </table>
 </div>
+
+
+<!-- ===================== APPENDIX E ===================== -->
+<h2 id="appE">Appendix E. Bias cancellation and cross-family self-preference</h2>
+<p>
+  We test whether the ensemble cancels verbosity bias (rewarding longer responses) on the four-task
+  <code>medium-benchmark</code> run. Per judge, length biases are of <em>mixed sign</em>: <code>gpt-3.5-turbo</code>
+  penalizes length ($r = -0.177$), <code>smollm2-1.7b</code> rewards it ($r = +0.234$), with panel mean
+  $\overline{|r|} = 0.153$ and no judge length-neutral (Table&nbsp;E1). Averaging mixed-sign biases cancels
+  them: the <strong>ensemble</strong> length-score correlation is $r = +0.010$ (95% bootstrap CI $[-0.039,\, +0.057]$,
+  spanning zero), a 93% reduction relative to the per-judge mean and statistically indistinguishable from length-neutral.
+  The cancellation comes from bias-sign diversity, which in this panel is correlated with vendor family, so vendor
+  diversity is a convenient, observable proxy for assembling judges whose idiosyncratic biases are unlikely to align.
+</p>
+
+<div class="tablewrap">
+<table class="data">
+  <caption><strong>Table E1.</strong> Verbosity bias (Pearson <em>r</em> between response length and score) for representative
+    individual judges versus the CoEval ensemble. Individual judges carry length biases of opposite sign that the ensemble
+    cancels to a residual centered near zero.</caption>
+  <thead>
+    <tr><th class="lbl">Judge</th><th>Length-bias $r$</th><th>95% bootstrap CI</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="lbl">gpt-3.5-turbo</td><td>&minus;0.177</td><td>&ndash;</td></tr>
+    <tr><td class="lbl">SmolLM2</td><td>+0.234</td><td>&ndash;</td></tr>
+    <tr><td class="lbl">Panel mean $\overline{|r|}$</td><td>0.153</td><td>&ndash;</td></tr>
+    <tr class="highlight"><td class="lbl">CoEval ensemble</td><td>+0.010</td><td>[&minus;0.039, +0.057]</td></tr>
+  </tbody>
+</table>
+</div>
+
+
+<p>
+  Recent work establishes that judge&ndash;generator relatedness inflates scores (<em>Preference Leakage</em>
+  [<a href="#r15">15</a>]; <em>Play Favorites</em> [<a href="#r16">16</a>]). CoEval addresses this <em>structurally</em>:
+  requiring the judge panel to be vendor-disjoint from the student under test precludes any model from scoring its own
+  family, so a same-family preference cannot enter the aggregate at all, regardless of its magnitude on any individual
+  model.
+</p>
+<p>
+  Measured directly, the residual same-family preference is small and inconsistent in sign. Using
+  <code>gpt-4o-mini</code> as both a judge and a candidate in the verticals (Section&nbsp;5.4), a difference-in-differences
+  that controls for a judge's overall harshness gives $+0.04$ on clinical reasoning (95% CI $[-0.00, +0.08]$), $-0.04$ on
+  legal, and $-0.04$ on drug-interaction: no systematic self-inflation survives. As an explicit safeguard,
+  <em>vendor-disjoint aggregation</em> (when scoring a model, dropping any judge sharing its vendor family) leaves every
+  ranking in Tables&nbsp;3 and&nbsp;6 unchanged, with per-model scores shifting by at most $0.016$, confirming the
+  cross-family rankings are already robust to same-family bias.
+</p>
 
 
 </div>
