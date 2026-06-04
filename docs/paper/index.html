@@ -441,20 +441,17 @@ $$n_s \;\ge\; \left\lfloor \frac{N}{|\mathcal{S}|} \right\rfloor \quad \text{ite
 </p>
 $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 <p>
-  The panel $J$ is assembled to maximize <em>vendor-family diversity</em>: judges are drawn from distinct model families
-  so that family-correlated biases (self-preference, shared training idiosyncrasies) do not reinforce one another. When
-  individual judge biases have mixed sign across the panel, as we observe empirically for verbosity
-  (Appendix&nbsp;E), the averaging in $\bar{s}_i$ cancels them. This is the mechanism behind our central claim
-  that <em>composition</em>, not panel size, drives reliability: a large same-family panel amplifies a shared bias,
-  whereas a small cross-family panel cancels it. The default aggregator is the unweighted mean above, with "composition"
-  enforced by judge <em>selection</em> (which judges enter $J$; Section&nbsp;5.2), so the scorer stays simple and
-  auditable. CoEval additionally offers an <em>unsupervised reliability-weighted</em> aggregator that requires no ground
-  truth: it weights each judge by its mean agreement with the panel consensus, $w_j \propto \bar{r}_j$ with
-  $\sum_j w_j = 1$, so a judge that disagrees with the rest of the panel is automatically down-weighted. It generalizes
-  to a <strong>doubly-robust ranking</strong> that also weights each item by its <em>discriminative power</em>
-  $d_i \propto \operatorname{Var}_m s_{m,i}$ (the variance of candidate-model scores on item $i$), so the ranking leans
-  on the items that actually separate models and on the judges that agree with the panel, both label-free: the model
-  score is $\sum_i d_i \sum_{j} w_j\, s_{m,i,j}$, normalized. We evaluate these aggregators in Section&nbsp;5.2.
+  The panel $J$ maximizes <em>vendor-family diversity</em>, so family-correlated biases (self-preference, shared
+  idiosyncrasies) do not reinforce one another; when per-judge biases have mixed sign, as we observe for verbosity
+  (Appendix&nbsp;E), the averaging in $\bar{s}_i$ cancels them. This is the mechanism behind our claim that
+  <em>composition</em>, not size, drives reliability: a large same-family panel amplifies a shared bias, a small
+  cross-family panel cancels it. The default aggregator is the unweighted mean, with composition enforced by judge
+  <em>selection</em> (Section&nbsp;5.2). CoEval also offers an <em>unsupervised reliability-weighted</em> aggregator
+  needing no ground truth ($w_j \propto \bar{r}_j$, $\sum_j w_j = 1$), down-weighting judges that disagree with the
+  panel, and a <strong>doubly-robust ranking</strong> that additionally weights each item by its
+  <em>discriminative power</em> $d_i \propto \operatorname{Var}_m s_{m,i}$, so the ranking leans on items that separate
+  models and judges that agree with the panel, both label-free (model score $\sum_i d_i \sum_{j} w_j\, s_{m,i,j}$,
+  normalized; evaluated in Section&nbsp;5.2).
 </p>
 
 <h3>3.4 Reliability and bias metrics</h3>
@@ -832,24 +829,20 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 <!-- ===================== 6. DISCUSSION ===================== -->
 <h2>6. Discussion</h2>
 <p>
-  CoEval is designed for a specific, common predicament: ranking models for a task or domain when no labeled data
-  exists to build a benchmark and public benchmarks cannot be trusted. The results show it meets that need: its
-  label-free scores reproduce the true model ranking and track ground truth, and its generated items are verifiably
-  fresh. The composition-over-size finding explains <em>why</em> this label-free judging can be trusted. The key enabler is a design
-  principle that is itself a contribution: the reliability of an LLM-judge panel is governed by its
-  <em>composition</em>, not its size. A diverse, cross-family panel cancels the mixed-sign biases (verbosity,
-  self-preference) that any individual judge carries, while a same-family panel would only amplify a shared
-  bias; practitioners should prioritize vendor diversity over adding more copies of similar judges. A modest diverse
-  panel already recovers most of the full-panel reliability, so the cost of diversity is small.
+  CoEval is designed for a common predicament: ranking models for a task or domain when no labeled data exists and public
+  benchmarks cannot be trusted. The results show it meets that need, its label-free scores reproduce the true ranking,
+  track ground truth, and agree with human judgments (Section&nbsp;5.1), and its items are verifiably fresh. The key
+  enabler is itself a contribution: the reliability of an LLM-judge panel is governed by its <em>composition</em>, not its
+  size. A cross-family panel cancels the mixed-sign biases (verbosity, self-preference) any individual judge carries,
+  where a same-family panel would amplify a shared one, and a modest diverse panel already recovers most of the
+  full-panel reliability, so practitioners should prioritize vendor diversity over more copies of similar judges.
 </p>
 <p>
-  Coupling the panel to attribute-stratified generation is what makes the system more than a better judge. Because items
-  are synthesized fresh from an attribute specification on every run, CoEval sidesteps contamination structurally rather
-  than chasing leaked items after the fact, and it targets the deployment's own distribution and edge cases rather than a
-  generic average. The same role separation that secures contamination-freeness in generation structurally precludes
-  same-family self-preference in scoring: one architectural choice closing two leakage channels. Declarative
-  specification keeps the whole pipeline reproducible: a single declarative configuration regenerates the benchmark, the responses, and
-  the scores.
+  Coupling the panel to attribute-stratified generation makes CoEval more than a better judge: because items are
+  synthesized fresh on every run, it sidesteps contamination structurally rather than chasing leaked items, and targets
+  the deployment's own distribution rather than a generic average. The same role separation that secures
+  contamination-freeness also precludes same-family self-preference, one architectural choice closing two leakage
+  channels, and a single declarative configuration regenerates the benchmark, responses, and scores.
 </p>
 <!-- ===================== 7. CONCLUSION ===================== -->
 <h2>7. Conclusion</h2>
