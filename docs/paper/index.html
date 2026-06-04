@@ -753,62 +753,16 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 
 <h3>5.4 Putting it together: domain case studies</h3>
 <p>
-  The preceding sections validate CoEval's components where ground truth is available. We now exercise the complete tool
-  in its intended regime on three custom verticals, <em>drug&ndash;drug interaction reasoning</em>, <em>clinical
-  reasoning</em>, and <em>legal analysis</em>, for which we assume no task-specific labeled data and no trustworthy
-  public benchmark. The drug-interaction vertical is the sharpest case for the framework's premise: a well-known public
-  benchmark exists (DDIExtraction-2013) but is a relation-<em>extraction</em> corpus rather than clinical-decision
-  reasoning, and is old and freely available enough to be presumed present in pretraining, while the few clinically
-  realistic DDI-reasoning sets are private and number only in the hundreds of items. From a one-line description per
-  vertical, CoEval's teacher generated 40 attribute-stratified items (for drug interactions, stratified over severity,
-  mechanism, and patient context), three candidate models answered them, and the cross-family ensemble
-  (OpenAI&nbsp;+&nbsp;Anthropic&nbsp;+&nbsp;Google) scored every response, all from a single configuration file, with
-  no human labels or raters. <a href="#appC">Appendix&nbsp;C</a> shows the actual generated artifacts for all three
-  domains: the one-line seed, the auto-generated attribute strata and rubric, and a representative synthesized item.
+  We exercise the complete tool in its intended regime on three custom verticals,
+  <em>drug&ndash;drug interaction reasoning</em>, <em>clinical reasoning</em>, and <em>legal analysis</em>, for
+  which we assume no task-specific labeled data and no trustworthy public benchmark. From a one-line description
+  each, CoEval generated 40 attribute-stratified items per vertical, three candidates answered, and the
+  cross-family panel scored every response, from one configuration file with no human labels. The panel produces
+  defensible rankings, a fully unanimous order on drug-interaction (<code>gpt-4o-mini</code> $>$
+  <code>gpt-3.5-turbo</code> $>$ <code>llama-3.2-3b</code>, non-overlapping CIs) and consistent rankings on clinical
+  and legal, with $71\%$ of generated items discriminative. Appendix&nbsp;G reports the full results
+  (Table&nbsp;G1) and Appendix&nbsp;C the generated artifacts.
 </p>
-<p>
-  On the drug-interaction vertical CoEval produces a <strong>clean, fully unanimous ranking</strong>: all three
-  cross-family judges agree on the complete order <code>gpt-4o-mini</code>&nbsp;($0.770$) $>$ <code>gpt-3.5-turbo</code>
-  &nbsp;($0.682$) $>$ <code>llama-3.2-3b</code>&nbsp;($0.497$), with non-overlapping confidence intervals separating every
-  model (Table&nbsp;4). The clinical and legal verticals are consistent: the ensemble ranks the smallest model weakest in
-  both, unanimously in clinical and two-of-three in legal (where the Anthropic judge ranks <code>gpt-3.5-turbo</code>
-  lowest): genuine disagreement a single judge would hide and a diverse ensemble surfaces; on clinical the two
-  stronger models are statistically close, which the overlapping intervals correctly expose. This is the operation the
-  framework is built for: producing a defensible model ranking for a bespoke domain in which a standard benchmark is
-  unavailable or untrustworthy.
-</p>
-<p>
-  A ranking is only possible if the items <em>separate</em> the models, the generation-side analog of judge
-  discrimination: a good teacher writes questions on which candidates actually differ. We measure per-item
-  discriminativeness as the spread of candidate-model ensemble scores. Across the $120$ generated vertical items,
-  <strong>$71\%$ are discriminative</strong> (a score range $\ge 0.15$ across the three models), with a mean per-item
-  range of $0.33$; on drug-interaction and legal analysis the figure rises to $78\%$ and $85\%$. Where the items do not
-  separate the models they are honest about it: clinical reasoning is only $50\%$ discriminative precisely because its
-  two stronger candidates are genuinely close ($0.873$ vs $0.864$), so the items reflect a real near-tie rather than
-  manufacturing a gap. This is why the panel yields non-overlapping ranking intervals: the teacher supplies items that
-  carry ranking signal, and a non-discriminative benchmark, on which every model scores alike, could not separate the
-  candidates no matter how reliable the judges are.
-</p>
-<div class="tablewrap">
-<table class="data">
-  <caption><strong>Table 4.</strong> CoEval ranks three candidate models on three custom, contamination-free verticals
-    generated from a task description with no labeled data. Scores are the cross-family ensemble mean ([0, 1]) with 95%
-    bootstrap CI over 40 generated items. <code>llama-3.2-3b</code> ranks weakest in every vertical; the three judges
-    agree unanimously on the full drug-interaction order, unanimously on the weakest clinical model, and two-of-three in legal.</caption>
-  <thead><tr><th class="lbl">Vertical</th><th class="lbl">Model</th><th>CoEval score [95% CI]</th></tr></thead>
-  <tbody>
-    <tr class="group"><td class="lbl"><em>Drug&ndash;drug interaction</em></td><td class="lbl">gpt-4o-mini</td><td class="highlight">0.770 [0.739, 0.800]</td></tr>
-    <tr><td class="lbl"></td><td class="lbl">gpt-3.5-turbo</td><td>0.682 [0.646, 0.717]</td></tr>
-    <tr><td class="lbl"></td><td class="lbl">llama-3.2-3b</td><td>0.497 [0.459, 0.532]</td></tr>
-    <tr class="group"><td class="lbl"><em>Clinical reasoning</em></td><td class="lbl">gpt-3.5-turbo</td><td class="highlight">0.873 [0.849, 0.895]</td></tr>
-    <tr><td class="lbl"></td><td class="lbl">gpt-4o-mini</td><td>0.864 [0.840, 0.885]</td></tr>
-    <tr><td class="lbl"></td><td class="lbl">llama-3.2-3b</td><td>0.814 [0.784, 0.844]</td></tr>
-    <tr class="group"><td class="lbl"><em>Legal analysis</em></td><td class="lbl">gpt-4o-mini</td><td class="highlight">0.982 [0.973, 0.991]</td></tr>
-    <tr><td class="lbl"></td><td class="lbl">gpt-3.5-turbo</td><td>0.740 [0.709, 0.770]</td></tr>
-    <tr><td class="lbl"></td><td class="lbl">llama-3.2-3b</td><td>0.709 [0.677, 0.744]</td></tr>
-  </tbody>
-</table>
-</div>
 
 <p>
   Rankings are also <em>domain-specific</em>: across four de-novo domains three different models take first place,
@@ -1032,7 +986,7 @@ $$\kappa \;=\; \frac{p_o - p_e}{1 - p_e},$$
   legal analysis. The artifacts below are the <em>actual</em> output CoEval generated for each, from a single one-line
   task description and with no human labels. From that description the teacher inferred the attribute strata, synthesized
   $40$ contamination-free items stratified over them, and wrote a scoring rubric; the vendor-disjoint panel
-  (OpenAI&nbsp;+&nbsp;Anthropic&nbsp;+&nbsp;Google) then ranked three candidate models (Table&nbsp;4).
+  (OpenAI&nbsp;+&nbsp;Anthropic&nbsp;+&nbsp;Google) then ranked three candidate models (Table&nbsp;G1).
 </p>
 <p>
   The pipeline is four templated calls to the teacher, all instantiated from the one-line
@@ -1113,7 +1067,7 @@ Output only the JSON. No explanation or markdown.</pre>
     negligence. Identify the relevant rule and determine if Alice can successfully hold the city liable."</em></li>
 </ul>
 <p>
-  Each item is scored on its rubric by the panel, producing the rankings in Table&nbsp;4. On DDI the three judges are
+  Each item is scored on its rubric by the panel, producing the rankings in Table&nbsp;G1. On DDI the three judges are
   unanimous, <code>gpt-4o-mini</code> ($0.770$) &gt; <code>gpt-3.5-turbo</code> ($0.682$) &gt;
   <code>llama-3.2-3b</code> ($0.497$), with non-overlapping confidence intervals; on clinical reasoning the two stronger
   models are statistically close ($0.873$ vs $0.864$), which the overlapping intervals correctly expose. The entire path
@@ -1214,7 +1168,7 @@ Output only the JSON. No explanation or markdown.</pre>
   that controls for a judge's overall harshness gives $+0.04$ on clinical reasoning (95% CI $[-0.00, +0.08]$), $-0.04$ on
   legal, and $-0.04$ on drug-interaction: no systematic self-inflation survives. As an explicit safeguard,
   <em>vendor-disjoint aggregation</em> (when scoring a model, dropping any judge sharing its vendor family) leaves every
-  ranking in Tables&nbsp;2 and&nbsp;4 unchanged, with per-model scores shifting by at most $0.016$, confirming the
+  ranking in Table&nbsp;2 and Table&nbsp;G1 unchanged, with per-model scores shifting by at most $0.016$, confirming the
   cross-family rankings are already robust to same-family bias.
 </p>
 
@@ -1242,6 +1196,66 @@ Output only the JSON. No explanation or markdown.</pre>
     <tr><td class="lbl">5.2 + App.&nbsp;E, App.&nbsp;B</td><td>4-task medium study</td><td>gpt-4o-mini, gpt-3.5-turbo, qwen2.5-1.5b, smollm2-1.7b</td><td>7,978 eval.</td></tr>
     <tr><td class="lbl">5.4 verticals</td><td>drug-interaction, clinical, legal</td><td>claude-haiku, gemini-flash, gpt-4o-mini</td><td>40 items each</td></tr>
     <tr><td class="lbl">5.3 contamination</td><td>SciQ memorization</td><td>exact-match (no LLM judge)</td><td>200 memorized / 100 fresh</td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ===================== APPENDIX G ===================== -->
+<h2 id="appG">Appendix G. Domain case studies (full results)</h2>
+<p>
+  The preceding sections validate CoEval's components where ground truth is available. We now exercise the complete tool
+  in its intended regime on three custom verticals, <em>drug&ndash;drug interaction reasoning</em>, <em>clinical
+  reasoning</em>, and <em>legal analysis</em>, for which we assume no task-specific labeled data and no trustworthy
+  public benchmark. The drug-interaction vertical is the sharpest case for the framework's premise: a well-known public
+  benchmark exists (DDIExtraction-2013) but is a relation-<em>extraction</em> corpus rather than clinical-decision
+  reasoning, and is old and freely available enough to be presumed present in pretraining, while the few clinically
+  realistic DDI-reasoning sets are private and number only in the hundreds of items. From a one-line description per
+  vertical, CoEval's teacher generated 40 attribute-stratified items (for drug interactions, stratified over severity,
+  mechanism, and patient context), three candidate models answered them, and the cross-family ensemble
+  (OpenAI&nbsp;+&nbsp;Anthropic&nbsp;+&nbsp;Google) scored every response, all from a single configuration file, with
+  no human labels or raters. <a href="#appC">Appendix&nbsp;C</a> shows the actual generated artifacts for all three
+  domains: the one-line seed, the auto-generated attribute strata and rubric, and a representative synthesized item.
+</p>
+<p>
+  On the drug-interaction vertical CoEval produces a <strong>clean, fully unanimous ranking</strong>: all three
+  cross-family judges agree on the complete order <code>gpt-4o-mini</code>&nbsp;($0.770$) $>$ <code>gpt-3.5-turbo</code>
+  &nbsp;($0.682$) $>$ <code>llama-3.2-3b</code>&nbsp;($0.497$), with non-overlapping confidence intervals separating every
+  model (Table&nbsp;G1). The clinical and legal verticals are consistent: the ensemble ranks the smallest model weakest in
+  both, unanimously in clinical and two-of-three in legal (where the Anthropic judge ranks <code>gpt-3.5-turbo</code>
+  lowest): genuine disagreement a single judge would hide and a diverse ensemble surfaces; on clinical the two
+  stronger models are statistically close, which the overlapping intervals correctly expose. This is the operation the
+  framework is built for: producing a defensible model ranking for a bespoke domain in which a standard benchmark is
+  unavailable or untrustworthy.
+</p>
+<p>
+  A ranking is only possible if the items <em>separate</em> the models, the generation-side analog of judge
+  discrimination: a good teacher writes questions on which candidates actually differ. We measure per-item
+  discriminativeness as the spread of candidate-model ensemble scores. Across the $120$ generated vertical items,
+  <strong>$71\%$ are discriminative</strong> (a score range $\ge 0.15$ across the three models), with a mean per-item
+  range of $0.33$; on drug-interaction and legal analysis the figure rises to $78\%$ and $85\%$. Where the items do not
+  separate the models they are honest about it: clinical reasoning is only $50\%$ discriminative precisely because its
+  two stronger candidates are genuinely close ($0.873$ vs $0.864$), so the items reflect a real near-tie rather than
+  manufacturing a gap. This is why the panel yields non-overlapping ranking intervals: the teacher supplies items that
+  carry ranking signal, and a non-discriminative benchmark, on which every model scores alike, could not separate the
+  candidates no matter how reliable the judges are.
+</p>
+<div class="tablewrap">
+<table class="data">
+  <caption><strong>Table G1.</strong> CoEval ranks three candidate models on three custom, contamination-free verticals
+    generated from a task description with no labeled data. Scores are the cross-family ensemble mean ([0, 1]) with 95%
+    bootstrap CI over 40 generated items. <code>llama-3.2-3b</code> ranks weakest in every vertical; the three judges
+    agree unanimously on the full drug-interaction order, unanimously on the weakest clinical model, and two-of-three in legal.</caption>
+  <thead><tr><th class="lbl">Vertical</th><th class="lbl">Model</th><th>CoEval score [95% CI]</th></tr></thead>
+  <tbody>
+    <tr class="group"><td class="lbl"><em>Drug&ndash;drug interaction</em></td><td class="lbl">gpt-4o-mini</td><td class="highlight">0.770 [0.739, 0.800]</td></tr>
+    <tr><td class="lbl"></td><td class="lbl">gpt-3.5-turbo</td><td>0.682 [0.646, 0.717]</td></tr>
+    <tr><td class="lbl"></td><td class="lbl">llama-3.2-3b</td><td>0.497 [0.459, 0.532]</td></tr>
+    <tr class="group"><td class="lbl"><em>Clinical reasoning</em></td><td class="lbl">gpt-3.5-turbo</td><td class="highlight">0.873 [0.849, 0.895]</td></tr>
+    <tr><td class="lbl"></td><td class="lbl">gpt-4o-mini</td><td>0.864 [0.840, 0.885]</td></tr>
+    <tr><td class="lbl"></td><td class="lbl">llama-3.2-3b</td><td>0.814 [0.784, 0.844]</td></tr>
+    <tr class="group"><td class="lbl"><em>Legal analysis</em></td><td class="lbl">gpt-4o-mini</td><td class="highlight">0.982 [0.973, 0.991]</td></tr>
+    <tr><td class="lbl"></td><td class="lbl">gpt-3.5-turbo</td><td>0.740 [0.709, 0.770]</td></tr>
+    <tr><td class="lbl"></td><td class="lbl">llama-3.2-3b</td><td>0.709 [0.677, 0.744]</td></tr>
   </tbody>
 </table>
 </div>
