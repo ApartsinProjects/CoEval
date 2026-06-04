@@ -32,7 +32,9 @@ for s in doc.sections:
     ln = OxmlElement("w:lnNumType")
     ln.set(qn("w:countBy"), "1")
     ln.set(qn("w:restart"), "continuous")
-    ln.set(qn("w:distance"), "284")
+    # Small distance (~0.1") so the RIGHT column's numbers fit inside the 0.6cm gutter
+    # without crossing into the left column. (284 twips overflowed the gutter.)
+    ln.set(qn("w:distance"), "130")
     cols = sectPr.find(qn("w:cols"))
     if cols is not None:
         cols.addprevious(ln)
@@ -47,6 +49,16 @@ for s in doc.sections:
         r.font.size = Pt(9)
         r.font.name = "Times New Roman"
         r.font.italic = True
+
+# Make line numbers small (8pt) so they read as margin marks and the right-column
+# numbers fit the narrow gutter without overlapping body text.
+from docx.enum.style import WD_STYLE_TYPE
+try:
+    ln_style = doc.styles['Line Number']
+except KeyError:
+    ln_style = doc.styles.add_style('Line Number', WD_STYLE_TYPE.CHARACTER)
+ln_style.font.size = Pt(8)
+ln_style.font.name = 'Times New Roman'
 
 # Compact the figures to reclaim vertical space: cap each chart's height at 2.2 in
 # (full-width body charts render ~3.3 in tall, eating page space). Keeps aspect ratio;
