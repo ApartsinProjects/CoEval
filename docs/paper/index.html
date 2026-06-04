@@ -316,20 +316,11 @@
 <!-- ===================== 2. RELATED WORK ===================== -->
 <h2>2. Related Work</h2>
 <p>
-  CoEval sits at the intersection of three lines of work, each motivated by one half of the practitioner's problem.
-  (i)&nbsp;A growing body of evidence shows that <em>public benchmarks cannot be taken at face value</em>: their items
-  leak into pretraining corpora and inflate scores through memorization (GSM1k [<a href="#r12">12</a>],
-  contamination surveys [<a href="#r13">13</a>]), which has driven continuously-refreshed <em>live</em>
-  benchmarks (LiveBench [<a href="#r22">22</a>], LiveCodeBench [<a href="#r23">23</a>]) and
-  exposed leakage on the judge side as well (Preference Leakage [<a href="#r15">15</a>]). (ii)&nbsp;When no
-  labeled data exists, <em>automated benchmark generation</em> synthesizes evaluation items directly (AutoBencher
-  [<a href="#r9">9</a>], BenchAgents [<a href="#r10">10</a>], YourBench
-  [<a href="#r11">11</a>], domain-specific construction [<a href="#r25">25</a>]).
-  (iii)&nbsp;<em>LLM-as-judge</em> methods (G-Eval [<a href="#r2">2</a>], Prometheus&nbsp;2
-  [<a href="#r3">3</a>], panels [<a href="#r5">5</a>]) provide label-free scoring but inherit
-  individual-judge biases. CoEval unifies all three: contamination-free, label-free, domain-targeted generation with a
-  reliability-controlled cross-family judge ensemble, in a single framework for the no-data, untrusted-benchmark regime.
-  We detail each line below.
+  CoEval draws on three lines of work, each motivated by one half of the practitioner's problem: evidence that public
+  benchmarks cannot be taken at face value (contamination and leakage), automated benchmark generation when no labeled
+  data exists, and LLM-as-judge scoring. CoEval unifies all three, contamination-free, label-free, domain-targeted
+  generation with a reliability-controlled cross-family judge ensemble, in a single framework for the no-data,
+  untrusted-benchmark regime; we detail each below.
 </p>
 
 <h3>2.1 LLM-as-judge and judge panels</h3>
@@ -365,15 +356,13 @@
 </p>
 <p>
   Inferring rater reliability from inter-rater agreement without ground truth dates to <em>Dawid and Skene</em>
-  [<a href="#r33">33</a>]; CoEval applies this to a vendor-disjoint LLM panel where peer agreement down-weights and
-  diagnoses unreliable judges (Section&nbsp;5.2). Recent label-free methods learn per-judge reliability jointly with the
-  ranking from pairwise comparisons (judge-aware Bradley&ndash;Terry [<a href="#r27">27</a>], judge-aware ranking
-  [<a href="#r29">29</a>]) or separate quality from shared confounders [<a href="#r28">28</a>]. CoEval shares this goal,
-  but its contribution is the <em>integration</em>: these methods score a fixed, externally-supplied item set as pairwise
-  comparisons from a single-vendor pool, whereas CoEval supplies the items (generated de novo, contamination-free) and
-  scores them as rubric-anchored absolute scores from a <em>vendor-disjoint</em> panel. Owning the whole loop surfaces the
-  <em>judge-choice regret</em> of Section&nbsp;5.2: a single judge can be anti-correlated with ground truth where the
-  cross-family ensemble is the low-regret choice.
+  [<a href="#r33">33</a>], which CoEval applies to a vendor-disjoint LLM panel (Section&nbsp;5.2). Recent label-free
+  methods learn per-judge reliability jointly with the ranking from pairwise comparisons (judge-aware Bradley&ndash;Terry
+  [<a href="#r27">27</a>], judge-aware ranking [<a href="#r29">29</a>]) or separate quality from shared confounders
+  [<a href="#r28">28</a>]; CoEval's contribution is their <em>integration</em>, supplying the items themselves (de novo,
+  contamination-free) and scoring them as absolute rubric scores from a <em>vendor-disjoint</em> panel rather than
+  pairwise comparisons from a single-vendor pool, which surfaces the <em>judge-choice regret</em> of Section&nbsp;5.2: a
+  single judge can be anti-correlated with ground truth where the ensemble is the low-regret choice.
 </p>
 
 <h3>2.2 Automated and contamination-resistant benchmark generation</h3>
