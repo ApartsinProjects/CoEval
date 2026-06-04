@@ -1,0 +1,51 @@
+{
+  "experiment": "e1_judge_human_summeval",
+  "dataset": "mteb/summeval",
+  "n_summaries": 300,
+  "judges": [
+    "judge-gpt4o-mini",
+    "judge-claude-haiku",
+    "judge-gemini-flash"
+  ],
+  "dims": [
+    "relevance",
+    "coherence",
+    "consistency"
+  ],
+  "misses": 7,
+  "per_dim": {
+    "relevance": {
+      "n": 293,
+      "panel_spearman": 0.518,
+      "per_judge_spearman": {
+        "judge-gpt4o-mini": 0.403,
+        "judge-claude-haiku": 0.459,
+        "judge-gemini-flash": 0.47
+      },
+      "best_single": 0.47,
+      "worst_single": 0.403
+    },
+    "coherence": {
+      "n": 293,
+      "panel_spearman": 0.57,
+      "per_judge_spearman": {
+        "judge-gpt4o-mini": 0.502,
+        "judge-claude-haiku": 0.43,
+        "judge-gemini-flash": 0.524
+      },
+      "best_single": 0.524,
+      "worst_single": 0.43
+    },
+    "consistency": {
+      "n": 293,
+      "panel_spearman": 0.556,
+      "per_judge_spearman": {
+        "judge-gpt4o-mini": 0.489,
+        "judge-claude-haiku": 0.424,
+        "judge-gemini-flash": 0.624
+      },
+      "best_single": 0.624,
+      "worst_single": 0.424
+    }
+  }
+}
