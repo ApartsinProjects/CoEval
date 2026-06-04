@@ -401,29 +401,23 @@
 
 <h3>2.2 Automated and contamination-resistant benchmark generation</h3>
 <p>
-  AutoBencher [<a href="#r9">9</a>] searches for benchmark questions that optimize difficulty and novelty,
-  but evaluates with a <em>single</em> judge and does not enforce cross-family scoring or role separation. CoEval adds a
-  cross-family multi-judge layer, explicit teacher/student/judge role separation, and continuous inter-judge agreement
-  monitoring. BenchAgents [<a href="#r10">10</a>] and YourBench [<a href="#r11">11</a>] likewise
-  automate benchmark construction; CoEval's distinguishing feature is attribute-<em>stratified</em> coverage: the
-  sampler allocates a per-stratum floor of items to each declared attribute combination, coupled to bias-cancelled
-  scoring. The contamination motivation is sharpened by GSM1k
-  [<a href="#r12">12</a>], which exposed memorization on grade-school arithmetic, and by recent surveys of
-  data contamination in LLMs [<a href="#r13">13</a>]. Live benchmarks such as LiveBench
-  [<a href="#r22">22</a>] and LiveCodeBench [<a href="#r23">23</a>] limit leakage by continuously
-  releasing fresh, time-windowed items, but rely on human-curated questions with objective answers and avoid LLM judges;
-  CoEval extends contamination resistance to <em>open-ended, judge-scored</em> tasks by generating fresh,
-  attribute-controlled items on demand. Two recent generators are closest to our item-synthesis step: CHASE
-  [<a href="#r30">30</a>] composes challenging problems bottom-up from verifiable sub-tasks with no human involvement,
-  and DataMorgana [<a href="#r31">31</a>] produces configuration-driven synthetic question&ndash;answer sets with
-  controllable category distributions, close to our attribute-stratified sampling. Both stop at item generation; CoEval
-  differs by closing the loop to a model <em>ranking</em>, adding the vendor-disjoint judge panel and label-free
-  aggregation that turn fresh items into a defensible leaderboard. A recent survey of the move from static to dynamic
-  contamination-resistant benchmarks [<a href="#r32">32</a>] situates this shift. Dynabench [<a href="#r14">14</a>]
-  proposed dynamic, human-in-the-loop renewal; CoEval automates renewal without humans. Constructing domain-specific evaluation sets for LLM judges
-  [<a href="#r25">25</a>] targets verticals such as medicine and law; CoEval generates such domain-targeted
-  items automatically within the same pipeline. Length-Controlled AlpacaEval [<a href="#r8">8</a>] debiases for
-  verbosity post hoc on a single judge; CoEval instead cancels verbosity bias through panel diversity (Section&nbsp;5.3).
+  Automated generators such as AutoBencher [<a href="#r9">9</a>], BenchAgents [<a href="#r10">10</a>], and YourBench
+  [<a href="#r11">11</a>] construct evaluation items without labels, but score with a single judge and no role
+  separation. CoEval adds a cross-family multi-judge layer, explicit teacher/student/judge roles,
+  attribute-<em>stratified</em> coverage (a per-stratum item floor over declared attribute combinations), and continuous
+  inter-judge agreement monitoring. The contamination motivation is sharpened by GSM1k [<a href="#r12">12</a>] and recent
+  contamination surveys [<a href="#r13">13</a>]. Live benchmarks (LiveBench [<a href="#r22">22</a>], LiveCodeBench
+  [<a href="#r23">23</a>]) limit leakage by continuously releasing fresh, time-windowed items, but rely on
+  human-curated questions with objective answers and avoid LLM judges; CoEval extends contamination resistance to
+  <em>open-ended, judge-scored</em> tasks through fresh attribute-controlled generation. Closest to our synthesis step,
+  CHASE [<a href="#r30">30</a>] composes problems bottom-up from verifiable sub-tasks and DataMorgana
+  [<a href="#r31">31</a>] produces configuration-driven question&ndash;answer sets with controllable category
+  distributions; both stop at item generation, whereas CoEval closes the loop to a model <em>ranking</em> with a
+  vendor-disjoint panel and label-free aggregation. A recent static-to-dynamic survey [<a href="#r32">32</a>] situates
+  this shift; Dynabench [<a href="#r14">14</a>] renews benchmarks with humans in the loop where CoEval renews without
+  them; domain-specific judge sets [<a href="#r25">25</a>] target verticals such as medicine and law, which CoEval
+  generates within the same pipeline; and Length-Controlled AlpacaEval [<a href="#r8">8</a>] debiases verbosity post hoc
+  on a single judge, where CoEval cancels it through panel diversity (Section&nbsp;5.3).
 </p>
 
 <!-- ===================== 3. FRAMEWORK ===================== -->
