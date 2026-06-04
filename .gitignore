@@ -47,3 +47,4 @@ Runs/EXP010-scale-ranking-pilot/*.log
 # html2anno local review artifacts
 docs/paper/index.review.html
 .annotations/
+docs/paper/CoEval_TACL.pdf
