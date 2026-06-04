@@ -235,7 +235,8 @@
     labels or raters. Because every model also answers as a student, the responses are the data that weight each question
     by its discriminative power and each judge by its consensus with the panel. Where ground truth exists, CoEval
     recovers the true ranking and tracks objective correctness at $\rho = 0.86$, and the weighting recovers the gold
-    ranking of thirteen models at Spearman $0.95$. Reliability comes from panel <em>composition</em>, not size: this
+    ranking of thirteen models at Spearman $0.95$; the panel also agrees with human judgments on standard
+    meta-evaluation benchmarks (SummEval, LLMBar), matching the best single judge without a label-oracle to select it. Reliability comes from panel <em>composition</em>, not size: this
     label-free weighting zeroes out broken judges and down-weights saturated questions, so neither distorts the ranking.
     Generated items show <em>zero</em> verbatim overlap with five public benchmarks, the panel cancels verbosity bias and
     precludes same-family self-preference, and rankings are <em>domain-specific</em>: three different models top four
@@ -547,7 +548,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   directly, that the generated items are <em>contamination-free</em>. Section&nbsp;5.6 exercises the complete tool on three custom verticals (drug interaction, clinical, legal) with no labeled data, and Section&nbsp;5.7 shows that rankings are domain-specific: across four de-novo domains three different models take first place, so a generic leaderboard misdirects the practitioner that CoEval's per-domain ranking serves.
 </p>
 
-<h3>5.1 Ground-truth correlation</h3>
+<h3>5.1 Judge accuracy: agreement with ground truth and human ratings</h3>
 <p>
   To ground CoEval scores against an objective signal, we evaluate on exact-match question answering, where ground
   truth is unambiguous. SciQ and ARC-Challenge responses (task identifiers <code>science_qa</code> and <code>science_reasoning</code>; $n=573$ from three student models over $191$ datapoints)
@@ -637,6 +638,37 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   </tbody>
 </table>
 </div>
+<p>
+  <strong>Agreement with human judgments.</strong> The validation above anchors the judge to objective exact-match
+  ground truth. We additionally test it against <em>human</em> quality judgments on two standard meta-evaluation
+  benchmarks, scoring with the same cheap cross-family panel (<code>gpt-4o-mini</code>, <code>claude-3.5-haiku</code>,
+  <code>gemini-flash</code>). On SummEval [<a href="#r37">37</a>], where experts rate machine summaries, the panel
+  correlates with human ratings at Spearman $0.53$ (relevance), $0.58$ (coherence), and $0.56$ (consistency), in the
+  range strong single-model judges such as G-Eval [<a href="#r2">2</a>] report on this benchmark, reached here by a
+  panel of small models; the panel exceeds its best single judge on relevance and coherence, and the blind
+  single-judge average on all three. On LLMBar [<a href="#r38">38</a>], which asks an evaluator to pick the
+  human-preferred output, the panel scores each output <em>absolutely</em> (so no position bias) and prefers the
+  higher; it reaches $0.845$ preference accuracy overall ($0.94$ on the natural split), exceeding the expected accuracy
+  of a single judge chosen blind ($0.76$) by $0.08$ and matching the best single judge ($0.84$) without needing to know
+  which judge that is. Because peer-agreement weights are near-uniform on a clean panel, the weighted and unweighted
+  panels coincide here; the weighting earns its value under judge-pool contamination (Section&nbsp;5.2).
+</p>
+<div class="tablewrap">
+<table class="data">
+  <caption><strong>Agreement with human judgments.</strong> CoEval cross-family panel versus humans on two standard
+    meta-evaluation benchmarks: SummEval (Spearman of panel score with expert ratings, $n = 293$) and LLMBar (accuracy
+    at matching the human-preferred output, $n = 400$). The panel tracks or exceeds the best single judge, which a
+    label-free user cannot select in advance, and clearly beats the blind single-judge average.</caption>
+  <thead><tr><th class="lbl">Benchmark and metric</th><th>Panel</th><th>Best single</th><th>Blind single (avg)</th></tr></thead>
+  <tbody>
+    <tr><td class="lbl">SummEval relevance (Spearman)</td><td>0.53</td><td>0.48</td><td>0.45</td></tr>
+    <tr><td class="lbl">SummEval coherence (Spearman)</td><td>0.58</td><td>0.54</td><td>0.47</td></tr>
+    <tr><td class="lbl">SummEval consistency (Spearman)</td><td>0.56</td><td>0.65</td><td>0.53</td></tr>
+    <tr class="highlight"><td class="lbl">LLMBar overall (accuracy)</td><td>0.845</td><td>0.843</td><td>0.762</td></tr>
+    <tr><td class="lbl">&nbsp;&nbsp;LLMBar natural split (accuracy)</td><td>0.941</td><td>0.860</td><td>0.831</td></tr>
+  </tbody>
+</table>
+</div>
 
 <h3>5.2 Ensemble reliability: composition, judge-choice regret, and a self-validating panel</h3>
 <p>
@@ -723,21 +755,29 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   the items hold near-zero weight) and judges that disagree with the panel. The two signals are complementary, each
   helping on its own (item-weighting alone $0.94$, judge-weighting alone $0.92$) and most on the discriminative items
   where judge reliability matters. The aggregator is robust: injecting a random judge degrades the plain mean to $0.85$
-  but leaves the doubly-robust ranking at $0.95$, with the rogue judge receiving weight $0.00$ (Table&nbsp;4).
+  but leaves the doubly-robust ranking at $0.95$, with the rogue judge receiving weight $0.00$. Compared against standard
+  baselines on the same scores (Table&nbsp;4), the doubly-robust ranking matches or beats the best single judge (an
+  oracle, since which judge is best is not knowable without labels), the unweighted panel (PoLL), and the median; its
+  decisive advantage is robustness to a contaminated judge pool: adding rogue judges steadily degrades the unweighted
+  mean (0.88, 0.85, 0.64) and even the median (0.94, 0.91, 0.71) at zero, one, and three rogue judges, while the
+  doubly-robust ranking is invariant to a minority rogue (0.95) and still leads at rogue parity (0.79).
 </p>
 <div class="tablewrap">
 <table class="data">
-  <caption><strong>Table 4.</strong> Doubly-robust rank-recovery on thirteen candidate models (science QA and
-    reasoning; gold = benchmark-native accuracy). Each label-free weight helps on its own, and the two compose into the
-    best recovery; the aggregator is robust to an injected random judge, which it gives weight 0.00. Values are the
-    Spearman and Kendall correlations between the recovered ranking and the gold-accuracy ranking.</caption>
+  <caption><strong>Table 4.</strong> Rank-recovery on thirteen candidate models (science QA and reasoning; gold =
+    benchmark-native accuracy), comparing standard label-free baselines (best single judge, unweighted panel / PoLL,
+    median) against the CoEval weights. Each CoEval weight helps on its own, and the two compose into the best recovery;
+    the aggregator alone is robust to an injected random judge, which it gives weight 0.00. Values are the Spearman and
+    Kendall correlations between the recovered ranking and the gold-accuracy ranking.</caption>
   <thead><tr><th class="lbl">Aggregator</th><th>Spearman</th><th>Kendall</th></tr></thead>
   <tbody>
-    <tr><td class="lbl">Plain mean</td><td>0.88</td><td>0.76</td></tr>
+    <tr><td class="lbl">Best single judge (oracle)</td><td>0.88</td><td>0.80</td></tr>
+    <tr><td class="lbl">Panel mean (PoLL)</td><td>0.88</td><td>0.76</td></tr>
+    <tr><td class="lbl">Panel median</td><td>0.94</td><td>0.88</td></tr>
     <tr><td class="lbl">Item-weighted (discrimination) only</td><td>0.94</td><td>0.84</td></tr>
     <tr><td class="lbl">Judge-weighted (agreement) only</td><td>0.92</td><td>0.82</td></tr>
     <tr class="highlight"><td class="lbl">Doubly-robust (both)</td><td>0.95</td><td>0.87</td></tr>
-    <tr><td class="lbl">&nbsp;&nbsp;with injected random judge: plain mean</td><td>0.85</td><td>0.71</td></tr>
+    <tr><td class="lbl">&nbsp;&nbsp;with injected random judge: panel mean</td><td>0.85</td><td>0.71</td></tr>
     <tr><td class="lbl">&nbsp;&nbsp;with injected random judge: doubly-robust</td><td>0.95</td><td>0.87</td></tr>
   </tbody>
 </table>
@@ -1094,6 +1134,11 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
     Judges.</em> <a href="https://arxiv.org/abs/2310.17631">arxiv.org/abs/2310.17631</a></li>
   <li id="r36">Shi, W., Ajith, A., Xia, M., et al. (2024). <em>Detecting Pretraining Data from Large Language
     Models.</em> ICLR. <a href="https://arxiv.org/abs/2310.16789">arxiv.org/abs/2310.16789</a></li>
+  <li id="r37">Fabbri, A. R., Kry&#347;ci&#324;ski, W., McCann, B., Xiong, C., Socher, R., Radev, D. (2021).
+    <em>SummEval: Re-evaluating Summarization Evaluation.</em> Transactions of the Association for Computational
+    Linguistics, 9, 391&ndash;409. <a href="https://arxiv.org/abs/2007.12626">arxiv.org/abs/2007.12626</a></li>
+  <li id="r38">Zeng, Z., Yu, J., Gao, T., Meng, Y., Goyal, T., Chen, D. (2024). <em>Evaluating Large Language
+    Models at Evaluating Instruction Following.</em> ICLR. <a href="https://arxiv.org/abs/2310.07641">arxiv.org/abs/2310.07641</a></li>
 </ol>
 
 <!-- ===================== APPENDIX ===================== -->
