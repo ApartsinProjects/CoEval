@@ -34,7 +34,7 @@ for s in doc.sections:
     ln.set(qn("w:restart"), "continuous")
     # Small distance (~0.1") so the RIGHT column's numbers fit inside the 0.6cm gutter
     # without crossing into the left column. (284 twips overflowed the gutter.)
-    ln.set(qn("w:distance"), "130")
+    ln.set(qn("w:distance"), "80")
     cols = sectPr.find(qn("w:cols"))
     if cols is not None:
         cols.addprevious(ln)
@@ -50,15 +50,38 @@ for s in doc.sections:
         r.font.name = "Times New Roman"
         r.font.italic = True
 
-# Make line numbers small (8pt) so they read as margin marks and the right-column
-# numbers fit the narrow gutter without overlapping body text.
-from docx.enum.style import WD_STYLE_TYPE
-try:
-    ln_style = doc.styles['Line Number']
-except KeyError:
-    ln_style = doc.styles.add_style('Line Number', WD_STYLE_TYPE.CHARACTER)
-ln_style.font.size = Pt(8)
-ln_style.font.name = 'Times New Roman'
+# Make line numbers small (7pt) so the right-column numbers fit the narrow gutter
+# without overlapping the left column. Word formats line numbers via the BUILT-IN
+# character style with styleId "LineNumber" -- python-docx's add_style('Line Number')
+# makes a phantom style Word ignores, so inject the real styleId directly via OXML.
+styles_el = doc.styles.element
+_ln = None
+for _st in styles_el.findall(qn("w:style")):
+    if _st.get(qn("w:styleId")) == "LineNumber":
+        _ln = _st
+        break
+if _ln is None:
+    _ln = OxmlElement("w:style")
+    _ln.set(qn("w:type"), "character")
+    _ln.set(qn("w:styleId"), "LineNumber")
+    _nm = OxmlElement("w:name")
+    _nm.set(qn("w:val"), "Line Number")
+    _ln.append(_nm)
+    styles_el.append(_ln)
+_rPr = _ln.find(qn("w:rPr"))
+if _rPr is None:
+    _rPr = OxmlElement("w:rPr")
+    _ln.append(_rPr)
+for _tag, _val in (("w:rFonts", None), ("w:sz", "14"), ("w:szCs", "14")):
+    _e = _rPr.find(qn(_tag))
+    if _e is None:
+        _e = OxmlElement(_tag)
+        _rPr.append(_e)
+    if _tag == "w:rFonts":
+        _e.set(qn("w:ascii"), "Times New Roman")
+        _e.set(qn("w:hAnsi"), "Times New Roman")
+    else:
+        _e.set(qn("w:val"), _val)  # 14 half-points = 7pt
 
 # Compact the figures to reclaim vertical space: cap each chart's height at 2.2 in
 # (full-width body charts render ~3.3 in tall, eating page space). Keeps aspect ratio;
