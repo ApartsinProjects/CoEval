@@ -334,58 +334,46 @@
 
 <h3>2.1 LLM-as-judge and judge panels</h3>
 <p>
-  MT-Bench and Chatbot Arena [<a href="#r1">1</a>] established LLM-as-judge as a scalable proxy for human
-  preference, and documented its biases. G-Eval [<a href="#r2">2</a>] uses a single strong model with
-  chain-of-thought to score generation quality against a user-supplied rubric, while Prometheus&nbsp;2
-  [<a href="#r3">3</a>], PandaLM [<a href="#r34">34</a>], and JudgeLM [<a href="#r35">35</a>] train dedicated
-  open evaluators. These approaches are <em>single-judge</em>: they
-  require the user to provide the rubric and inherit one model's biases. CoEval instead <em>generates</em> the rubric
-  automatically from the task definition and aggregates across a diverse panel. FLAMe [<a href="#r4">4</a>]
-  and JudgeBench [<a href="#r6">6</a>] study the reliability of judge models, and BiGGen-Bench
-  [<a href="#r7">7</a>] introduces instance-specific evaluation criteria; CoEval is complementary, adding a
-  cross-family aggregation layer and live agreement monitoring on top of any such judges.
+  MT-Bench and Chatbot Arena [<a href="#r1">1</a>] established LLM-as-judge as a scalable proxy for human preference and
+  documented its biases. G-Eval [<a href="#r2">2</a>] scores against a user-supplied rubric with chain-of-thought;
+  Prometheus&nbsp;2 [<a href="#r3">3</a>], PandaLM [<a href="#r34">34</a>], and JudgeLM [<a href="#r35">35</a>] train
+  dedicated open evaluators. These are <em>single-judge</em>: they need a user-supplied rubric and inherit one model's
+  biases. CoEval instead generates the rubric from the task definition and aggregates across a diverse panel. FLAMe
+  [<a href="#r4">4</a>] and JudgeBench [<a href="#r6">6</a>] study judge reliability and BiGGen-Bench
+  [<a href="#r7">7</a>] introduces instance-specific criteria; CoEval is complementary, adding cross-family aggregation
+  and live agreement monitoring on top of any such judges.
 </p>
 <p>
-  Closest to our judging design is <em>Replacing Judges with Juries</em> (PoLL) [<a href="#r5">5</a>], which
-  shows a panel of smaller judges can rival a single large judge while reducing intra-model bias and cost. CoEval shares
-  the panel philosophy but extends it in three ways: (i) it couples the panel to <em>attribute-controlled,
-  contamination-free generation</em> rather than scoring a fixed set; (ii) it enforces explicit <em>cross-family</em>
-  composition and reports the finding that composition dominates size; and (iii) it adds role separation
-  (teacher/student/judge) with self-preference monitoring built in. ChatEval [<a href="#r21">21</a>] and
-  meta-judge frameworks [<a href="#r26">26</a>] improve reliability through intra-pool multi-agent
-  deliberation; CoEval instead rotates models <em>across vendors</em>, targeting cross-family bias cancellation rather
-  than intra-pool debate alone.
+  Closest to our judging design, <em>Replacing Judges with Juries</em> (PoLL) [<a href="#r5">5</a>] shows a panel of
+  smaller judges can rival a single large judge while reducing bias and cost. CoEval extends this in three ways: it
+  couples the panel to attribute-controlled, contamination-free <em>generation</em> rather than scoring a fixed set; it
+  enforces <em>cross-family</em> composition and reports that composition dominates size; and it adds teacher/student/judge
+  role separation with self-preference monitoring. ChatEval [<a href="#r21">21</a>] and meta-judge frameworks
+  [<a href="#r26">26</a>] improve reliability through intra-pool deliberation; CoEval instead rotates models
+  <em>across vendors</em> for cross-family bias cancellation.
 </p>
 <p>
-  Our cross-family design is directly motivated by recent evidence that judge&ndash;generator relatedness is itself a
-  contamination vector. <em>Preference Leakage</em> [<a href="#r15">15</a>] shows that a judge sharing a model,
-  lineage, or vendor family with the generator silently inflates scores, and <em>Play Favorites</em>
-  [<a href="#r16">16</a>] measures this same-family bias statistically, finding that frontier models favor
-  same-family outputs. Self-preference has been characterized mechanistically [<a href="#r18">18</a>] and
-  partly attributed to legitimate capability rather than pure bias [<a href="#r24">24</a>]. Broad bias
-  taxonomies [<a href="#r17">17</a>] and recent surveys [<a href="#r19">19</a>, <a href="#r20">20</a>]
-  catalogue position, verbosity, and self-enhancement biases on fixed benchmarks. Where these works <em>measure</em> or
-  <em>post-hoc correct</em> the biases of individual judges, CoEval treats cross-family composition as a <em>design
-  constraint</em> that cancels same-family preference at the aggregation level, and pairs it with
-  contamination-free item generation, so both items and judges are bias-hardened rather than only the scoring step.
+  The cross-family design is motivated by evidence that judge&ndash;generator relatedness is a contamination vector:
+  <em>Preference Leakage</em> [<a href="#r15">15</a>] shows a judge sharing a model or vendor family with the generator
+  inflates scores, and <em>Play Favorites</em> [<a href="#r16">16</a>] measures this same-family bias statistically.
+  Self-preference has been characterized mechanistically [<a href="#r18">18</a>] and partly attributed to capability
+  rather than bias [<a href="#r24">24</a>]; broad taxonomies and surveys [<a href="#r17">17</a>, <a href="#r19">19</a>,
+  <a href="#r20">20</a>] catalogue position, verbosity, and self-enhancement biases. Where these works <em>measure</em> or
+  <em>post-hoc correct</em> individual-judge biases, CoEval makes cross-family composition a <em>design constraint</em>
+  that cancels same-family preference at aggregation, paired with contamination-free generation, so both items and judges
+  are bias-hardened.
 </p>
 <p>
-  The idea that a rater's reliability can be inferred from inter-rater agreement, with no ground truth, dates back to
-  <em>Dawid and Skene</em> [<a href="#r33">33</a>], whose EM algorithm estimates latent labels and per-rater error rates
-  jointly; CoEval applies the same principle to a vendor-disjoint LLM panel, where peer agreement both down-weights and
-  diagnoses unreliable judges (Section&nbsp;5.2).
-  A parallel and very recent line of work makes judge aggregation itself <em>label-free and reliability-aware</em>.
-  Judge-aware jury methods learn a per-judge reliability parameter jointly with the model ranking from pairwise
-  comparisons (the judge-discriminator Bradley&ndash;Terry model of [<a href="#r27">27</a>] and the judge-aware ranking
-  framework of [<a href="#r29">29</a>]), and confounder-aware aggregation [<a href="#r28">28</a>] separates true
-  quality from shared judge confounders without ground-truth labels. CoEval's unsupervised reliability-weighted
-  aggregator (Section&nbsp;5.2) shares this label-free goal, and our contribution is not the aggregator in isolation but
-  its <em>integration</em> with the rest of the loop: these methods assume a fixed, externally supplied item set, scored
-  as pairwise comparisons by a single-vendor judge pool, whereas CoEval supplies the items themselves (generated de novo
-  and contamination-free) and scores them as rubric-anchored absolute scores from a <em>vendor-disjoint</em> panel, so
-  the item supply and the judge pool are both bias-hardened rather than only the aggregation step. Owning the whole loop
-  is what surfaces the <em>judge-choice regret</em> of Section&nbsp;5.2: a single judge can be anti-correlated with
-  ground truth where the cross-family ensemble is the low-regret choice.
+  Inferring rater reliability from inter-rater agreement without ground truth dates to <em>Dawid and Skene</em>
+  [<a href="#r33">33</a>]; CoEval applies this to a vendor-disjoint LLM panel where peer agreement down-weights and
+  diagnoses unreliable judges (Section&nbsp;5.2). Recent label-free methods learn per-judge reliability jointly with the
+  ranking from pairwise comparisons (judge-aware Bradley&ndash;Terry [<a href="#r27">27</a>], judge-aware ranking
+  [<a href="#r29">29</a>]) or separate quality from shared confounders [<a href="#r28">28</a>]. CoEval shares this goal,
+  but its contribution is the <em>integration</em>: these methods score a fixed, externally-supplied item set as pairwise
+  comparisons from a single-vendor pool, whereas CoEval supplies the items (generated de novo, contamination-free) and
+  scores them as rubric-anchored absolute scores from a <em>vendor-disjoint</em> panel. Owning the whole loop surfaces the
+  <em>judge-choice regret</em> of Section&nbsp;5.2: a single judge can be anti-correlated with ground truth where the
+  cross-family ensemble is the low-regret choice.
 </p>
 
 <h3>2.2 Automated and contamination-resistant benchmark generation</h3>
