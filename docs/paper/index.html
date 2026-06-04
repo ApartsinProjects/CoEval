@@ -1019,21 +1019,6 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   specification keeps the whole pipeline reproducible: a single declarative configuration regenerates the benchmark, the responses, and
   the scores.
 </p>
-
-<p>
-  <strong>Scope and limitations.</strong> Three boundary conditions delimit the validated regime. First, judge accuracy
-  is anchored to ground truth on objective exact-match QA, where labels exist (Section&nbsp;5.1, $\rho = 0.86$); on the
-  subjective custom domains (Section&nbsp;5.6) the panel's trustworthiness rests on that accuracy anchor together with its
-  measured bias and reliability properties (Sections&nbsp;5.2&ndash;5.4), and rankings are reported as cross-family
-  intervals rather than against a held-out gold ranking, which by assumption does not exist. Human ratings are the natural
-  convergent check on these domains and are the primary direction for future validation. Second, the study spans up to
-  thirteen candidate models across four exact-match QA tasks, three custom verticals, a four-domain divergence study
-  (Section&nbsp;5.7), and a thirteen-model rank-recovery check (Section&nbsp;5.2); wider model pools and further domains
-  would extend the evidence. Third, the contamination guarantee is structural (fresh per-run synthesis), validated by zero
-  verbatim overlap and a controlled memorization study (Section&nbsp;5.5); verbatim n-gram overlap and membership-inference
-  probes such as Min-K% [<a href="#r36">36</a>] answer complementary questions, the former whether an item is reproduced,
-  the latter whether it was seen during pretraining.
-</p>
 <!-- ===================== 7. CONCLUSION ===================== -->
 <h2>7. Conclusion</h2>
 <p>
@@ -1054,6 +1039,46 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   practitioners) and the same declarative pipeline runs unchanged across models and domains, re-running on
   every model release, CoEval is a reusable instrument a team points at its own application when neither labeled data nor
   a trustworthy benchmark exists, rather than a single static study. CoEval is open-source and fully reproducible.
+</p>
+
+<!-- ===================== LIMITATIONS ===================== -->
+<h2>Limitations</h2>
+<p>
+  Three boundary conditions delimit the validated regime. First, judge accuracy is anchored to objective exact-match QA,
+  where labels exist (Section&nbsp;5.1, $\rho = 0.86$), and to human ratings on two public meta-evaluation benchmarks
+  (Section&nbsp;5.1, SummEval and LLMBar); on the subjective custom domains (Section&nbsp;5.6) the panel's trustworthiness
+  rests on those anchors together with its measured bias and reliability properties (Sections&nbsp;5.2&ndash;5.4), and
+  rankings are reported as cross-family intervals rather than against a held-out gold ranking, which by assumption does
+  not exist. Task-specific human evaluation on those domains is the natural convergent check and the primary direction for
+  future validation. Second, the study spans up to thirteen candidate models across four exact-match QA tasks, three
+  custom verticals, a four-domain divergence study (Section&nbsp;5.7), and a thirteen-model rank-recovery check
+  (Section&nbsp;5.2); wider model pools and further domains would extend the evidence. Third, the contamination guarantee
+  is structural (fresh per-run synthesis), validated by zero verbatim overlap and a controlled memorization study
+  (Section&nbsp;5.5); verbatim n-gram overlap and membership-inference probes such as Min-K% [<a href="#r36">36</a>]
+  answer complementary questions, the former whether an item is reproduced, the latter whether it was seen during
+  pretraining.
+</p>
+
+<!-- ===================== ETHICS ===================== -->
+<h2>Ethics Statement</h2>
+<p>
+  CoEval evaluates language models and involves no new human-subjects data collection. The human judgments used to
+  validate the judge (Section&nbsp;5.1) come from existing public meta-evaluation benchmarks (SummEval, LLMBar) used
+  under their released licenses. The drug-interaction, clinical, and legal verticals (Section&nbsp;5.6) are illustrations
+  of contamination-free benchmark generation, not validated decision-support systems, and should not be used for clinical
+  or legal decisions. Because CoEval generates evaluation items and scores them with language models, generated items and
+  rubrics can inherit model biases; the cross-family panel and the contamination checks mitigate but do not eliminate this
+  risk, and a practitioner applying CoEval in a high-stakes domain should pair it with human oversight.
+</p>
+
+<!-- ===================== REPRODUCIBILITY ===================== -->
+<h2>Reproducibility</h2>
+<p>
+  Every experiment is driven by a declarative configuration file and is reproducible end to end. The framework, the
+  canonical prompt templates (Appendix&nbsp;C), the attribute and rubric specifications, the judge-panel definitions, and
+  the analysis code are released open-source, and the per-run scores and recovered rankings are recorded as artifacts. The
+  statistical estimators (ICC, bootstrap confidence intervals, the doubly-robust aggregator) are defined in
+  Appendix&nbsp;A.
 </p>
 
 <!-- ===================== REFERENCES ===================== -->
