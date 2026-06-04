@@ -130,15 +130,31 @@ def main():
             continue
         pj = {jn: round(float(spearmanr(per_judge[jn], human).correlation), 3) for jn in jnames}
         panel_rho = round(float(spearmanr(panel, human).correlation), 3)
+        # label-free judge-agreement weights (mean peer Spearman), per dimension (cf. E4 / Section 5.2)
+        jw = {}
+        for jn in jnames:
+            ags = [spearmanr(per_judge[jn], per_judge[o]).correlation for o in jnames if o != jn]
+            ags = [a for a in ags if a == a]
+            jw[jn] = max(0.0, float(np.mean(ags))) if ags else 0.0
+        tot = sum(jw.values()) or 1.0
+        jw = {jn: jw[jn] / tot for jn in jnames}
+        wpanel = [sum(jw[jn] * per_judge[jn][k] for jn in jnames) for k in range(len(human))]
+        wpanel_rho = round(float(spearmanr(wpanel, human).correlation), 3)
         report["per_dim"][d] = {
-            "n": len(panel), "panel_spearman": panel_rho, "per_judge_spearman": pj,
+            "n": len(panel), "panel_spearman": panel_rho,
+            "judge_weighted_panel_spearman": wpanel_rho,
+            "judge_weights": {jn: round(jw[jn], 3) for jn in jnames},
+            "per_judge_spearman": pj,
             "best_single": max(pj.values()), "worst_single": min(pj.values()),
         }
-        print(f"  {d:12s} n={len(panel):3d}  PANEL rho={panel_rho:.3f}  "
-              f"judges {pj}  (best {max(pj.values()):.3f}/worst {min(pj.values()):.3f})")
+        print(f"  {d:12s} n={len(panel):3d}  PANEL={panel_rho:.3f}  WEIGHTED={wpanel_rho:.3f}  "
+              f"best_single={max(pj.values()):.3f}  worst={min(pj.values()):.3f}")
 
     out = ROOT / "Runs" / "E1-summeval-human" / "reports" / "e1_judge_human_summeval.json"
     out.parent.mkdir(parents=True, exist_ok=True)
+    # save raw per-cell scores so future re-aggregation (other weightings) costs $0
+    raw = {f"{i}|{jn}": results.get((i, jn)) for i in range(len(rows)) for jn in jnames}
+    (out.parent / "e1_raw_cells.json").write_text(json.dumps(raw))
     out.write_text(json.dumps(report, indent=2))
     print(f"\nsaved {out.relative_to(ROOT)}")
 

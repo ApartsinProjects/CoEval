@@ -1,0 +1,77 @@
+{
+  "experiment": "e1_preference_llmbar",
+  "dataset": "princeton-nlp/LLMBar",
+  "judges": [
+    "judge-gpt4o-mini",
+    "judge-claude-haiku",
+    "judge-gemini-flash"
+  ],
+  "judge_weights": {
+    "judge-gpt4o-mini": 0.344,
+    "judge-claude-haiku": 0.336,
+    "judge-gemini-flash": 0.32
+  },
+  "rubric_factors": [
+    "instruction_following",
+    "quality"
+  ],
+  "per_subset": {
+    "Natural": {
+      "panel": 0.941,
+      "weighted": 0.947,
+      "per_judge": {
+        "judge-gpt4o-mini": 0.84,
+        "judge-claude-haiku": 0.793,
+        "judge-gemini-flash": 0.86
+      },
+      "n": 94
+    },
+    "Adv-Neighbor": {
+      "panel": 0.777,
+      "weighted": 0.765,
+      "per_judge": {
+        "judge-gpt4o-mini": 0.709,
+        "judge-claude-haiku": 0.577,
+        "judge-gemini-flash": 0.81
+      },
+      "n": 130
+    },
+    "Adv-GPTInst": {
+      "panel": 0.904,
+      "weighted": 0.904,
+      "per_judge": {
+        "judge-gpt4o-mini": 0.837,
+        "judge-claude-haiku": 0.809,
+        "judge-gemini-flash": 0.886
+      },
+      "n": 89
+    },
+    "Adv-GPTOut": {
+      "panel": 0.7,
+      "weighted": 0.678,
+      "per_judge": {
+        "judge-gpt4o-mini": 0.574,
+        "judge-claude-haiku": 0.633,
+        "judge-gemini-flash": 0.734
+      },
+      "n": 45
+    },
+    "Adv-Manual": {
+      "panel": 0.869,
+      "weighted": 0.869,
+      "per_judge": {
+        "judge-gpt4o-mini": 0.717,
+        "judge-claude-haiku": 0.607,
+        "judge-gemini-flash": 0.935
+      },
+      "n": 42
+    }
+  },
+  "overall": {
+    "panel": 0.845,
+    "weighted": 0.84,
+    "judge-gpt4o-mini": 0.754,
+    "judge-claude-haiku": 0.689,
+    "judge-gemini-flash": 0.843
+  }
+}

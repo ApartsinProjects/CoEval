@@ -12,39 +12,57 @@
     "coherence",
     "consistency"
   ],
-  "misses": 7,
+  "misses": 1,
   "per_dim": {
     "relevance": {
-      "n": 293,
-      "panel_spearman": 0.518,
-      "per_judge_spearman": {
-        "judge-gpt4o-mini": 0.403,
-        "judge-claude-haiku": 0.459,
-        "judge-gemini-flash": 0.47
+      "n": 299,
+      "panel_spearman": 0.53,
+      "judge_weighted_panel_spearman": 0.521,
+      "judge_weights": {
+        "judge-gpt4o-mini": 0.308,
+        "judge-claude-haiku": 0.361,
+        "judge-gemini-flash": 0.331
       },
-      "best_single": 0.47,
-      "worst_single": 0.403
+      "per_judge_spearman": {
+        "judge-gpt4o-mini": 0.405,
+        "judge-claude-haiku": 0.47,
+        "judge-gemini-flash": 0.485
+      },
+      "best_single": 0.485,
+      "worst_single": 0.405
     },
     "coherence": {
-      "n": 293,
-      "panel_spearman": 0.57,
-      "per_judge_spearman": {
-        "judge-gpt4o-mini": 0.502,
-        "judge-claude-haiku": 0.43,
-        "judge-gemini-flash": 0.524
+      "n": 299,
+      "panel_spearman": 0.582,
+      "judge_weighted_panel_spearman": 0.582,
+      "judge_weights": {
+        "judge-gpt4o-mini": 0.322,
+        "judge-claude-haiku": 0.338,
+        "judge-gemini-flash": 0.339
       },
-      "best_single": 0.524,
-      "worst_single": 0.43
+      "per_judge_spearman": {
+        "judge-gpt4o-mini": 0.446,
+        "judge-claude-haiku": 0.44,
+        "judge-gemini-flash": 0.536
+      },
+      "best_single": 0.536,
+      "worst_single": 0.44
     },
     "consistency": {
-      "n": 293,
-      "panel_spearman": 0.556,
-      "per_judge_spearman": {
-        "judge-gpt4o-mini": 0.489,
-        "judge-claude-haiku": 0.424,
-        "judge-gemini-flash": 0.624
+      "n": 299,
+      "panel_spearman": 0.565,
+      "judge_weighted_panel_spearman": 0.566,
+      "judge_weights": {
+        "judge-gpt4o-mini": 0.364,
+        "judge-claude-haiku": 0.297,
+        "judge-gemini-flash": 0.339
       },
-      "best_single": 0.624,
+      "per_judge_spearman": {
+        "judge-gpt4o-mini": 0.514,
+        "judge-claude-haiku": 0.424,
+        "judge-gemini-flash": 0.645
+      },
+      "best_single": 0.645,
       "worst_single": 0.424
     }
   }
