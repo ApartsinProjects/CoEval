@@ -249,34 +249,23 @@
 <h2>1. Introduction</h2>
 <p>
   A practitioner selecting a pretrained language model, or evaluating a fine-tuned one, for a specific application
-  (summarizing clinical notes, answering questions over an internal knowledge base, triaging support tickets for a
-  particular product) faces a deceptively simple question: <em>which model is best for my use case?</em> Answering it well requires an evaluation
-  set that reflects that use case, and two common conditions make this hard. First, there is often <em>no task-specific
-  labeled data</em>: building a representative benchmark by hand is slow and costly, and for a new or proprietary domain
-  it may not exist at all. Second, even where a related public benchmark exists, its numbers may not be trustworthy:
-  popular benchmarks are increasingly <em>contaminated</em>, their items having leaked into pretraining corpora, so a
-  high score can reflect memorization rather than capability [<a href="#r12">12</a>, <a href="#r13">13</a>].
-  When both hold, with no data <em>and</em> no benchmark one can trust, the practitioner is stuck. <strong>CoEval</strong>
-  is built for exactly this situation: it generates a fresh, domain-targeted evaluation from a task description and
-  ranks candidate models on it, with no labels and no contaminated items.
+  (summarizing clinical notes, answering over an internal knowledge base, triaging support tickets) faces a deceptively
+  simple question: <em>which model is best for my use case?</em> Answering it well needs an evaluation set that reflects
+  that use case, and the static, human-curated benchmarks that dominate LLM evaluation make this hard in three ways. They
+  are <em>non-extensible</em> (covering a new domain or difficulty band needs fresh, slow annotation, and for a
+  proprietary domain the data may not exist at all); <em>contamination-prone</em> (public items leak into pretraining
+  corpora, so a high score can reflect memorization rather than capability [<a href="#r12">12</a>,
+  <a href="#r13">13</a>]); and <em>generic</em> (an average-case distribution rarely matches the inputs, scoring criteria,
+  or edge cases of a particular system). When a practitioner has neither task-specific labeled data <em>nor</em> a
+  benchmark they can trust, they are stuck. <strong>CoEval</strong> is built for exactly this situation: it generates a
+  fresh, domain-targeted evaluation from a task description and ranks candidate models on it, with no labels and no
+  contaminated items.
 </p>
 <p>
-  The evaluation of large language models is dominated by static, human-curated benchmarks. While these have driven a
-  decade of measurable progress, three structural weaknesses now limit their usefulness for real deployments. First,
-  static benchmarks are <em>non-extensible</em>: extending a benchmark to a new capability, domain, or difficulty band
-  requires fresh human annotation, which is slow and expensive. Second, they are <em>contamination-prone</em>: as models
-  ingest ever-larger web crawls, public test items leak into pretraining corpora, and measured performance reflects
-  memorization rather than generalization [<a href="#r12">12</a>, <a href="#r13">13</a>]. Third, they are
-  <em>generic</em>: a fixed benchmark measures an average-case distribution that rarely matches the input distribution,
-  scoring criteria, or edge cases of any particular production system.
-</p>
-<p>
-  LLM-as-judge evaluation [<a href="#r1">1</a>, <a href="#r2">2</a>] addresses the cost and extensibility of
-  scoring: a capable model grades free-form responses against a rubric at a fraction of the cost of human raters. But a
-  single judge is not a neutral instrument. Judges exhibit <em>positional bias</em> (preferring the first option in a
-  pairwise comparison), <em>verbosity bias</em> (rewarding longer answers irrespective of quality)
-  [<a href="#r8">8</a>], and <em>self-preference bias</em> (scoring outputs from their own model family more
-  favorably). A measurement built on a single biased instrument inherits that instrument's distortions wholesale.
+  LLM-as-judge evaluation [<a href="#r1">1</a>, <a href="#r2">2</a>] addresses the cost and extensibility of scoring,
+  grading free-form responses against a rubric at a fraction of human cost, but a single judge is not a neutral
+  instrument: judges exhibit positional, <em>verbosity</em> [<a href="#r8">8</a>], and <em>self-preference</em> biases,
+  and a measurement built on one biased instrument inherits its distortions.
 </p>
 <p>
   We argue that both problems, the rigidity of static benchmarks and the bias of single judges, are best
