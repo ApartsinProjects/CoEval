@@ -48,6 +48,17 @@ for s in doc.sections:
         r.font.name = "Times New Roman"
         r.font.italic = True
 
+# Compact the figures to reclaim vertical space: cap each chart's height at 2.2 in
+# (full-width body charts render ~3.3 in tall, eating page space). Keeps aspect ratio;
+# charts stay legible. Appendix figures shrink too (harmless).
+MAX_H_IN = 2.0
+for sh in doc.inline_shapes:
+    h_in = sh.height / 914400.0
+    if h_in > MAX_H_IN:
+        scale = MAX_H_IN / h_in
+        sh.height = int(sh.height * scale)
+        sh.width = int(sh.width * scale)
+
 doc.save(path)
 
 # report
