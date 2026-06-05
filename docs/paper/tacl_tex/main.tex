@@ -284,19 +284,19 @@ datasets through the benchmark teacher; the contamination-free property of Secti
 \small\setlength{\tabcolsep}{4pt}%
 \caption{\textbf{Table 1.} Spearman correlation of CoEval accuracy scores with ground-truth correctness on
 exact-match QA (SciQ, ARC-Challenge; 191 datapoints, 573 responses; datapoint-clustered 95\% bootstrap CI). The
-frontier cross-family ensemble tracks ground truth at $\rho$ = 0.86. The three frontier judges agree on every item;
-crucially, the weaker auxiliary judges they are contrasted against (Section~5.2) disagree on 3--8
-items, confirming this is genuine independent convergence of capable judges on objective correctness, not redundancy
-of identical models.}
+frontier cross-family ensemble tracks ground truth at $\rho$ = 0.86. The three frontier judges (gpt-4o, claude-sonnet-4,
+gemini-2.5-flash) agree on every one of the 573 items, so each judge alone reproduces the ensemble\textquotesingle s per-task and
+overall correlations and the identical CI (second row): this coincidence is the vendor-independence result, no single
+provider drives the score. The weaker auxiliary judges contrasted against them (Section~5.2) disagree on
+3--8 items, confirming genuine independent convergence of capable judges on objective correctness, not
+redundancy of identical models.}
 \setlength{\tabcolsep}{4pt}
-\begin{tabularx}{\linewidth}{>{\hsize=1.467\hsize\raggedright\arraybackslash}X >{\hsize=0.487\hsize\raggedright\arraybackslash}X >{\hsize=0.837\hsize\raggedright\arraybackslash}X >{\hsize=1.209\hsize\raggedright\arraybackslash}X}
+\begin{tabularx}{\linewidth}{>{\hsize=1.421\hsize\raggedright\arraybackslash}X >{\hsize=0.496\hsize\raggedright\arraybackslash}X >{\hsize=0.852\hsize\raggedright\arraybackslash}X >{\hsize=1.231\hsize\raggedright\arraybackslash}X}
 \toprule
 Evaluator & SciQ & ARC-Challenge & Overall (clustered CI) \\
 \midrule
 CoEval frontier ensemble & +0.669 & +0.882 & \textbf{+0.859} {[}0.77, 0.94{]} \\
-~~gpt-4o (OpenAI) & +0.669 & +0.882 & +0.859 \\
-~~claude-sonnet-4 (Anthropic) & +0.669 & +0.882 & +0.859 \\
-~~gemini-2.5-flash (Google) & +0.669 & +0.882 & +0.859 \\
+~~Each frontier judge alone & +0.669 & +0.882 & +0.859 {[}0.77, 0.94{]} \\
 \bottomrule
 \end{tabularx}
 \end{table}

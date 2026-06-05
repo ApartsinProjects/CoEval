@@ -500,10 +500,12 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 <table class="data">
   <caption><strong>Table 1.</strong> Spearman correlation of CoEval accuracy scores with ground-truth correctness on
     exact-match QA (SciQ, ARC-Challenge; 191 datapoints, 573 responses; datapoint-clustered 95% bootstrap CI). The
-    frontier cross-family ensemble tracks ground truth at ρ = 0.86. The three frontier judges agree on every item;
-    crucially, the weaker auxiliary judges they are contrasted against (Section&nbsp;5.2) disagree on 3&ndash;8
-    items, confirming this is genuine independent convergence of capable judges on objective correctness, not redundancy
-    of identical models.</caption>
+    frontier cross-family ensemble tracks ground truth at ρ = 0.86. The three frontier judges (gpt-4o, claude-sonnet-4,
+    gemini-2.5-flash) agree on every one of the 573 items, so each judge alone reproduces the ensemble's per-task and
+    overall correlations and the identical CI (second row): this coincidence is the vendor-independence result, no single
+    provider drives the score. The weaker auxiliary judges contrasted against them (Section&nbsp;5.2) disagree on
+    3&ndash;8 items, confirming genuine independent convergence of capable judges on objective correctness, not
+    redundancy of identical models.</caption>
   <thead>
     <tr>
       <th class="lbl">Evaluator</th>
@@ -514,9 +516,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   </thead>
   <tbody>
     <tr class="highlight"><td class="lbl">CoEval frontier ensemble</td><td>+0.669</td><td>+0.882</td><td><strong>+0.859</strong> [0.77, 0.94]</td></tr>
-    <tr><td class="lbl">&nbsp;&nbsp;gpt-4o (OpenAI)</td><td>+0.669</td><td>+0.882</td><td>+0.859</td></tr>
-    <tr><td class="lbl">&nbsp;&nbsp;claude-sonnet-4 (Anthropic)</td><td>+0.669</td><td>+0.882</td><td>+0.859</td></tr>
-    <tr><td class="lbl">&nbsp;&nbsp;gemini-2.5-flash (Google)</td><td>+0.669</td><td>+0.882</td><td>+0.859</td></tr>
+    <tr><td class="lbl">&nbsp;&nbsp;Each frontier judge alone</td><td>+0.669</td><td>+0.882</td><td>+0.859 [0.77, 0.94]</td></tr>
   </tbody>
 </table>
 </div>
