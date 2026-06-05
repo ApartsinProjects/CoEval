@@ -30,7 +30,7 @@ nested (multiple student responses per item).
 CoEval generates a scoring rubric automatically per task. We examine whether these rubrics are appropriately
 task-specialized while sharing a common quality core. Across the four tasks, the 22 auto-generated rubric criteria
 exhibit a mean \emph{within-task} semantic similarity of \(0.342\), exceeding the mean \emph{cross-task} similarity
-of \(0.294\): criteria cluster by task, as desired. At the same time, a shared universal
+of \(0.294\): criteria cluster by task, as desired (Figure~3). At the same time, a shared universal
 \emph{``completeness''} dimension recurs across three of the four tasks, indicating a common quality core.
 CoEval\textquotesingle s rubrics are thus specialized to each task\textquotesingle s demands yet anchored by a transferable notion of answer quality.
 
@@ -253,6 +253,9 @@ ranking in Table~1 and Table~G1 unchanged, with per-model scores shifting by at 
 cross-family rankings are already robust to same-family bias.
 
 \section{System overview and experimental configuration}\label{appF}
+
+Figure~4 shows the end-to-end CoEval pipeline, and Table~F1 records the per-experiment configurations (tasks,
+judge panels, and sample sizes) underlying the results in Section~5.
 
 \begin{figure*}[t]
 \centering

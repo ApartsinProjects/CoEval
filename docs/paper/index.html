@@ -486,9 +486,9 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   truth is unambiguous. SciQ and ARC-Challenge responses (task identifiers <code>science_qa</code> and <code>science_reasoning</code>; $n=573$ from three student models over $191$ datapoints)
   are scored both by the CoEval judge ensemble and by exact-match correctness. We correlate the rubric's <em>accuracy</em>
   dimension, declared <em>a priori</em> as the construct matching correctness, independent of any observed
-  correlation, with ground truth; for transparency we also report the off-target <em>relevance</em> dimension
-  ($\rho = 0.20$) and the full-rubric average ($\rho = 0.55$), on which a construct-matched evaluator should, and does,
-  score lower. The judge panel is a frontier cross-family ensemble: <code>gpt-4o</code> (OpenAI),
+  correlation, with ground truth; the off-target <em>relevance</em> dimension
+  ($\rho = 0.20$) and the full-rubric average ($\rho = 0.55$) score far lower, the construct-matched dimension
+  tracking correctness while the off-target one does not, evidence of construct validity. The judge panel is a frontier cross-family ensemble: <code>gpt-4o</code> (OpenAI),
   <code>claude-sonnet-4</code> (Anthropic), and <code>gemini-2.5-flash</code> (Google). Confidence intervals use a
   <em>datapoint-clustered</em> bootstrap (resampling the $191$ items rather than the $573$ dependent responses), so
   within-item and repeated-rater dependence are not mistaken for precision. These QA items are sourced from public
@@ -501,7 +501,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   per task, $\rho = 0.669$ on SciQ and $0.882$ on ARC-Challenge). Because correctness is objective, the three frontier
   judges (<code>gpt-4o</code>, <code>claude-sonnet-4</code>, <code>gemini-2.5-flash</code>) agree on every one of the
   $573$ items, so each judge alone reproduces this exactly and the ensemble matches its strongest member: CoEval judges
-  are <em>accurate</em> and the result is <em>vendor-independent</em>, no single provider drives it. The weaker
+  are <em>accurate</em> and, on this objective anchor, the result is <em>vendor-independent</em>, no single provider drives it. The weaker
   auxiliary judges contrasted against them (Section&nbsp;5.2) disagree on 3&ndash;8 items, confirming genuine independent
   convergence of capable judges on objective correctness, not redundancy of identical models.
 </p>
@@ -795,7 +795,8 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   rests on those anchors together with its measured bias and reliability properties (Section&nbsp;5.2 and Appendix&nbsp;E), and
   rankings are reported as cross-family intervals rather than against a held-out gold ranking, which by assumption does
   not exist. Task-specific human evaluation on those domains is the natural convergent check and the primary direction for
-  future validation. Second, the study spans up to thirteen candidate models across four exact-match QA tasks, three
+  future validation. Second, the study spans up to thirteen candidate models across a four-task medium-scale benchmark
+  (summarization, question answering, code, and reasoning), three
   custom verticals, a four-domain divergence study (Appendix&nbsp;D), and a thirteen-model rank-recovery check
   (Section&nbsp;5.2); wider model pools and further domains would extend the evidence. Third, the contamination guarantee
   is structural (fresh per-run synthesis), validated by zero verbatim overlap and a controlled memorization study
@@ -945,7 +946,7 @@ $$\kappa \;=\; \frac{p_o - p_e}{1 - p_e},$$
   CoEval generates a scoring rubric automatically per task. We examine whether these rubrics are appropriately
   task-specialized while sharing a common quality core. Across the four tasks, the 22 auto-generated rubric criteria
   exhibit a mean <em>within-task</em> semantic similarity of $0.342$, exceeding the mean <em>cross-task</em> similarity
-  of $0.294$: criteria cluster by task, as desired. At the same time, a shared universal
+  of $0.294$: criteria cluster by task, as desired (Figure&nbsp;3). At the same time, a shared universal
   <em>&ldquo;completeness&rdquo;</em> dimension recurs across three of the four tasks, indicating a common quality core.
   CoEval's rubrics are thus specialized to each task's demands yet anchored by a transferable notion of answer quality.
 </p>
@@ -1152,6 +1153,10 @@ Output only the JSON. No explanation or markdown.</pre>
 
 <!-- ===================== APPENDIX F ===================== -->
 <h2 id="appF">Appendix F. System overview and experimental configuration</h2>
+<p>
+  Figure&nbsp;4 shows the end-to-end CoEval pipeline, and Table&nbsp;F1 records the per-experiment configurations (tasks,
+  judge panels, and sample sizes) underlying the results in Section&nbsp;5.
+</p>
 <figure class="nobox">
   <img src="figures/f1_architecture.png" alt="CoEval five-phase pipeline with teacher, student, and judge role bands"/>
   <figcaption><strong>Figure 4.</strong> The CoEval pipeline. A single pool of models rotates through three roles:
