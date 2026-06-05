@@ -115,6 +115,7 @@ result = {
     "inflation_setA_memorized": round(contam_A - base_A, 3),
     "inflation_setB_fresh": round(contam_B - base_B, 3),
 }
-json.dump(result, open("contam_result.json", "w"), indent=2)
+os.makedirs("results", exist_ok=True)
+json.dump(result, open("results/contam_result.json", "w"), indent=2)
 print("RESULT_JSON=" + json.dumps(result), flush=True)
 log("=== DONE ===")
