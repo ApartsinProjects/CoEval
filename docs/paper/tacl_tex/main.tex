@@ -30,6 +30,13 @@
 \flushbottom
 \AtBeginDocument{\flushbottom}
 
+% Reduce the air \flushbottom puts around big floats: concentrate the column
+% stretch in inter-paragraph spacing (distributed, near-invisible) rather than
+% the separation above/below figures and tables. Less plus, more minus glue.
+\setlength{\intextsep}{6pt plus 1pt minus 3pt}
+\setlength{\textfloatsep}{8pt plus 1pt minus 3pt}
+\setlength{\floatsep}{8pt plus 1pt minus 3pt}
+
 \title{CoEval: Ranking Language Models for Custom Tasks Without Labeled Data or Trustworthy Benchmarks}
 
 % Anonymous for TACL's double-blind review. For camera-ready, replace with the
