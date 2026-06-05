@@ -1,0 +1,148 @@
+% html2tex compatibility preamble (shared across ALL venue templates).
+%
+% This file collects every package load and macro provider that makes
+% pandoc's HTML->LaTeX output compile cleanly under a venue's own style
+% file. Each venue template (templates/<venue>/main.tex.template) should
+% \input this file AFTER it loads its own \documentclass + venue .sty,
+% and BEFORE \begin{document}. pack_tmlr_bundle.py copies this file into
+% every bundle, so a new venue template inherits all accumulated fixes
+% by adding a single \input line.
+%
+% Every entry below is load-bearing for a specific pandoc construct; the
+% comment names the construct and the failure it prevents. Do NOT remove
+% one without checking the matching post-processor rule in
+% convert_to_tex.py.
+
+% --- Captions / float numbering --------------------------------------
+% The source HTML numbers its floats itself ("Table 8E", "Figure 5") in
+% BOTH the prose and the caption text. LaTeX's automatic float counter
+% counts differently (1..N in float order), which would desync caption
+% numbers from the prose cross-references. Suppress the automatic
+% "Table N:" / "Figure N:" label so the HTML's own number (kept in the
+% caption text) is the single source of truth and always matches prose.
+\usepackage{caption}
+\captionsetup{labelformat=empty,labelsep=none,skip=4pt}
+
+% --- Tables -----------------------------------------------------------
+% tabularx + array: convert_to_tex.py rewrites pandoc longtable blocks to
+% weighted tabularx so wide text wraps and columns are content-sized.
+\usepackage{tabularx}
+\usepackage{array}
+% longtable: page-breakable tables. convert_to_tex.py emits tall
+% verbatim-bearing tables (side-by-side review examples) as longtable so
+% they split across pages instead of overrunning a single page / float.
+\usepackage{longtable}
+% booktabs: \toprule / \midrule / \bottomrule used by every converted table.
+\usepackage{booktabs}
+
+% --- Floats -----------------------------------------------------------
+% float provides the [H] "put it exactly HERE, do not float" specifier.
+% convert_to_tex.py places figures and (single-column) tables with [H] so
+% they appear right where the source HTML put them -- right after their
+% "Figure N shows..." sentence -- instead of floating off and (a)
+% splitting a sentence across the float, (b) drifting into the
+% references, or (c) leaving a near-blank page. In two-column mode a wide
+% table still floats full-width ([t]) because [H] full-width is illegal.
+\usepackage{float}
+% placeins / \FloatBarrier kept available for any manual use, though the
+% [H] policy means convert_to_tex.py no longer inserts barriers.
+\usepackage{placeins}
+% \raggedbottom is REQUIRED with the [H] float policy. Many venue styles
+% (tmlr.sty does, line "\flushbottom \sloppy") force \flushbottom, which
+% vertically JUSTIFIES every page -- it stretches the glue around section
+% headings and floats so each page is exactly full. When an [H] float
+% does not fit and moves to the next page, the current page is under-full
+% and \flushbottom stretches it, producing large gaps ("heading at top,
+% blank middle, text at bottom"; "gap after a table"). \raggedbottom
+% lets pages end naturally instead. Set both directly (this file is
+% \input AFTER the venue \flushbottom) and \AtBeginDocument (in case the
+% class re-asserts \flushbottom at begin-document), so it always wins.
+\raggedbottom
+\AtBeginDocument{\raggedbottom}
+
+% Tighten the vertical gap around floats. Under the [H] policy a figure/table
+% is set inline, so the space below its caption is \intextsep; LaTeX's ~12pt
+% default reads as two blank lines after the caption. ~6pt is one clean line.
+% \textfloatsep / \floatsep cover the full-width table* floats that still
+% float to the column/page top. One change, every float and caption.
+\setlength{\intextsep}{6pt plus 2pt minus 2pt}
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+
+% Never hyphenate cross-reference words: a broken "Fig-ure 2" / "Ta-ble 3"
+% reads as an error, not a line break. A word listed with no discretionary
+% hyphens is forbidden from breaking.
+\hyphenation{Figure Figures Table Tables Appendix Appendices Section Sections}
+
+% --- Graphics ---------------------------------------------------------
+% graphicx: SVG figures are pre-rasterized to PDF (svglib) and referenced
+% via \includegraphics{X.pdf}.
+\usepackage{graphicx}
+% xcolor: needed for the `black!75!blue` link-color mixing below (plain
+% `color`, which hyperref loads, lacks the `!` mix syntax).
+\usepackage{xcolor}
+% svg: fallback only. We normally rewrite \includesvg{X.svg} ->
+% \includegraphics{X.pdf}, but keep the package so a residual
+% \includesvg (e.g. an SVG svglib could not convert) still compiles where
+% Inkscape is available (Overleaf). Harmless when unused.
+\usepackage{svg}
+\svgsetup{inkscapelatex=false}
+
+% --- Verbatim ---------------------------------------------------------
+% fvextra extends fancyvrb with the `breaklines`/`breakanywhere` options
+% that the base package lacks. convert_to_tex.py rewrites pandoc's plain
+% \begin{verbatim} to \begin{Verbatim}[breaklines=true,breakanywhere=true]
+% so long prompt/JSON/code lines WRAP instead of overflowing the page
+% (the lmtt overfull-hbox warnings). Tables that contain a verbatim block
+% are emitted as plain `tabular` (not tabularx, which double-scans its
+% body and forbids verbatim).
+\usepackage{fvextra}
+
+% --- Math -------------------------------------------------------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% --- Typographic quality ---------------------------------------------
+% microtype: character protrusion + font expansion. Markedly improves
+% justification, kills most overfull \hbox warnings, and is the single
+% biggest "looks like a real paper" win. Guard the load so a venue that
+% already loads it (or a non-pdftex engine) does not error.
+\usepackage{microtype}
+% Sensible link colors instead of hyperref's default garish boxes/reds.
+% hyperref is loaded by the venue template BEFORE this file, so configure
+% it here. Guard with \@ifpackageloaded so venues without hyperref skip.
+\makeatletter
+\@ifpackageloaded{hyperref}{%
+  \hypersetup{%
+    colorlinks=true,%
+    linkcolor={black!75!blue},%
+    citecolor={black!70!green},%
+    urlcolor={black!60!blue},%
+    breaklinks=true%
+  }%
+}{}
+\makeatother
+
+% --- Pandoc helper macros --------------------------------------------
+% Pandoc defines these in its own default template; we ship our own
+% template, so we provide them. \tightlist collapses spacing in lists
+% pandoc marks "tight"; \passthrough wraps inline verbatim.
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\providecommand{\passthrough}[1]{#1}
+% Typographic character macros pandoc emits (would otherwise need
+% textcomp, which can clash with venue fonts). Provide inline.
+\providecommand{\textquotesingle}{\char39}
+\providecommand{\textasciigrave}{\char96}
+% Pandoc longtable width helper (only appears if a longtable slips past
+% the rewriter); make it a no-op multiplier so it never crashes.
+\providecommand{\real}[1]{#1}
+
+% --- Citations --------------------------------------------------------
+% Citation STYLE is venue-specific and therefore NOT set here (this file is
+% shared by every venue). A numeric venue (TMLR, IEEE) sets
+% \setcitestyle{numbers,square,comma} in its own main.tex.template AFTER this
+% \input, paired with convert_to_tex.py --citations numeric (numeric \bibitem
+% + [N] links). An author-year venue (TACL/ACL) sets nothing -- natbib's
+% author-year default stands -- paired with --citations author-year
+% (\bibitem[Author(Year)]{key} + \citep/\citet), which those venues REQUIRE
+% (numeric citations are a desk-reject violation there).

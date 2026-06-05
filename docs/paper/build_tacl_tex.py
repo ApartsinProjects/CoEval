@@ -29,14 +29,22 @@ import os
 env = {**os.environ, **env}
 
 subprocess.run([sys.executable, str(SKILL / "convert_to_tex.py"),
-                "--input", str(PAPER / "index.html"), "--out-dir", str(OUT)],
+                "--input", str(PAPER / "index.html"), "--out-dir", str(OUT),
+                "--columns", "2",                 # two-column: wide tables -> full-width table*
+                "--citations", "author-year"],    # TACL requires author-year (\citep/\citet)
                check=True, env=env)
 
-# strip everything before the first \section{...} (the HTML header leaked into body)
+# Strip everything before the first \section{...}: the HTML <header> (title/
+# author block / annotate link) leaks into the body, and the anonymous author
+# block must come only from the TACL template. The appendix split (body -> main
+# matter + appendix.tex, with the stray \section{References} removed and the
+# "Appendix X." prefixes de-prefixed for \appendix lettering) is done INSIDE
+# convert_to_tex.py's _split_appendix, so appendix.tex already exists; here we
+# only drop the leaked header from the remaining main body.
 body = OUT / "body.tex"
 b = body.read_text(encoding="utf-8")
-i = b.index("\\section{")
-body.write_text(b[i:], encoding="utf-8")
+b = b[b.index("\\section{"):]
+body.write_text(b, encoding="utf-8")
 
 subprocess.run([sys.executable, str(SKILL / "pack_tmlr_bundle.py"),
                 "--in-dir", str(OUT), "--template", "tacl", "--title", TITLE],
@@ -44,5 +52,7 @@ subprocess.run([sys.executable, str(SKILL / "pack_tmlr_bundle.py"),
 
 m = (OUT / "main.tex").read_text(encoding="utf-8")
 ok = ("\\label{r1}" in m and "Anonymous Authors" in m
-      and "Apartsin" not in m and "127.0.0.1" not in m)
-print(f"built {OUT}/main.tex | anonymized+citations-linked: {ok}")
+      and "Apartsin" not in m and "127.0.0.1" not in m
+      and "\\appendix" in m                       # appendices placed after refs
+      and m.index("\\begin{thebibliography}") < m.index("\\appendix"))
+print(f"built {OUT}/main.tex | anonymized+citations-linked+appendix-after-refs: {ok}")

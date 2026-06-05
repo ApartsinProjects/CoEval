@@ -227,21 +227,19 @@
     <p>
     Selecting a pretrained language model, or evaluating a fine-tuned one, for a specific application is a high-value
     decision, yet the public benchmarks used to make it are poorly suited: a generic benchmark need not reflect a
-    particular <em>sub-domain or sub-task</em>, and its scores are suspect when its items have <em>leaked into
-    pretraining</em> and are recalled rather than solved. We present <strong>CoEval</strong>, an open framework that
-    supplies a trustworthy, task-specific signal through <em>ensemble self-evaluation</em>: from a task or domain
-    description, a pool of models rotates through all three roles, <em>teacher</em>, <em>student</em>, and
-    <em>judge</em>, to generate a fresh, contamination-free benchmark, answer it, and score one another, with no human
-    labels or raters. Because every model also answers as a student, the responses are the data that weight each question
-    by its discriminative power and each judge by its consensus with the panel. Where ground truth exists, CoEval
-    recovers the true ranking and tracks objective correctness at $\rho = 0.86$, and the weighting recovers the gold
-    ranking of thirteen models at Spearman $0.95$; the panel also agrees with human judgments on standard
-    meta-evaluation benchmarks (SummEval, LLMBar), matching the best single judge without a label-oracle to select it. Reliability comes from panel <em>composition</em>, not size: this
-    label-free weighting zeroes out broken judges and down-weights saturated questions, so neither distorts the ranking.
-    Generated items show <em>zero</em> verbatim overlap with five public benchmarks, the panel cancels verbosity bias and
-    precludes same-family self-preference, and rankings are <em>domain-specific</em>: three different models top four
-    de-novo domains, so a generic leaderboard misdirects most practitioners. The same pipeline reruns on each model
-    release, giving any team a contamination-free leaderboard for its application.
+    particular <em>sub-domain</em>, and its scores are suspect once its items <em>leak into pretraining</em> and are
+    recalled rather than solved. We present <strong>CoEval</strong>, an open framework that supplies a trustworthy,
+    task-specific signal through <em>ensemble self-evaluation</em>. From a task or domain description, a pool of models
+    rotates through all three roles, <em>teacher</em>, <em>student</em>, and <em>judge</em>, generating a fresh
+    contamination-free benchmark, answering it, and scoring one another with no human labels. Because every model also
+    answers as a student, the responses weight each question by its discriminative power and each judge by its consensus
+    with the panel. Where ground truth exists, CoEval recovers the true ranking, tracks objective correctness at
+    $\rho = 0.86$, and reproduces the gold ranking of thirteen models at Spearman $0.95$; on standard meta-evaluation
+    benchmarks (SummEval, LLMBar) the panel matches the best single judge without a label-oracle to select it.
+    Reliability comes from panel <em>composition</em>, not size. Generated items show <em>zero</em> verbatim overlap with
+    five public benchmarks, the panel cancels verbosity bias and same-family self-preference, and rankings are
+    <em>domain-specific</em>. The same pipeline reruns on each model release, giving any team a contamination-free
+    leaderboard for its application.
   </p>
 </section>
 
@@ -575,7 +573,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 <p>
   <strong>Agreement with human judgments.</strong> The validation above anchors the judge to objective exact-match
   ground truth. We additionally test it against <em>human</em> quality judgments on two standard meta-evaluation
-  benchmarks, scoring with the same cheap cross-family panel (<code>gpt-4o-mini</code>, <code>claude-3.5-haiku</code>,
+  benchmarks (Table&nbsp;3), scoring with the same cheap cross-family panel (<code>gpt-4o-mini</code>, <code>claude-3.5-haiku</code>,
   <code>gemini-flash</code>). On SummEval [<a href="#r37">37</a>], where experts rate machine summaries, the panel
   correlates with human ratings at Spearman $0.53$ (relevance), $0.58$ (coherence), and $0.56$ (consistency), in the
   range strong single-model judges such as G-Eval [<a href="#r2">2</a>] report on this benchmark, reached here by a
@@ -589,7 +587,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 </p>
 <div class="tablewrap">
 <table class="data">
-  <caption><strong>Agreement with human judgments.</strong> CoEval cross-family panel versus humans on two standard
+  <caption><strong>Table 3.</strong> Agreement with human judgments. CoEval cross-family panel versus humans on two standard
     meta-evaluation benchmarks: SummEval (Spearman of panel score with expert ratings, $n = 293$) and LLMBar (accuracy
     at matching the human-preferred output, $n = 400$). The panel tracks or exceeds the best single judge, which a
     label-free user cannot select in advance, and clearly beats the blind single-judge average.</caption>
@@ -690,7 +688,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   helping on its own (item-weighting alone $0.94$, judge-weighting alone $0.92$) and most on the discriminative items
   where judge reliability matters. The aggregator is robust: injecting a random judge degrades the plain mean to $0.85$
   but leaves the doubly-robust ranking at $0.95$, with the rogue judge receiving weight $0.00$. Compared against standard
-  baselines on the same scores (Table&nbsp;3), the doubly-robust ranking matches or beats the best single judge (an
+  baselines on the same scores (Table&nbsp;4), the doubly-robust ranking matches or beats the best single judge (an
   oracle, since which judge is best is not knowable without labels), the unweighted panel (PoLL), and the median; its
   decisive advantage is robustness to a contaminated judge pool: adding rogue judges steadily degrades the unweighted
   mean (0.88, 0.85, 0.64) and even the median (0.94, 0.91, 0.71) at zero, one, and three rogue judges, while the
@@ -698,7 +696,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 </p>
 <div class="tablewrap">
 <table class="data">
-  <caption><strong>Table 3.</strong> Rank-recovery on thirteen candidate models (science QA and reasoning; gold =
+  <caption><strong>Table 4.</strong> Rank-recovery on thirteen candidate models (science QA and reasoning; gold =
     benchmark-native accuracy), comparing standard label-free baselines (best single judge, unweighted panel / PoLL,
     median) against the CoEval weights. Each CoEval weight helps on its own, and the two compose into the best recovery;
     the aggregator alone is robust to an injected random judge, which it gives weight 0.00. Values are the Spearman and
@@ -1146,9 +1144,9 @@ Output only the JSON. No explanation or markdown.</pre>
     <tr><th class="lbl">Judge</th><th>Length-bias $r$</th><th>95% bootstrap CI</th></tr>
   </thead>
   <tbody>
-    <tr><td class="lbl">gpt-3.5-turbo</td><td>&minus;0.177</td><td>&ndash;</td></tr>
-    <tr><td class="lbl">SmolLM2</td><td>+0.234</td><td>&ndash;</td></tr>
-    <tr><td class="lbl">Panel mean $\overline{|r|}$</td><td>0.153</td><td>&ndash;</td></tr>
+    <tr><td class="lbl">gpt-3.5-turbo</td><td>&minus;0.177</td><td>n/a</td></tr>
+    <tr><td class="lbl">SmolLM2</td><td>+0.234</td><td>n/a</td></tr>
+    <tr><td class="lbl">Panel mean $\overline{|r|}$</td><td>0.153</td><td>n/a</td></tr>
     <tr class="highlight"><td class="lbl">CoEval ensemble</td><td>+0.010</td><td>[&minus;0.039, +0.057]</td></tr>
   </tbody>
 </table>

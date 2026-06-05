@@ -13,23 +13,22 @@
 %\usepackage[acceptedWithA]{tacl2021v1}
 
 \usepackage{hyperref}
-\usepackage{booktabs}
-\usepackage{graphicx}
-\usepackage{amsmath}
-\usepackage{amssymb}
-% tabularx + array let wide tables wrap to the column width (convert_to_tex.py
-% rewrites pandoc longtables to tabularx).
-\usepackage{tabularx}
-\usepackage{array}
-% SVG support (Overleaf has Inkscape); pandoc emits \includesvg{} for .svg images.
-\usepackage{svg}
-\svgsetup{inkscapelatex=false}
 
-% Pandoc helper macros (we ship our own template, so provide them ourselves).
-\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
-\providecommand{\passthrough}[1]{#1}
-\providecommand{\textquotesingle}{\char39}
-\providecommand{\textasciigrave}{\char96}
+% Shared html2tex compatibility preamble (tables, floats, graphics,
+% verbatim, pandoc helper macros, numeric citations). One \input keeps
+% every venue template in sync with the accumulated compile fixes.
+\input{html2tex_compat.tex}
+
+% Vertical-justification policy is venue-specific and pairs with the float
+% policy. This is a TWO-COLUMN venue: convert_to_tex.py --columns 2 floats
+% figures/tables with [tbp] (never [H]), so they fill columns instead of
+% leaving holes. With floating floats, \flushbottom justifies every page to
+% full height (the dense, gap-free standard ACL look) WITHOUT the [H]-float
+% glue-stretch gaps. This overrides the compat default \raggedbottom, which is
+% correct only for single-column [H] venues (TMLR). \AtBeginDocument wins over
+% the compat's same-hook \raggedbottom.
+\flushbottom
+\AtBeginDocument{\flushbottom}
 
 \title{CoEval: Ranking Language Models for Custom Tasks Without Labeled Data or Trustworthy Benchmarks}
 
@@ -43,7 +42,7 @@
 \maketitle
 
 \begin{abstract}
-Selecting a pretrained language model, or evaluating a fine-tuned one, for a specific application is a high-value decision, yet the public benchmarks used to make it are poorly suited: a generic benchmark need not reflect a particular sub-domain or sub-task , and its scores are suspect when its items have leaked into pretraining and are recalled rather than solved. We present CoEval , an open framework that supplies a trustworthy, task-specific signal through ensemble self-evaluation : from a task or domain description, a pool of models rotates through all three roles, teacher , student , and judge , to generate a fresh, contamination-free benchmark, answer it, and score one another, with no human labels or raters. Because every model also answers as a student, the responses are the data that weight each question by its discriminative power and each judge by its consensus with the panel. Where ground truth exists, CoEval recovers the true ranking and tracks objective correctness at $\rho = 0.86$, and the weighting recovers the gold ranking of thirteen models at Spearman $0.95$; the panel also agrees with human judgments on standard meta-evaluation benchmarks (SummEval, LLMBar), matching the best single judge without a label-oracle to select it. Reliability comes from panel composition , not size: this label-free weighting zeroes out broken judges and down-weights saturated questions, so neither distorts the ranking. Generated items show zero verbatim overlap with five public benchmarks, the panel cancels verbosity bias and precludes same-family self-preference, and rankings are domain-specific : three different models top four de-novo domains, so a generic leaderboard misdirects most practitioners. The same pipeline reruns on each model release, giving any team a contamination-free leaderboard for its application.
+Selecting a pretrained language model, or evaluating a fine-tuned one, for a specific application is a high-value decision, yet the public benchmarks used to make it are poorly suited: a generic benchmark need not reflect a particular sub-domain, and its scores are suspect once its items leak into pretraining and are recalled rather than solved. We present CoEval, an open framework that supplies a trustworthy, task-specific signal through ensemble self-evaluation. From a task or domain description, a pool of models rotates through all three roles, teacher, student, and judge, generating a fresh contamination-free benchmark, answering it, and scoring one another with no human labels. Because every model also answers as a student, the responses weight each question by its discriminative power and each judge by its consensus with the panel. Where ground truth exists, CoEval recovers the true ranking, tracks objective correctness at $\rho = 0.86$, and reproduces the gold ranking of thirteen models at Spearman $0.95$; on standard meta-evaluation benchmarks (SummEval, LLMBar) the panel matches the best single judge without a label-oracle to select it. Reliability comes from panel composition, not size. Generated items show zero verbatim overlap with five public benchmarks, the panel cancels verbosity bias and same-family self-preference, and rankings are domain-specific. The same pipeline reruns on each model release, giving any team a contamination-free leaderboard for its application.
 \end{abstract}
 
 \section{Introduction}\label{introduction}
@@ -54,16 +53,15 @@ simple question: \emph{which model is best for my use case?} Answering it well n
 that use case, and the static, human-curated benchmarks that dominate LLM evaluation make this hard in three ways. They
 are \emph{non-extensible} (covering a new domain or difficulty band needs fresh, slow annotation, and for a
 proprietary domain the data may not exist at all); \emph{contamination-prone} (public items leak into pretraining
-corpora, so a high score can reflect memorization rather than capability {[}\hyperref[r12]{12},
-\hyperref[r13]{13}{]}); and \emph{generic} (an average-case distribution rarely matches the inputs, scoring criteria,
+corpora, so a high score can reflect memorization rather than capability \citep{ref12, ref13}); and \emph{generic} (an average-case distribution rarely matches the inputs, scoring criteria,
 or edge cases of a particular system). When a practitioner has neither task-specific labeled data \emph{nor} a
 benchmark they can trust, they are stuck. \textbf{CoEval} is built for exactly this situation: it generates a
 fresh, domain-targeted evaluation from a task description and ranks candidate models on it, with no labels and no
 contaminated items.
 
-LLM-as-judge evaluation {[}\hyperref[r1]{1}, \hyperref[r2]{2}{]} addresses the cost and extensibility of scoring,
+LLM-as-judge evaluation \citep{ref1, ref2} addresses the cost and extensibility of scoring,
 grading free-form responses against a rubric at a fraction of human cost, but a single judge is not a neutral
-instrument: judges exhibit positional, \emph{verbosity} {[}\hyperref[r8]{8}{]}, and \emph{self-preference} biases,
+instrument: judges exhibit positional, \emph{verbosity} \citep{ref8}, and \emph{self-preference} biases,
 and a measurement built on one biased instrument inherits its distortions.
 
 We argue that both problems, the rigidity of static benchmarks and the bias of single judges, are best
@@ -125,60 +123,59 @@ untrusted-benchmark regime; we detail each below.
 
 \subsection{LLM-as-judge and judge panels}\label{llm-as-judge-and-judge-panels}
 
-MT-Bench and Chatbot Arena {[}\hyperref[r1]{1}{]} established LLM-as-judge as a scalable proxy for human preference and
-documented its biases. G-Eval {[}\hyperref[r2]{2}{]} scores against a user-supplied rubric with chain-of-thought;
-Prometheus~2 {[}\hyperref[r3]{3}{]}, PandaLM {[}\hyperref[r34]{34}{]}, and JudgeLM {[}\hyperref[r35]{35}{]} train
+MT-Bench and Chatbot Arena \citep{ref1} established LLM-as-judge as a scalable proxy for human preference and
+documented its biases. G-Eval \citep{ref2} scores against a user-supplied rubric with chain-of-thought;
+Prometheus~2 \citep{ref3}, PandaLM \citep{ref34}, and JudgeLM \citep{ref35} train
 dedicated open evaluators. These are \emph{single-judge}: they need a user-supplied rubric and inherit one model\textquotesingle s
 biases. CoEval instead generates the rubric from the task definition and aggregates across a diverse panel. FLAMe
-{[}\hyperref[r4]{4}{]} and JudgeBench {[}\hyperref[r6]{6}{]} study judge reliability and BiGGen-Bench
-{[}\hyperref[r7]{7}{]} introduces instance-specific criteria; CoEval is complementary, adding cross-family aggregation
+\citep{ref4} and JudgeBench \citep{ref6} study judge reliability and BiGGen-Bench
+\citep{ref7} introduces instance-specific criteria; CoEval is complementary, adding cross-family aggregation
 and live agreement monitoring on top of any such judges.
 
-Closest to our judging design, \emph{Replacing Judges with Juries} (PoLL) {[}\hyperref[r5]{5}{]} shows a panel of
+Closest to our judging design, \emph{Replacing Judges with Juries} (PoLL) \citep{ref5} shows a panel of
 smaller judges can rival a single large judge while reducing bias and cost. CoEval extends this in three ways: it
 couples the panel to attribute-controlled, contamination-free \emph{generation} rather than scoring a fixed set; it
 enforces \emph{cross-family} composition and reports that composition dominates size; and it adds teacher/student/judge
-role separation with self-preference monitoring. ChatEval {[}\hyperref[r21]{21}{]} and meta-judge frameworks
-{[}\hyperref[r26]{26}{]} improve reliability through intra-pool deliberation; CoEval instead rotates models
+role separation with self-preference monitoring. ChatEval \citep{ref21} and meta-judge frameworks
+\citep{ref26} improve reliability through intra-pool deliberation; CoEval instead rotates models
 \emph{across vendors} for cross-family bias cancellation.
 
 The cross-family design is motivated by evidence that judge--generator relatedness is a contamination vector:
-\emph{Preference Leakage} {[}\hyperref[r15]{15}{]} shows a judge sharing a model or vendor family with the generator
-inflates scores, and \emph{Play Favorites} {[}\hyperref[r16]{16}{]} measures this same-family bias statistically.
-Self-preference has been characterized mechanistically {[}\hyperref[r18]{18}{]} and partly attributed to capability
-rather than bias {[}\hyperref[r24]{24}{]}; broad taxonomies and surveys {[}\hyperref[r17]{17}, \hyperref[r19]{19},
-\hyperref[r20]{20}{]} catalogue position, verbosity, and self-enhancement biases. Where these works \emph{measure} or
+\emph{Preference Leakage} \citep{ref15} shows a judge sharing a model or vendor family with the generator
+inflates scores, and \emph{Play Favorites} \citep{ref16} measures this same-family bias statistically.
+Self-preference has been characterized mechanistically \citep{ref18} and partly attributed to capability
+rather than bias \citep{ref24}; broad taxonomies and surveys \citep{ref17, ref19, ref20} catalogue position, verbosity, and self-enhancement biases. Where these works \emph{measure} or
 \emph{post-hoc correct} individual-judge biases, CoEval makes cross-family composition a \emph{design constraint}
 that cancels same-family preference at aggregation, paired with contamination-free generation, so both items and judges
 are bias-hardened.
 
 Inferring rater reliability from inter-rater agreement without ground truth dates to \emph{Dawid and Skene}
-{[}\hyperref[r33]{33}{]}, which CoEval applies to a vendor-disjoint LLM panel (Section~5.2). Recent label-free
+\citep{ref33}, which CoEval applies to a vendor-disjoint LLM panel (Section~5.2). Recent label-free
 methods learn per-judge reliability jointly with the ranking from pairwise comparisons (judge-aware Bradley--Terry
-{[}\hyperref[r27]{27}{]}, judge-aware ranking {[}\hyperref[r29]{29}{]}) or separate quality from shared confounders
-{[}\hyperref[r28]{28}{]}; CoEval\textquotesingle s contribution is their \emph{integration}, supplying the items themselves (de novo,
+\citep{ref27}, judge-aware ranking \citep{ref29}) or separate quality from shared confounders
+\citep{ref28}; CoEval\textquotesingle s contribution is their \emph{integration}, supplying the items themselves (de novo,
 contamination-free) and scoring them as absolute rubric scores from a \emph{vendor-disjoint} panel rather than
 pairwise comparisons from a single-vendor pool, which surfaces the \emph{judge-choice regret} of Section~5.2: a
 single judge can be anti-correlated with ground truth where the ensemble is the low-regret choice.
 
 \subsection{Automated and contamination-resistant benchmark generation}\label{automated-and-contamination-resistant-benchmark-generation}
 
-Automated generators such as AutoBencher {[}\hyperref[r9]{9}{]}, BenchAgents {[}\hyperref[r10]{10}{]}, and YourBench
-{[}\hyperref[r11]{11}{]} construct evaluation items without labels, but score with a single judge and no role
+Automated generators such as AutoBencher \citep{ref9}, BenchAgents \citep{ref10}, and YourBench
+\citep{ref11} construct evaluation items without labels, but score with a single judge and no role
 separation. CoEval adds a cross-family multi-judge layer, explicit teacher/student/judge roles,
 attribute-\emph{stratified} coverage (a per-stratum item floor over declared attribute combinations), and continuous
-inter-judge agreement monitoring. The contamination motivation is sharpened by GSM1k {[}\hyperref[r12]{12}{]} and recent
-contamination surveys {[}\hyperref[r13]{13}{]}. Live benchmarks (LiveBench {[}\hyperref[r22]{22}{]}, LiveCodeBench
-{[}\hyperref[r23]{23}{]}) limit leakage by continuously releasing fresh, time-windowed items, but rely on
+inter-judge agreement monitoring. The contamination motivation is sharpened by GSM1k \citep{ref12} and recent
+contamination surveys \citep{ref13}. Live benchmarks (LiveBench \citep{ref22}, LiveCodeBench
+\citep{ref23}) limit leakage by continuously releasing fresh, time-windowed items, but rely on
 human-curated questions with objective answers and avoid LLM judges; CoEval extends contamination resistance to
 \emph{open-ended, judge-scored} tasks through fresh attribute-controlled generation. Closest to our synthesis step,
-CHASE {[}\hyperref[r30]{30}{]} composes problems bottom-up from verifiable sub-tasks and DataMorgana
-{[}\hyperref[r31]{31}{]} produces configuration-driven question--answer sets with controllable category
+CHASE \citep{ref30} composes problems bottom-up from verifiable sub-tasks and DataMorgana
+\citep{ref31} produces configuration-driven question--answer sets with controllable category
 distributions; both stop at item generation, whereas CoEval closes the loop to a model \emph{ranking} with a
-vendor-disjoint panel and label-free aggregation. A recent static-to-dynamic survey {[}\hyperref[r32]{32}{]} situates
-this shift; Dynabench {[}\hyperref[r14]{14}{]} renews benchmarks with humans in the loop where CoEval renews without
-them; domain-specific judge sets {[}\hyperref[r25]{25}{]} target verticals such as medicine and law, which CoEval
-generates within the same pipeline; and Length-Controlled AlpacaEval {[}\hyperref[r8]{8}{]} debiases verbosity post hoc
+vendor-disjoint panel and label-free aggregation. A recent static-to-dynamic survey \citep{ref32} situates
+this shift; Dynabench \citep{ref14} renews benchmarks with humans in the loop where CoEval renews without
+them; domain-specific judge sets \citep{ref25} target verticals such as medicine and law, which CoEval
+generates within the same pipeline; and Length-Controlled AlpacaEval \citep{ref8} debiases verbosity post hoc
 on a single judge, where CoEval cancels it through panel diversity (Appendix~E).
 
 \section{The CoEval Framework}\label{the-coeval-framework}
@@ -282,19 +279,20 @@ within-item and repeated-rater dependence are not mistaken for precision. These 
 datasets through the benchmark teacher; the contamination-free property of Section~3.2 applies to CoEval\textquotesingle s
 \emph{generated} items, not to this externally-anchored validation, which isolates judge accuracy.
 
-\begin{table}[ht]
+\begin{table}[tbp]
 \centering
+\small\setlength{\tabcolsep}{4pt}%
 \caption{\textbf{Table 1.} Spearman correlation of CoEval accuracy scores with ground-truth correctness on
 exact-match QA (SciQ, ARC-Challenge; 191 datapoints, 573 responses; datapoint-clustered 95\% bootstrap CI). The
 frontier cross-family ensemble tracks ground truth at $\rho$ = 0.86. The three frontier judges agree on every item;
 crucially, the weaker auxiliary judges they are contrasted against (Section~5.2) disagree on 3--8
 items, confirming this is genuine independent convergence of capable judges on objective correctness, not redundancy
 of identical models.}
-\begin{tabularx}{\linewidth}{*{4}{>{\raggedright\arraybackslash}X}}
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\linewidth}{>{\hsize=1.467\hsize\raggedright\arraybackslash}X >{\hsize=0.487\hsize\raggedright\arraybackslash}X >{\hsize=0.837\hsize\raggedright\arraybackslash}X >{\hsize=1.209\hsize\raggedright\arraybackslash}X}
 \toprule
 Evaluator & SciQ & ARC-Challenge & Overall (clustered CI) \\
 \midrule
-\bottomrule
 CoEval frontier ensemble & +0.669 & +0.882 & \textbf{+0.859} {[}0.77, 0.94{]} \\
 ~~gpt-4o (OpenAI) & +0.669 & +0.882 & +0.859 \\
 ~~claude-sonnet-4 (Anthropic) & +0.669 & +0.882 & +0.859 \\
@@ -310,7 +308,7 @@ strongest member: the experiment establishes that CoEval judges are \emph{accura
 
 On open-ended summarization scored against a lexical
 BERTScore reference, the cross-family ensemble (\(\rho = 0.227\)) tracks ground truth within the confidence interval of a
-single GPT-4o \textbf{G-Eval} {[}\hyperref[r2]{2}{]} judge using chain-of-thought (\(\rho = 0.259\), 95\% CI
+single GPT-4o \textbf{G-Eval} \citep{ref2} judge using chain-of-thought (\(\rho = 0.259\), 95\% CI
 \([0.18, 0.33]\), \(n=580\)): a statistical tie with this strong single-judge baseline, without depending on any one model. A single judge
 cannot be chosen safely in advance: on this summarization subset (\(n=580\)) the panel\textquotesingle s individual judges range from anti-correlated
 (\texttt{gpt-3.5-turbo}, \(\rho = -0.01\)) to \(\rho = 0.25\), and which judge is best changes by task, so no fixed
@@ -328,7 +326,7 @@ CoEval\textquotesingle s scores fall within \(0.02\) of the true accuracies, and
 model. Producing this ranking required a single configuration file and no human annotation: the core operation
 the framework is built to make easy.
 
-\begin{figure}
+\begin{figure}[tbp]
 \centering
 \includegraphics[width=\linewidth]{figures/f4_correctness_corr.png}
 \caption{\textbf{Figure 1.} CoEval recovers the true model ranking with no labels. For each student model
@@ -337,16 +335,17 @@ accuracy (blue) coincide within 0.02, and the order \texttt{gpt-4o-mini} \textgr
 \texttt{llama-3.2-3b} is reproduced exactly (cf. Table~2).}
 \end{figure}
 
-\begin{table}[ht]
+\begin{table}[tbp]
 \centering
+\small\setlength{\tabcolsep}{4pt}%
 \caption{\textbf{Table 2.} CoEval reproduces the ground-truth model ranking. Three student models ranked by
 CoEval frontier-ensemble accuracy score (datapoint-clustered 95\% CI) and by exact-match ground truth; the orderings
 match.}
-\begin{tabularx}{\linewidth}{*{3}{>{\raggedright\arraybackslash}X}}
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\linewidth}{>{\hsize=1.022\hsize\raggedright\arraybackslash}X >{\hsize=0.989\hsize\raggedright\arraybackslash}X >{\hsize=0.989\hsize\raggedright\arraybackslash}X}
 \toprule
 Model under evaluation & CoEval score {[}95\% CI{]} & Ground-truth accuracy \\
 \midrule
-\bottomrule
 gpt-4o-mini & 0.963 {[}0.937, 0.984{]} & 0.969 \\
 gpt-3.5-turbo & 0.921 {[}0.880, 0.958{]} & 0.942 \\
 llama-3.2-3b & 0.843 {[}0.791, 0.895{]} & 0.832 \\
@@ -356,29 +355,30 @@ llama-3.2-3b & 0.843 {[}0.791, 0.895{]} & 0.832 \\
 
 \textbf{Agreement with human judgments.} The validation above anchors the judge to objective exact-match
 ground truth. We additionally test it against \emph{human} quality judgments on two standard meta-evaluation
-benchmarks, scoring with the same cheap cross-family panel (\texttt{gpt-4o-mini}, \texttt{claude-3.5-haiku},
-\texttt{gemini-flash}). On SummEval {[}\hyperref[r37]{37}{]}, where experts rate machine summaries, the panel
+benchmarks (Table~3), scoring with the same cheap cross-family panel (\texttt{gpt-4o-mini}, \texttt{claude-3.5-haiku},
+\texttt{gemini-flash}). On SummEval \citep{ref37}, where experts rate machine summaries, the panel
 correlates with human ratings at Spearman \(0.53\) (relevance), \(0.58\) (coherence), and \(0.56\) (consistency), in the
-range strong single-model judges such as G-Eval {[}\hyperref[r2]{2}{]} report on this benchmark, reached here by a
+range strong single-model judges such as G-Eval \citep{ref2} report on this benchmark, reached here by a
 panel of small models; the panel exceeds its best single judge on relevance and coherence, and the blind
-single-judge average on all three. On LLMBar {[}\hyperref[r38]{38}{]}, which asks an evaluator to pick the
+single-judge average on all three. On LLMBar \citep{ref38}, which asks an evaluator to pick the
 human-preferred output, the panel scores each output \emph{absolutely} (so no position bias) and prefers the
 higher; it reaches \(0.845\) preference accuracy overall (\(0.94\) on the natural split), exceeding the expected accuracy
 of a single judge chosen blind (\(0.76\)) by \(0.08\) and matching the best single judge (\(0.84\)) without needing to know
 which judge that is. Because peer-agreement weights are near-uniform on a clean panel, the weighted and unweighted
 panels coincide here; the weighting earns its value under judge-pool contamination (Section~5.2).
 
-\begin{table}[ht]
+\begin{table}[tbp]
 \centering
-\caption{\textbf{Agreement with human judgments.} CoEval cross-family panel versus humans on two standard
+\small\setlength{\tabcolsep}{4pt}%
+\caption{\textbf{Table 3.} Agreement with human judgments. CoEval cross-family panel versus humans on two standard
 meta-evaluation benchmarks: SummEval (Spearman of panel score with expert ratings, \(n = 293\)) and LLMBar (accuracy
 at matching the human-preferred output, \(n = 400\)). The panel tracks or exceeds the best single judge, which a
 label-free user cannot select in advance, and clearly beats the blind single-judge average.}
-\begin{tabularx}{\linewidth}{*{4}{>{\raggedright\arraybackslash}X}}
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\linewidth}{>{\hsize=1.677\hsize\raggedright\arraybackslash}X >{\hsize=0.448\hsize\raggedright\arraybackslash}X >{\hsize=0.777\hsize\raggedright\arraybackslash}X >{\hsize=1.097\hsize\raggedright\arraybackslash}X}
 \toprule
 Benchmark and metric & Panel & Best single & Blind single (avg) \\
 \midrule
-\bottomrule
 SummEval relevance (Spearman) & 0.53 & 0.48 & 0.45 \\
 SummEval coherence (Spearman) & 0.58 & 0.54 & 0.47 \\
 SummEval consistency (Spearman) & 0.56 & 0.65 & 0.53 \\
@@ -410,7 +410,7 @@ weak models and more reliable than the unselected panel. The \(k\)-judge ensembl
 consensus rises with \(k\) (Spearman \(\rho\): \(0.67, 0.74, 0.93, 1.00\)): a small selected panel already recovers most of
 the full-panel ordering.
 
-\begin{figure}
+\begin{figure}[tbp]
 \centering
 \includegraphics[width=\linewidth]{figures/f2_icc_curve.png}
 \caption{\textbf{Figure 2.} Composition over size. Average-measures reliability ICC(3,~\emph{k}) as
@@ -435,7 +435,7 @@ Section~3.3 is the best label-free option we test. Weighting each judge by its a
 panel assigns the anti-correlated \texttt{gpt-3.5-turbo} the lowest weight (\(0.18\) versus \(0.27\)--\(0.29\) for
 the others) and lifts the aggregate correlation from the plain mean\textquotesingle s \(0.238\) to \textbf{\(0.246\)}. The
 alternatives are worse: median and trimmed-mean aggregation, which discard rather than re-weight information, reach
-only \(0.222\), and a Dawid--Skene latent-truth model {[}\hyperref[r33]{33}{]} over discretized scores reaches
+only \(0.222\), and a Dawid--Skene latent-truth model \citep{ref33} over discretized scores reaches
 \(0.178\). Reliability weighting
 thus turns the panel\textquotesingle s own internal agreement, the one signal available without labels, into the strongest aggregate,
 while never selecting the anti-correlated judge.
@@ -470,24 +470,25 @@ the items hold near-zero weight) and judges that disagree with the panel. The tw
 helping on its own (item-weighting alone \(0.94\), judge-weighting alone \(0.92\)) and most on the discriminative items
 where judge reliability matters. The aggregator is robust: injecting a random judge degrades the plain mean to \(0.85\)
 but leaves the doubly-robust ranking at \(0.95\), with the rogue judge receiving weight \(0.00\). Compared against standard
-baselines on the same scores (Table~3), the doubly-robust ranking matches or beats the best single judge (an
+baselines on the same scores (Table~4), the doubly-robust ranking matches or beats the best single judge (an
 oracle, since which judge is best is not knowable without labels), the unweighted panel (PoLL), and the median; its
 decisive advantage is robustness to a contaminated judge pool: adding rogue judges steadily degrades the unweighted
 mean (0.88, 0.85, 0.64) and even the median (0.94, 0.91, 0.71) at zero, one, and three rogue judges, while the
 doubly-robust ranking is invariant to a minority rogue (0.95) and still leads at rogue parity (0.79).
 
-\begin{table}[ht]
+\begin{table}[tbp]
 \centering
-\caption{\textbf{Table 3.} Rank-recovery on thirteen candidate models (science QA and reasoning; gold =
+\small\setlength{\tabcolsep}{4pt}%
+\caption{\textbf{Table 4.} Rank-recovery on thirteen candidate models (science QA and reasoning; gold =
 benchmark-native accuracy), comparing standard label-free baselines (best single judge, unweighted panel / PoLL,
 median) against the CoEval weights. Each CoEval weight helps on its own, and the two compose into the best recovery;
 the aggregator alone is robust to an injected random judge, which it gives weight 0.00. Values are the Spearman and
 Kendall correlations between the recovered ranking and the gold-accuracy ranking.}
-\begin{tabularx}{\linewidth}{*{3}{>{\raggedright\arraybackslash}X}}
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\linewidth}{>{\hsize=1.888\hsize\raggedright\arraybackslash}X >{\hsize=0.582\hsize\raggedright\arraybackslash}X >{\hsize=0.530\hsize\raggedright\arraybackslash}X}
 \toprule
 Aggregator & Spearman & Kendall \\
 \midrule
-\bottomrule
 Best single judge (oracle) & 0.88 & 0.80 \\
 Panel mean (PoLL) & 0.88 & 0.76 \\
 Panel median & 0.94 & 0.88 \\
@@ -580,7 +581,7 @@ practitioners) and the same declarative pipeline runs unchanged across models an
 every model release, CoEval is a reusable instrument a team points at its own application when neither labeled data nor
 a trustworthy benchmark exists, rather than a single static study. CoEval is open-source and fully reproducible.
 
-\section{Limitations}\label{limitations}
+\section*{Limitations}\label{limitations}
 
 Three boundary conditions delimit the validated regime. First, judge accuracy is anchored to objective exact-match QA,
 where labels exist (Section~5.1, \(\rho = 0.86\)), and to human ratings on two public meta-evaluation benchmarks
@@ -592,11 +593,11 @@ future validation. Second, the study spans up to thirteen candidate models acros
 custom verticals, a four-domain divergence study (Appendix~D), and a thirteen-model rank-recovery check
 (Section~5.2); wider model pools and further domains would extend the evidence. Third, the contamination guarantee
 is structural (fresh per-run synthesis), validated by zero verbatim overlap and a controlled memorization study
-(Section~5.3); verbatim n-gram overlap and membership-inference probes such as Min-K\% {[}\hyperref[r36]{36}{]}
+(Section~5.3); verbatim n-gram overlap and membership-inference probes such as Min-K\% \citep{ref36}
 answer complementary questions, the former whether an item is reproduced, the latter whether it was seen during
 pretraining.
 
-\section{Ethics Statement}\label{ethics-statement}
+\section*{Ethics Statement}\label{ethics-statement}
 
 CoEval evaluates language models and involves no new human-subjects data collection. The human judgments used to
 validate the judge (Section~5.1) come from existing public meta-evaluation benchmarks (SummEval, LLMBar) used
@@ -606,7 +607,7 @@ or legal decisions. Because CoEval generates evaluation items and scores them wi
 rubrics can inherit model biases; the cross-family panel and the contamination checks mitigate but do not eliminate this
 risk, and a practitioner applying CoEval in a high-stakes domain should pair it with human oversight.
 
-\section{Reproducibility}\label{reproducibility}
+\section*{Reproducibility}\label{reproducibility}
 
 Every experiment is driven by a declarative configuration file and is reproducible end to end. The framework, the
 canonical prompt templates (Appendix~C), the attribute and rubric specifications, the judge-panel definitions, and
@@ -614,9 +615,85 @@ the analysis code are released open-source, and the per-run scores and recovered
 statistical estimators (ICC, bootstrap confidence intervals, the doubly-robust aggregator) are defined in
 Appendix~A.
 
-\section{References}\label{references}
 
-\section{Appendix A. Statistical methods}\label{appA}
+
+\begin{thebibliography}{99}
+\setlength{\itemsep}{2pt plus 0.5pt}\setlength{\parsep}{0pt}
+\bibitem[Butt et al.(2024)]{ref10}\label{r10} Butt, N., Awadalla, H., et al. (2024). BenchAgents: Automated Benchmark Creation with Agent
+    Interaction. arxiv.org/abs/2410.22584 https://arxiv.org/abs/2410.22584
+\bibitem[Chan et al.(2024)]{ref21}\label{r21} Chan, C.-M., Chen, W., Su, Y., et al. (2024). ChatEval: Towards Better LLM-based Evaluators through
+    Multi-Agent Debate. ICLR. arxiv.org/abs/2308.07201 https://arxiv.org/abs/2308.07201
+\bibitem[Chen et al.(2025)]{ref24}\label{r24} Chen, W.-L., Wu, Z., Bansal, H., et al. (2025). Do LLM Evaluators Prefer Themselves for a
+    Reason? arxiv.org/abs/2504.03846 https://arxiv.org/abs/2504.03846
+\bibitem[Chen et al.(2025)]{ref32}\label{r32} Chen, Y., et al. (2025). Recent Advances in Large Language Model Benchmarks against Data
+    Contamination: From Static to Dynamic Evaluation. EMNLP. arxiv.org/abs/2502.17521 https://arxiv.org/abs/2502.17521
+\bibitem[Dawid and P.(1979)]{ref33}\label{r33} Dawid, A. P., Skene, A. M. (1979). Maximum Likelihood Estimation of Observer Error-Rates Using
+    the EM Algorithm. Journal of the Royal Statistical Society: Series C (Applied Statistics), 28(1), 20–28. doi.org/10.2307/2346806 https://doi.org/10.2307/2346806
+\bibitem[Dubois et al.(2024)]{ref8}\label{r8} Dubois, Y., Galambosi, B., Liang, P., Hashimoto, T. B. (2024). Length-Controlled AlpacaEval: A Simple
+    Way to Debias Automatic Evaluators. arxiv.org/abs/2404.04475 https://arxiv.org/abs/2404.04475
+\bibitem[Fabbri et al.(2021)]{ref37}\label{r37} Fabbri, A. R., Kryściński, W., McCann, B., Xiong, C., Socher, R., Radev, D. (2021). SummEval: Re-evaluating Summarization Evaluation. Transactions of the Association for Computational
+    Linguistics, 9, 391–409. arxiv.org/abs/2007.12626 https://arxiv.org/abs/2007.12626
+\bibitem[Filice et al.(2025)]{ref31}\label{r31} Filice, S., Horowitz, G., Carmel, D., Karnin, Z., Lewin-Eytan, L., Maarek, Y. (2025). Generating
+    Diverse Q\&A Benchmarks for RAG Evaluation with DataMorgana. SIGIR LiveRAG. arxiv.org/abs/2501.12789 https://arxiv.org/abs/2501.12789
+\bibitem[Gu et al.(2024)]{ref19}\label{r19} Gu, J., Jiang, X., Shi, Z., et al. (2024). A Survey on LLM-as-a-Judge. arxiv.org/abs/2411.15594 https://arxiv.org/abs/2411.15594
+\bibitem[Jain et al.(2025)]{ref23}\label{r23} Jain, N., Han, K., Gu, A., et al. (2025). LiveCodeBench: Holistic and Contamination Free Evaluation
+    of Large Language Models for Code. ICLR. arxiv.org/abs/2403.07974 https://arxiv.org/abs/2403.07974
+\bibitem[Kiela et al.(2021)]{ref14}\label{r14} Kiela, D., Bartolo, M., Nie, Y., et al. (2021). Dynabench: Rethinking Benchmarking in NLP. NAACL. arxiv.org/abs/2104.14337 https://arxiv.org/abs/2104.14337
+\bibitem[Kim et al.(2024)]{ref3}\label{r3} Kim, S., Suk, J., Longpre, S., et al. (2024). Prometheus 2: An Open Source Language Model Specialized
+    in Evaluating Other Language Models. arxiv.org/abs/2405.01535 https://arxiv.org/abs/2405.01535
+\bibitem[Kim et al.(2025)]{ref7}\label{r7} Kim, S., Suk, J., Cho, J. Y., et al. (2025). The BiGGen Bench: A Principled Benchmark for Fine-grained
+    Evaluation of Language Models with Language Models. NAACL. arxiv.org/abs/2406.05761 https://arxiv.org/abs/2406.05761
+\bibitem[Li et al.(2024)]{ref9}\label{r9} Li, X. L., Kazemi, M., et al. (2024). AutoBencher: Towards Declarative Benchmark Construction. arxiv.org/abs/2407.08351 https://arxiv.org/abs/2407.08351
+\bibitem[Li et al.(2025)]{ref20}\label{r20} Li, D., Jiang, B., Huang, L., et al. (2025). From Generation to Judgment: Opportunities and
+    Challenges of LLM-as-a-Judge. EMNLP. arxiv.org/abs/2411.16594 https://arxiv.org/abs/2411.16594
+\bibitem[Li et al.(2025)]{ref26}\label{r26} Li, Y., et al. (2025). Leveraging LLMs as Meta-Judges: A Multi-Agent Framework. arxiv.org/abs/2504.17087 https://arxiv.org/abs/2504.17087
+\bibitem[Li et al.(2026)]{ref15}\label{r15} Li, D., Sun, R., Huang, Y., et al. (2026). Preference Leakage: A Contamination Problem in
+    LLM-as-a-Judge. ICLR. arxiv.org/abs/2502.01534 https://arxiv.org/abs/2502.01534
+\bibitem[Liu et al.(2023)]{ref2}\label{r2} Liu, Y., Iter, D., Xu, Y., et al. (2023). G-Eval: NLG Evaluation using GPT-4 with Better Human
+    Alignment. EMNLP. arxiv.org/abs/2303.16634 https://arxiv.org/abs/2303.16634
+\bibitem[Patel et al.(2025)]{ref30}\label{r30} Patel, A., Reddy, S., Bahdanau, D. (2025). CHASE: How to Get Your LLM to Generate Challenging
+    Problems for Evaluation. arxiv.org/abs/2502.14678 https://arxiv.org/abs/2502.14678
+\bibitem[Qian et al.(2026)]{ref27}\label{r27} Qian, C., Sun, G., Gales, M., Knill, K. (2026). Who can we trust? LLM-as-a-jury for Comparative
+    Assessment. ICML. arxiv.org/abs/2602.16610 https://arxiv.org/abs/2602.16610
+\bibitem[Raju et al.(2024)]{ref25}\label{r25} Raju, R., Jain, S., Li, B., et al. (2024). Constructing Domain-Specific Evaluation Sets for
+    LLM-as-a-judge. arxiv.org/abs/2408.08808 https://arxiv.org/abs/2408.08808
+\bibitem[Shashidhar et al.(2025)]{ref11}\label{r11} Shashidhar, S., et al. (2025). YourBench: Easy Custom Evaluation Sets for Everyone. arxiv.org/abs/2504.01833 https://arxiv.org/abs/2504.01833
+\bibitem[Shi et al.(2024)]{ref36}\label{r36} Shi, W., Ajith, A., Xia, M., et al. (2024). Detecting Pretraining Data from Large Language
+    Models. ICLR. arxiv.org/abs/2310.16789 https://arxiv.org/abs/2310.16789
+\bibitem[Spiliopoulou et al.(2025)]{ref16}\label{r16} Spiliopoulou, E., et al. (2025). Play Favorites: A Statistical Method to Measure Self-Bias in
+    LLM-as-a-Judge. arxiv.org/abs/2508.06709 https://arxiv.org/abs/2508.06709
+\bibitem[Tan et al.(2025)]{ref6}\label{r6} Tan, S., Zhuang, S., Montgomery, K., et al. (2025). JudgeBench: A Benchmark for Evaluating LLM-based
+    Judges. ICLR. arxiv.org/abs/2410.12784 https://arxiv.org/abs/2410.12784
+\bibitem[Verga et al.(2024)]{ref5}\label{r5} Verga, P., Hofstatter, S., Althammer, S., et al. (2024). Replacing Judges with Juries: Evaluating LLM
+    Generations with a Panel of Diverse Models (PoLL). arxiv.org/abs/2404.18796 https://arxiv.org/abs/2404.18796
+\bibitem[Vu et al.(2024)]{ref4}\label{r4} Vu, T., Krishna, K., Alzubi, S., et al. (2024). Foundational Autoraters: Taming Large Language Models
+    for Better Automatic Evaluation (FLAMe). EMNLP. arxiv.org/abs/2407.10817 https://arxiv.org/abs/2407.10817
+\bibitem[Wang et al.(2024)]{ref34}\label{r34} Wang, Y., Yu, Z., Zeng, Z., et al. (2024). PandaLM: An Automatic Evaluation Benchmark for LLM
+    Instruction Tuning Optimization. ICLR. arxiv.org/abs/2306.05087 https://arxiv.org/abs/2306.05087
+\bibitem[Wataoka et al.(2024)]{ref18}\label{r18} Wataoka, K., Takahashi, T., Ri, R. (2024). Self-Preference Bias in LLM-as-a-Judge. arxiv.org/abs/2410.21819 https://arxiv.org/abs/2410.21819
+\bibitem[White et al.(2025)]{ref22}\label{r22} White, C., Dooley, S., Roberts, M., et al. (2025). LiveBench: A Challenging, Contamination-Limited
+    LLM Benchmark. ICLR. arxiv.org/abs/2406.19314 https://arxiv.org/abs/2406.19314
+\bibitem[Xu et al.(2025)]{ref13}\label{r13} Xu, C., et al. (2025). Benchmark Data Contamination of Large Language Models: A Survey. arxiv.org/abs/2502.14425 https://arxiv.org/abs/2502.14425
+\bibitem[Xu et al.(2026)]{ref29}\label{r29} Xu, C., Tan, Z., Wu, J., Zhou, T. (2026). A Judge-Aware Ranking Framework for Evaluating Large
+    Language Models without Ground Truth. arxiv.org/abs/2601.21817 https://arxiv.org/abs/2601.21817
+\bibitem[Ye et al.(2024)]{ref17}\label{r17} Ye, J., Wang, Y., Huang, Y., et al. (2024). Justice or Prejudice? Quantifying Biases in
+    LLM-as-a-Judge. arxiv.org/abs/2410.02736 https://arxiv.org/abs/2410.02736
+\bibitem[Zeng et al.(2024)]{ref38}\label{r38} Zeng, Z., Yu, J., Gao, T., Meng, Y., Goyal, T., Chen, D. (2024). Evaluating Large Language
+    Models at Evaluating Instruction Following. ICLR. arxiv.org/abs/2310.07641 https://arxiv.org/abs/2310.07641
+\bibitem[Zhang et al.(2024)]{ref12}\label{r12} Zhang, H., Da, J., Lee, D., et al. (2024). A Careful Examination of Large Language Model Performance on
+    Grade School Arithmetic (GSM1k). arxiv.org/abs/2405.00332 https://arxiv.org/abs/2405.00332
+\bibitem[Zhao et al.(2026)]{ref28}\label{r28} Zhao, Y., Shin, J., Huang, Z., Namburi, S., Sala, F. (2026). CARE: Confounder-Aware Aggregation
+    for Reliable LLM Evaluation. arxiv.org/abs/2603.00039 https://arxiv.org/abs/2603.00039
+\bibitem[Zheng et al.(2023)]{ref1}\label{r1} Zheng, L., Chiang, W.-L., Sheng, Y., et al. (2023). Judging LLM-as-a-Judge with MT-Bench and Chatbot
+    Arena. NeurIPS. arxiv.org/abs/2306.05685 https://arxiv.org/abs/2306.05685
+\bibitem[Zhu et al.(2023)]{ref35}\label{r35} Zhu, L., Wang, X., Wang, X. (2023). JudgeLM: Fine-tuned Large Language Models are Scalable
+    Judges. arxiv.org/abs/2310.17631 https://arxiv.org/abs/2310.17631
+\end{thebibliography}
+
+% Appendices follow the bibliography (ACL/TACL convention). \appendix (added
+% by pack when appendix.tex exists) restarts section numbering at A, B, C...
+\appendix
+\section{Statistical methods}\label{appA}
 
 This appendix collects the estimator definitions used in the main text. CoEval reports the agreement of the judge
 panel using intraclass correlation. For an average-measures design over \(k\) judges, the ICC(3,k) reliability is
@@ -643,7 +720,7 @@ tests reported in Section~5 we control the false-discovery rate with the Benjami
 (\(\alpha = 0.05\)), and confidence intervals use a \emph{datapoint-clustered} resample wherever observations are
 nested (multiple student responses per item).
 
-\section{Appendix B. Rubric structure}\label{appB}
+\section{Rubric structure}\label{appB}
 
 CoEval generates a scoring rubric automatically per task. We examine whether these rubrics are appropriately
 task-specialized while sharing a common quality core. Across the four tasks, the 22 auto-generated rubric criteria
@@ -652,7 +729,7 @@ of \(0.294\): criteria cluster by task, as desired. At the same time, a shared u
 \emph{``completeness''} dimension recurs across three of the four tasks, indicating a common quality core.
 CoEval\textquotesingle s rubrics are thus specialized to each task\textquotesingle s demands yet anchored by a transferable notion of answer quality.
 
-\begin{figure}
+\begin{figure}[tbp]
 \centering
 \includegraphics[width=\linewidth]{figures/f5_rubric_heatmap.png}
 \caption{\textbf{Figure 3.} Pairwise semantic similarity of the 22 auto-generated rubric criteria across
@@ -660,7 +737,7 @@ four tasks. Block structure along the diagonal reflects task specialization (wit
 0.294), while a recurring ``completeness'' dimension forms a cross-task cluster.}
 \end{figure}
 
-\section{Appendix C. Worked examples on data-scarce domains}\label{appC}
+\section{Worked examples on data-scarce domains}\label{appC}
 
 The three verticals of Section~5.4 are domains where a practitioner typically has \emph{no} labeled
 benchmark and no trustworthy public one: drug--drug interaction (DDI) reasoning, clinical decision support, and
@@ -678,32 +755,35 @@ is what binds \texttt{\{target\_attributes\}} and yields the corresponding DDI i
 
 \textbf{(1) Target-attribute map.} Define the axes the benchmark varies over.
 
-\begin{BVerbatim}
+\begin{Verbatim}[breaklines=true,breakanywhere=true,fontsize=\small]
 Generate synthetic data specifications for the {task_description} task by defining an
 attribute space that characterizes possible outputs. Return a JSON object mapping each
 attribute name to a list of possible values, and output only the JSON.
-\end{BVerbatim}
+\end{Verbatim}
+
 
 \textbf{(2) Nuance map.} Add surface-variation axes that change phrasing without changing the answer.
 
-\begin{BVerbatim}
+\begin{Verbatim}[breaklines=true,breakanywhere=true,fontsize=\small]
 Define synthetic data specifications for the {task_description} task by creating a nuanced
 variability-focused attribute space. Include only attributes that change document phrasing,
 structure, noise, and context, without changing the underlying outputs. Return a single JSON
 object mapping each attribute name to a list of allowed values, and output only the JSON.
-\end{BVerbatim}
+\end{Verbatim}
+
 
 \textbf{(3) Auto-rubric.} Write the task-specific scoring factors the judges apply.
 
-\begin{BVerbatim}
+\begin{Verbatim}[breaklines=true,breakanywhere=true,fontsize=\small]
 For the task {task_description}, where the model's output is {output_description}, create an
 evaluation rubric. Return only a JSON object where each key is a quality factor, and each
 value is a concise description of that factor. Output only the JSON.
-\end{BVerbatim}
+\end{Verbatim}
+
 
 \textbf{(4) Item synthesis.} Generate one realistic item for a sampled attribute cell.
 
-\begin{BVerbatim}
+\begin{Verbatim}[breaklines=true,breakanywhere=true,fontsize=\small]
 Generate a realistic benchmark data point.
 Task: {task_description}
 Output format: {output_description}
@@ -714,37 +794,33 @@ Return only a JSON object with exactly two string keys:
   "prompt":   a realistic input text for the task
   "response": the expected output for that input
 Output only the JSON. No explanation or markdown.
-\end{BVerbatim}
+\end{Verbatim}
+
 
 Running this pipeline on the three one-line seeds below produces the auto-generated attribute strata and rubrics in
 Table~C1, and the verbatim items that follow it.
 
-\begin{table}[ht]
+\begin{table*}[t]
 \centering
+\small\setlength{\tabcolsep}{4pt}%
 \caption{\textbf{Table C1.} From a one-line description to a scored benchmark, for three domains with no
 public labeled data. The attribute strata and rubric criteria are auto-generated by the teacher; each domain yields
 40 stratified, contamination-free items, scored by the cross-family panel.}
-\begin{tabularx}{\linewidth}{*{3}{>{\raggedright\arraybackslash}X}}
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{>{\hsize=1.214\hsize\raggedright\arraybackslash}X >{\hsize=1.193\hsize\raggedright\arraybackslash}X >{\hsize=0.593\hsize\raggedright\arraybackslash}X}
 \toprule
-Domain and one-line seed
- & Auto-generated attribute strata
- & Auto-generated rubric
- \\
+Domain and one-line seed & Auto-generated attribute strata & Auto-generated rubric \\
 \midrule
-\bottomrule
-\textbf{Drug--drug interaction reasoning}\\
-\emph{"given two or more co-administered drugs and a patient context, assess the interaction, its mechanism, severity, and clinical action"}
- & severity \{contraindicated, major, moderate, minor\}; mechanism \{pharmacokinetic, pharmacodynamic\};
-patient\_context \{renal, hepatic, polypharmacy-elderly, pregnancy\} & interaction\_accuracy, severity\_correct, safety, completeness \\
-\textbf{Clinical reasoning}\\
-\emph{"a clinical reasoning question a clinician would face, requiring medical knowledge and safe, accurate reasoning"}
- & specialty \{cardiology, infectious\_disease, pediatrics, oncology, emergency\}; difficulty \{routine, intermediate, hard\} & clinical\_accuracy, safety, completeness, clarity \\
-\textbf{Legal analysis}\\
-\emph{"a legal analysis question requiring identification of the relevant rule and correct application to the facts"}
- & area\_of\_law \{contracts, torts, criminal, constitutional, intellectual\_property\}; complexity \{basic, intermediate, advanced\} & legal\_accuracy, reasoning\_quality, completeness, clarity \\
+\textbf{Drug--drug interaction reasoning}\newline 
+\emph{"given two or more co-administered drugs and a patient context, assess the interaction, its mechanism, severity, and clinical action"} & severity \{contraindicated, major, moderate, minor\}; mechanism \{pharmacokinetic, pharmacodynamic\};
+patient\_\allowbreak{}context \{renal, hepatic, polypharmacy-elderly, pregnancy\} & interaction\_\allowbreak{}accuracy, severity\_\allowbreak{}correct, safety, completeness \\
+\textbf{Clinical reasoning}\newline 
+\emph{"a clinical reasoning question a clinician would face, requiring medical knowledge and safe, accurate reasoning"} & specialty \{cardiology, infectious\_\allowbreak{}disease, pediatrics, oncology, emergency\}; difficulty \{routine, intermediate, hard\} & clinical\_\allowbreak{}accuracy, safety, completeness, clarity \\
+\textbf{Legal analysis}\newline 
+\emph{"a legal analysis question requiring identification of the relevant rule and correct application to the facts"} & area\_\allowbreak{}of\_\allowbreak{}law \{contracts, torts, criminal, constitutional, intellectual\_\allowbreak{}property\}; complexity \{basic, intermediate, advanced\} & legal\_\allowbreak{}accuracy, reasoning\_\allowbreak{}quality, completeness, clarity \\
 \bottomrule
 \end{tabularx}
-\end{table}
+\end{table*}
 
 One representative \emph{generated} item per domain (verbatim teacher output, labeled with its sampled attribute
 cell), showing the synthesized items are specific and realistic rather than templated:
@@ -776,7 +852,7 @@ models are statistically close (\(0.873\) vs \(0.864\)), which the overlapping i
 from a one-line description to a defensible, contamination-free ranking is a single configuration file with no labeled
 data and no human raters.
 
-\section{Appendix D. Rankings are domain-specific: why a generic leaderboard misleads}\label{appD}
+\section{Rankings are domain-specific: why a generic leaderboard misleads}\label{appD}
 
 The case studies above rank models \emph{within} one domain. The premise of a custom-evaluation tool is that this
 is necessary: the best model for one domain need not be the best for another, so a single public leaderboard, which
@@ -803,30 +879,31 @@ on clinical reasoning and code explanation the best model is \texttt{gpt-4o-mini
 leaderboard and deploys its top model is choosing the domain-best model in just one of four cases. CoEval removes the
 guess: it ranks the candidates on the practitioner\textquotesingle s own domain, contamination-free, with no labeled data.
 
-\begin{table}[ht]
+\begin{table*}[t]
 \centering
+\small\setlength{\tabcolsep}{4pt}%
 \caption{\textbf{Table D1.} The same six candidate models ranked by the same cross-family panel on four
 CoEval-generated domains diverge: each cell is the model\textquotesingle s rank (1 = best) in that domain, rows ordered by the
 generic pooled leaderboard. Three distinct models win the four domains (highlighted), and the pooled-best model
-(\texttt{gemini-flash}) is domain-best in only one. \texttt{gpt-4o-mini} swings from 1st to 5th and
-\texttt{claude-3.5-haiku} from 5th to 1st across domains.}
+(\texttt{gemini-\allowbreak{}flash}) is domain-best in only one. \texttt{gpt-\allowbreak{}4o-\allowbreak{}mini} swings from 1st to 5th and
+\texttt{claude-\allowbreak{}3.5-\allowbreak{}haiku} from 5th to 1st across domains.}
 \small
-\begin{tabularx}{\linewidth}{*{6}{>{\raggedright\arraybackslash}X}}
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{>{\hsize=1.807\hsize\raggedright\arraybackslash}X >{\hsize=0.910\hsize\raggedright\arraybackslash}X >{\hsize=1.113\hsize\raggedright\arraybackslash}X >{\hsize=0.685\hsize\raggedright\arraybackslash}X >{\hsize=0.801\hsize\raggedright\arraybackslash}X >{\hsize=0.685\hsize\raggedright\arraybackslash}X}
 \toprule
 Model & Pooled & Clinical & Code & Legal & Math \\
 \midrule
-\bottomrule
-\texttt{gemini-flash} & 1 & 2 & 3 & 1 & 2 \\
-\texttt{gpt-4o-mini} & 2 & 1 & 1 & 2 & 5 \\
-\texttt{claude-3.5-haiku} & 3 & 3 & 5 & 3 & 1 \\
-\texttt{qwen-2.5-7b} & 4 & 5 & 2 & 4 & 4 \\
-\texttt{llama-3.1-8b} & 5 & 4 & 4 & 6 & 6 \\
-\texttt{gpt-3.5-turbo} & 6 & 6 & 6 & 5 & 3 \\
+\texttt{gemini-\allowbreak{}flash} & 1 & 2 & 3 & 1 & 2 \\
+\texttt{gpt-\allowbreak{}4o-\allowbreak{}mini} & 2 & 1 & 1 & 2 & 5 \\
+\texttt{claude-\allowbreak{}3.5-\allowbreak{}haiku} & 3 & 3 & 5 & 3 & 1 \\
+\texttt{qwen-\allowbreak{}2.5-\allowbreak{}7b} & 4 & 5 & 2 & 4 & 4 \\
+\texttt{llama-\allowbreak{}3.1-\allowbreak{}8b} & 5 & 4 & 4 & 6 & 6 \\
+\texttt{gpt-\allowbreak{}3.5-\allowbreak{}turbo} & 6 & 6 & 6 & 5 & 3 \\
 \bottomrule
 \end{tabularx}
-\end{table}
+\end{table*}
 
-\section{Appendix E. Bias cancellation and cross-family self-preference}\label{appE}
+\section{Bias cancellation and cross-family self-preference}\label{appE}
 
 We test whether the ensemble cancels verbosity bias (rewarding longer responses) on the four-task
 \texttt{medium-benchmark} run. Per judge, length biases are of \emph{mixed sign}: \texttt{gpt-3.5-turbo}
@@ -837,26 +914,27 @@ spanning zero), a 93\% reduction relative to the per-judge mean and statisticall
 The cancellation comes from bias-sign diversity, which in this panel is correlated with vendor family, so vendor
 diversity is a convenient, observable proxy for assembling judges whose idiosyncratic biases are unlikely to align.
 
-\begin{table}[ht]
+\begin{table}[tbp]
 \centering
+\small\setlength{\tabcolsep}{4pt}%
 \caption{\textbf{Table E1.} Verbosity bias (Pearson \emph{r} between response length and score) for representative
 individual judges versus the CoEval ensemble. Individual judges carry length biases of opposite sign that the ensemble
 cancels to a residual centered near zero.}
-\begin{tabularx}{\linewidth}{*{3}{>{\raggedright\arraybackslash}X}}
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\linewidth}{>{\hsize=1.041\hsize\raggedright\arraybackslash}X >{\hsize=1.000\hsize\raggedright\arraybackslash}X >{\hsize=0.959\hsize\raggedright\arraybackslash}X}
 \toprule
 Judge & Length-bias \(r\) & 95\% bootstrap CI \\
 \midrule
-\bottomrule
-gpt-3.5-turbo & -0.177 & -- \\
-SmolLM2 & +0.234 & -- \\
-Panel mean \(\overline{|r|}\) & 0.153 & -- \\
+gpt-3.5-turbo & -0.177 & n/a \\
+SmolLM2 & +0.234 & n/a \\
+Panel mean \(\overline{|r|}\) & 0.153 & n/a \\
 CoEval ensemble & +0.010 & {[}-0.039, +0.057{]} \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
 Recent work establishes that judge--generator relatedness inflates scores (\emph{Preference Leakage}
-{[}\hyperref[r15]{15}{]}; \emph{Play Favorites} {[}\hyperref[r16]{16}{]}). CoEval addresses this \emph{structurally}:
+\citep{ref15}; \emph{Play Favorites} \citep{ref16}). CoEval addresses this \emph{structurally}:
 requiring the judge panel to be vendor-disjoint from the student under test precludes any model from scoring its own
 family, so a same-family preference cannot enter the aggregate at all, regardless of its magnitude on any individual
 model.
@@ -869,29 +947,30 @@ legal, and \(-0.04\) on drug-interaction: no systematic self-inflation survives.
 ranking in Table~2 and Table~G1 unchanged, with per-model scores shifting by at most \(0.016\), confirming the
 cross-family rankings are already robust to same-family bias.
 
-\section{Appendix F. System overview and experimental configuration}\label{appF}
+\section{System overview and experimental configuration}\label{appF}
 
-\begin{figure}
+\begin{figure*}[t]
 \centering
-\includegraphics[width=\linewidth]{figures/f1_architecture.png}
+\includegraphics[width=\textwidth]{figures/f1_architecture.png}
 \caption{\textbf{Figure 4.} The CoEval pipeline. A single pool of models rotates through three roles:
 teachers map attributes, construct rubrics, and generate fresh benchmark items (Phases~1--3); students
 produce candidate responses (Phase~4); and a cross-family judge ensemble scores them (Phase~5). The entire
 run is specified in one declarative configuration.}
-\end{figure}
+\end{figure*}
 
-\begin{table}[ht]
+\begin{table*}[t]
 \centering
+\small\setlength{\tabcolsep}{4pt}%
 \caption{\textbf{Table F1.} Experimental configurations. Judge panels differ by experiment: the
 ground-truth anchor (Section~5.1) uses a frontier cross-family panel; the reliability and bias studies
 (Section~5.2, Appendix~E) use a deliberately heterogeneous panel that includes weak open-weight judges;
 and the verticals (Section~5.4, Appendix~D) reuse one fixed cross-family panel. All students are
 gpt-4o-mini, gpt-3.5-turbo, and llama-3.2-3b unless noted.}
-\begin{tabularx}{\linewidth}{*{4}{>{\raggedright\arraybackslash}X}}
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{>{\hsize=0.920\hsize\raggedright\arraybackslash}X >{\hsize=1.067\hsize\raggedright\arraybackslash}X >{\hsize=1.272\hsize\raggedright\arraybackslash}X >{\hsize=0.742\hsize\raggedright\arraybackslash}X}
 \toprule
 Experiment & Task(s) & Judge panel & Size \\
 \midrule
-\bottomrule
 5.1 ground truth & SciQ, ARC (exact-match QA) & gpt-4o, claude-sonnet-4, gemini-2.5-flash & 191 items / 573 resp. \\
 5.2 reliability (5.1 summ. anchor) & code (BLEU), news + text summ. (BERTScore) & gpt-4o-mini, gpt-3.5-turbo, claude-haiku, gemini-flash & 3 tasks / 900 resp. \\
 5.2 + App.~E, App.~B & 4-task medium study & gpt-4o-mini, gpt-3.5-turbo, qwen2.5-1.5b, smollm2-1.7b & 7,978 eval. \\
@@ -899,9 +978,9 @@ Experiment & Task(s) & Judge panel & Size \\
 5.3 contamination & SciQ memorization & exact-match (no LLM judge) & 200 memorized / 100 fresh \\
 \bottomrule
 \end{tabularx}
-\end{table}
+\end{table*}
 
-\section{Appendix G. Domain case studies (full results)}\label{appG}
+\section{Domain case studies (full results)}\label{appG}
 
 The preceding sections validate CoEval\textquotesingle s components where ground truth is available. We now exercise the complete tool
 in its intended regime on three custom verticals, \emph{drug--drug interaction reasoning}, \emph{clinical
@@ -937,17 +1016,18 @@ manufacturing a gap. This is why the panel yields non-overlapping ranking interv
 carry ranking signal, and a non-discriminative benchmark, on which every model scores alike, could not separate the
 candidates no matter how reliable the judges are.
 
-\begin{table}[ht]
+\begin{table}[tbp]
 \centering
+\small\setlength{\tabcolsep}{4pt}%
 \caption{\textbf{Table G1.} CoEval ranks three candidate models on three custom, contamination-free verticals
-generated from a task description with no labeled data. Scores are the cross-family ensemble mean (\cite{ref0, ref1}) with 95\%
-bootstrap CI over 40 generated items. \texttt{llama-3.2-3b} ranks weakest in every vertical; the three judges
+generated from a task description with no labeled data. Scores are the cross-family ensemble mean ({[}0, 1{]}) with 95\%
+bootstrap CI over 40 generated items. \texttt{llama-\allowbreak{}3.2-\allowbreak{}3b} ranks weakest in every vertical; the three judges
 agree unanimously on the full drug-interaction order, unanimously on the weakest clinical model, and two-of-three in legal.}
-\begin{tabularx}{\linewidth}{*{3}{>{\raggedright\arraybackslash}X}}
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\linewidth}{>{\hsize=1.128\hsize\raggedright\arraybackslash}X >{\hsize=0.780\hsize\raggedright\arraybackslash}X >{\hsize=1.092\hsize\raggedright\arraybackslash}X}
 \toprule
 Vertical & Model & CoEval score {[}95\% CI{]} \\
 \midrule
-\bottomrule
 \emph{Drug--drug interaction} & gpt-4o-mini & 0.770 {[}0.739, 0.800{]} \\
 & gpt-3.5-turbo & 0.682 {[}0.646, 0.717{]} \\
 & llama-3.2-3b & 0.497 {[}0.459, 0.532{]} \\
@@ -960,78 +1040,5 @@ Vertical & Model & CoEval score {[}95\% CI{]} \\
 \bottomrule
 \end{tabularx}
 \end{table}
-
-
-\begin{thebibliography}{99}
-\bibitem{ref1}\label{r1} Zheng, L., Chiang, W.-L., Sheng, Y., et al. (2023). Judging LLM-as-a-Judge with MT-Bench and Chatbot
-    Arena. NeurIPS. arxiv.org/abs/2306.05685 https://arxiv.org/abs/2306.05685
-\bibitem{ref2}\label{r2} Liu, Y., Iter, D., Xu, Y., et al. (2023). G-Eval: NLG Evaluation using GPT-4 with Better Human
-    Alignment. EMNLP. arxiv.org/abs/2303.16634 https://arxiv.org/abs/2303.16634
-\bibitem{ref3}\label{r3} Kim, S., Suk, J., Longpre, S., et al. (2024). Prometheus 2: An Open Source Language Model Specialized
-    in Evaluating Other Language Models. arxiv.org/abs/2405.01535 https://arxiv.org/abs/2405.01535
-\bibitem{ref4}\label{r4} Vu, T., Krishna, K., Alzubi, S., et al. (2024). Foundational Autoraters: Taming Large Language Models
-    for Better Automatic Evaluation (FLAMe). EMNLP. arxiv.org/abs/2407.10817 https://arxiv.org/abs/2407.10817
-\bibitem{ref5}\label{r5} Verga, P., Hofstatter, S., Althammer, S., et al. (2024). Replacing Judges with Juries: Evaluating LLM
-    Generations with a Panel of Diverse Models (PoLL). arxiv.org/abs/2404.18796 https://arxiv.org/abs/2404.18796
-\bibitem{ref6}\label{r6} Tan, S., Zhuang, S., Montgomery, K., et al. (2025). JudgeBench: A Benchmark for Evaluating LLM-based
-    Judges. ICLR. arxiv.org/abs/2410.12784 https://arxiv.org/abs/2410.12784
-\bibitem{ref7}\label{r7} Kim, S., Suk, J., Cho, J. Y., et al. (2025). The BiGGen Bench: A Principled Benchmark for Fine-grained
-    Evaluation of Language Models with Language Models. NAACL. arxiv.org/abs/2406.05761 https://arxiv.org/abs/2406.05761
-\bibitem{ref8}\label{r8} Dubois, Y., Galambosi, B., Liang, P., Hashimoto, T. B. (2024). Length-Controlled AlpacaEval: A Simple
-    Way to Debias Automatic Evaluators. arxiv.org/abs/2404.04475 https://arxiv.org/abs/2404.04475
-\bibitem{ref9}\label{r9} Li, X. L., Kazemi, M., et al. (2024). AutoBencher: Towards Declarative Benchmark Construction. arxiv.org/abs/2407.08351 https://arxiv.org/abs/2407.08351
-\bibitem{ref10}\label{r10} Butt, N., Awadalla, H., et al. (2024). BenchAgents: Automated Benchmark Creation with Agent
-    Interaction. arxiv.org/abs/2410.22584 https://arxiv.org/abs/2410.22584
-\bibitem{ref11}\label{r11} Shashidhar, S., et al. (2025). YourBench: Easy Custom Evaluation Sets for Everyone. arxiv.org/abs/2504.01833 https://arxiv.org/abs/2504.01833
-\bibitem{ref12}\label{r12} Zhang, H., Da, J., Lee, D., et al. (2024). A Careful Examination of Large Language Model Performance on
-    Grade School Arithmetic (GSM1k). arxiv.org/abs/2405.00332 https://arxiv.org/abs/2405.00332
-\bibitem{ref13}\label{r13} Xu, C., et al. (2025). Benchmark Data Contamination of Large Language Models: A Survey. arxiv.org/abs/2502.14425 https://arxiv.org/abs/2502.14425
-\bibitem{ref14}\label{r14} Kiela, D., Bartolo, M., Nie, Y., et al. (2021). Dynabench: Rethinking Benchmarking in NLP. NAACL. arxiv.org/abs/2104.14337 https://arxiv.org/abs/2104.14337
-\bibitem{ref15}\label{r15} Li, D., Sun, R., Huang, Y., et al. (2026). Preference Leakage: A Contamination Problem in
-    LLM-as-a-Judge. ICLR. arxiv.org/abs/2502.01534 https://arxiv.org/abs/2502.01534
-\bibitem{ref16}\label{r16} Spiliopoulou, E., et al. (2025). Play Favorites: A Statistical Method to Measure Self-Bias in
-    LLM-as-a-Judge. arxiv.org/abs/2508.06709 https://arxiv.org/abs/2508.06709
-\bibitem{ref17}\label{r17} Ye, J., Wang, Y., Huang, Y., et al. (2024). Justice or Prejudice? Quantifying Biases in
-    LLM-as-a-Judge. arxiv.org/abs/2410.02736 https://arxiv.org/abs/2410.02736
-\bibitem{ref18}\label{r18} Wataoka, K., Takahashi, T., Ri, R. (2024). Self-Preference Bias in LLM-as-a-Judge. arxiv.org/abs/2410.21819 https://arxiv.org/abs/2410.21819
-\bibitem{ref19}\label{r19} Gu, J., Jiang, X., Shi, Z., et al. (2024). A Survey on LLM-as-a-Judge. arxiv.org/abs/2411.15594 https://arxiv.org/abs/2411.15594
-\bibitem{ref20}\label{r20} Li, D., Jiang, B., Huang, L., et al. (2025). From Generation to Judgment: Opportunities and
-    Challenges of LLM-as-a-Judge. EMNLP. arxiv.org/abs/2411.16594 https://arxiv.org/abs/2411.16594
-\bibitem{ref21}\label{r21} Chan, C.-M., Chen, W., Su, Y., et al. (2024). ChatEval: Towards Better LLM-based Evaluators through
-    Multi-Agent Debate. ICLR. arxiv.org/abs/2308.07201 https://arxiv.org/abs/2308.07201
-\bibitem{ref22}\label{r22} White, C., Dooley, S., Roberts, M., et al. (2025). LiveBench: A Challenging, Contamination-Limited
-    LLM Benchmark. ICLR. arxiv.org/abs/2406.19314 https://arxiv.org/abs/2406.19314
-\bibitem{ref23}\label{r23} Jain, N., Han, K., Gu, A., et al. (2025). LiveCodeBench: Holistic and Contamination Free Evaluation
-    of Large Language Models for Code. ICLR. arxiv.org/abs/2403.07974 https://arxiv.org/abs/2403.07974
-\bibitem{ref24}\label{r24} Chen, W.-L., Wu, Z., Bansal, H., et al. (2025). Do LLM Evaluators Prefer Themselves for a
-    Reason? arxiv.org/abs/2504.03846 https://arxiv.org/abs/2504.03846
-\bibitem{ref25}\label{r25} Raju, R., Jain, S., Li, B., et al. (2024). Constructing Domain-Specific Evaluation Sets for
-    LLM-as-a-judge. arxiv.org/abs/2408.08808 https://arxiv.org/abs/2408.08808
-\bibitem{ref26}\label{r26} Li, Y., et al. (2025). Leveraging LLMs as Meta-Judges: A Multi-Agent Framework. arxiv.org/abs/2504.17087 https://arxiv.org/abs/2504.17087
-\bibitem{ref27}\label{r27} Qian, C., Sun, G., Gales, M., Knill, K. (2026). Who can we trust? LLM-as-a-jury for Comparative
-    Assessment. ICML. arxiv.org/abs/2602.16610 https://arxiv.org/abs/2602.16610
-\bibitem{ref28}\label{r28} Zhao, Y., Shin, J., Huang, Z., Namburi, S., Sala, F. (2026). CARE: Confounder-Aware Aggregation
-    for Reliable LLM Evaluation. arxiv.org/abs/2603.00039 https://arxiv.org/abs/2603.00039
-\bibitem{ref29}\label{r29} Xu, C., Tan, Z., Wu, J., Zhou, T. (2026). A Judge-Aware Ranking Framework for Evaluating Large
-    Language Models without Ground Truth. arxiv.org/abs/2601.21817 https://arxiv.org/abs/2601.21817
-\bibitem{ref30}\label{r30} Patel, A., Reddy, S., Bahdanau, D. (2025). CHASE: How to Get Your LLM to Generate Challenging
-    Problems for Evaluation. arxiv.org/abs/2502.14678 https://arxiv.org/abs/2502.14678
-\bibitem{ref31}\label{r31} Filice, S., Horowitz, G., Carmel, D., Karnin, Z., Lewin-Eytan, L., Maarek, Y. (2025). Generating
-    Diverse Q\&A Benchmarks for RAG Evaluation with DataMorgana. SIGIR LiveRAG. arxiv.org/abs/2501.12789 https://arxiv.org/abs/2501.12789
-\bibitem{ref32}\label{r32} Chen, Y., et al. (2025). Recent Advances in Large Language Model Benchmarks against Data
-    Contamination: From Static to Dynamic Evaluation. EMNLP. arxiv.org/abs/2502.17521 https://arxiv.org/abs/2502.17521
-\bibitem{ref33}\label{r33} Dawid, A. P., Skene, A. M. (1979). Maximum Likelihood Estimation of Observer Error-Rates Using
-    the EM Algorithm. Journal of the Royal Statistical Society: Series C (Applied Statistics), 28(1), 20–28. doi.org/10.2307/2346806 https://doi.org/10.2307/2346806
-\bibitem{ref34}\label{r34} Wang, Y., Yu, Z., Zeng, Z., et al. (2024). PandaLM: An Automatic Evaluation Benchmark for LLM
-    Instruction Tuning Optimization. ICLR. arxiv.org/abs/2306.05087 https://arxiv.org/abs/2306.05087
-\bibitem{ref35}\label{r35} Zhu, L., Wang, X., Wang, X. (2023). JudgeLM: Fine-tuned Large Language Models are Scalable
-    Judges. arxiv.org/abs/2310.17631 https://arxiv.org/abs/2310.17631
-\bibitem{ref36}\label{r36} Shi, W., Ajith, A., Xia, M., et al. (2024). Detecting Pretraining Data from Large Language
-    Models. ICLR. arxiv.org/abs/2310.16789 https://arxiv.org/abs/2310.16789
-\bibitem{ref37}\label{r37} Fabbri, A. R., Kryściński, W., McCann, B., Xiong, C., Socher, R., Radev, D. (2021). SummEval: Re-evaluating Summarization Evaluation. Transactions of the Association for Computational
-    Linguistics, 9, 391–409. arxiv.org/abs/2007.12626 https://arxiv.org/abs/2007.12626
-\bibitem{ref38}\label{r38} Zeng, Z., Yu, J., Gao, T., Meng, Y., Goyal, T., Chen, D. (2024). Evaluating Large Language
-    Models at Evaluating Instruction Following. ICLR. arxiv.org/abs/2310.07641 https://arxiv.org/abs/2310.07641
-\end{thebibliography}
 
 \end{document}

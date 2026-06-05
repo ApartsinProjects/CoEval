@@ -1,0 +1,16 @@
+# LaTeX build artifacts (Overleaf compiles its own; push source only)
+*.aux
+*.log
+*.out
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+*.nav
+*.snm
+*.vrb
+/main.pdf
