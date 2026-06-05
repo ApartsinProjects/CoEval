@@ -300,7 +300,7 @@
     place (Appendix&nbsp;D), so CoEval directs each practitioner to the best model for their own use case where a
     single generic leaderboard would not. Ranking candidate models on a custom use case requires only this
     specification, and CoEval recovers the correct ground-truth ranking wherever one exists to check against
-    (Section&nbsp;5.1, Table&nbsp;2; the doubly-robust aggregator recovers the true ranking of thirteen models at
+    (Section&nbsp;5.1, Table&nbsp;1; the doubly-robust aggregator recovers the true ranking of thirteen models at
     Spearman&nbsp;0.95). The whole pipeline is open-source and reproducible from a single declarative
     configuration file.</li>
 </ul>
@@ -472,7 +472,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   Our experiments answer one question: <em>does CoEval reliably rank models for a use case when one cannot use a
   standard benchmark?</em> We organize the evidence accordingly. Section&nbsp;5.1 establishes that CoEval's label-free
   scores are <em>trustworthy</em>: they track objective ground truth ($\rho = 0.86$) and reproduce the true model
-  ranking (Table&nbsp;2), benchmarked against a single-judge G-Eval baseline. Section&nbsp;5.2 and Appendix&nbsp;E explain
+  ranking (Table&nbsp;1), benchmarked against a single-judge G-Eval baseline. Section&nbsp;5.2 and Appendix&nbsp;E explain
   <em>why</em> the judging is reliable with no human calibration: a cross-family ensemble whose composition (not size)
   governs reliability (Section&nbsp;5.2) and, as Appendix&nbsp;E shows, cancels the verbosity bias every single judge
   carries and structurally avoids self-preference; the auto-generated rubrics are themselves task-specialized with a shared quality core
@@ -496,35 +496,14 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   <em>generated</em> items, not to this externally-anchored validation, which isolates judge accuracy.
 </p>
 
-<div class="tablewrap">
-<table class="data">
-  <caption><strong>Table 1.</strong> Spearman correlation of CoEval accuracy scores with ground-truth correctness on
-    exact-match QA (SciQ, ARC-Challenge; 191 datapoints, 573 responses; datapoint-clustered 95% bootstrap CI). The
-    frontier cross-family ensemble tracks ground truth at ρ = 0.86. The three frontier judges (gpt-4o, claude-sonnet-4,
-    gemini-2.5-flash) agree on every one of the 573 items, so each judge alone reproduces the ensemble's per-task and
-    overall correlations and the identical CI (second row): this coincidence is the vendor-independence result, no single
-    provider drives the score. The weaker auxiliary judges contrasted against them (Section&nbsp;5.2) disagree on
-    3&ndash;8 items, confirming genuine independent convergence of capable judges on objective correctness, not
-    redundancy of identical models.</caption>
-  <thead>
-    <tr>
-      <th class="lbl">Evaluator</th>
-      <th>SciQ</th>
-      <th>ARC-Challenge</th>
-      <th>Overall (clustered CI)</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr class="highlight"><td class="lbl">CoEval frontier ensemble</td><td>+0.669</td><td>+0.882</td><td><strong>+0.859</strong> [0.77, 0.94]</td></tr>
-    <tr><td class="lbl">&nbsp;&nbsp;Each frontier judge alone</td><td>+0.669</td><td>+0.882</td><td>+0.859 [0.77, 0.94]</td></tr>
-  </tbody>
-</table>
-</div>
 <p>
-  On objective correctness the frontier ensemble reaches $\rho = 0.859$ (datapoint-clustered 95% CI $[0.77, 0.94]$).
-  Because correctness is objective, the three frontier judges converge on identical labels, so the ensemble matches its
-  strongest member: the experiment establishes that CoEval judges are <em>accurate</em> and that the result is
-  <em>vendor-independent</em>: no single provider drives it.
+  On objective correctness the frontier ensemble reaches $\rho = 0.859$ (datapoint-clustered 95% CI $[0.77, 0.94]$;
+  per task, $\rho = 0.669$ on SciQ and $0.882$ on ARC-Challenge). Because correctness is objective, the three frontier
+  judges (<code>gpt-4o</code>, <code>claude-sonnet-4</code>, <code>gemini-2.5-flash</code>) agree on every one of the
+  $573$ items, so each judge alone reproduces this exactly and the ensemble matches its strongest member: CoEval judges
+  are <em>accurate</em> and the result is <em>vendor-independent</em>, no single provider drives it. The weaker
+  auxiliary judges contrasted against them (Section&nbsp;5.2) disagree on 3&ndash;8 items, confirming genuine independent
+  convergence of capable judges on objective correctness, not redundancy of identical models.
 </p>
 <p>
   On open-ended summarization scored against a lexical
@@ -542,7 +521,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 </p>
 <p>
   Evaluation is a means to an end, <em>ranking</em> candidate models for a use case, so we verify that CoEval
-  scores yield the correct ranking. Figure&nbsp;1 and Table&nbsp;2 rank the three student models by their CoEval frontier-ensemble
+  scores yield the correct ranking. Figure&nbsp;1 and Table&nbsp;1 rank the three student models by their CoEval frontier-ensemble
   accuracy score and, independently, by ground-truth correctness. The two rankings are <strong>identical</strong>;
   CoEval's scores fall within $0.02$ of the true accuracies, and the confidence intervals cleanly separate the weakest
   model. Producing this ranking required a single configuration file and no human annotation: the core operation
@@ -553,11 +532,11 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   <figcaption><strong>Figure 1.</strong> CoEval recovers the true model ranking with no labels. For each student model
     the CoEval frontier-ensemble accuracy score (green, datapoint-clustered 95% CI) and the held-out ground-truth
     accuracy (blue) coincide within 0.02, and the order <code>gpt-4o-mini</code> &gt; <code>gpt-3.5-turbo</code> &gt;
-    <code>llama-3.2-3b</code> is reproduced exactly (cf. Table&nbsp;2).</figcaption>
+    <code>llama-3.2-3b</code> is reproduced exactly (cf. Table&nbsp;1).</figcaption>
 </figure>
 <div class="tablewrap">
 <table class="data">
-  <caption><strong>Table 2.</strong> CoEval reproduces the ground-truth model ranking. Three student models ranked by
+  <caption><strong>Table 1.</strong> CoEval reproduces the ground-truth model ranking. Three student models ranked by
     CoEval frontier-ensemble accuracy score (datapoint-clustered 95% CI) and by exact-match ground truth; the orderings
     match.</caption>
   <thead>
@@ -573,7 +552,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 <p>
   <strong>Agreement with human judgments.</strong> The validation above anchors the judge to objective exact-match
   ground truth. We additionally test it against <em>human</em> quality judgments on two standard meta-evaluation
-  benchmarks (Table&nbsp;3), scoring with the same cheap cross-family panel (<code>gpt-4o-mini</code>, <code>claude-3.5-haiku</code>,
+  benchmarks (Table&nbsp;2), scoring with the same cheap cross-family panel (<code>gpt-4o-mini</code>, <code>claude-3.5-haiku</code>,
   <code>gemini-flash</code>). On SummEval [<a href="#r37">37</a>], where experts rate machine summaries, the panel
   correlates with human ratings at Spearman $0.53$ (relevance), $0.58$ (coherence), and $0.56$ (consistency), in the
   range strong single-model judges such as G-Eval [<a href="#r2">2</a>] report on this benchmark, reached here by a
@@ -587,7 +566,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 </p>
 <div class="tablewrap">
 <table class="data">
-  <caption><strong>Table 3.</strong> Agreement with human judgments. CoEval cross-family panel versus humans on two standard
+  <caption><strong>Table 2.</strong> Agreement with human judgments. CoEval cross-family panel versus humans on two standard
     meta-evaluation benchmarks: SummEval (Spearman of panel score with expert ratings, $n = 293$) and LLMBar (accuracy
     at matching the human-preferred output, $n = 400$). The panel tracks or exceeds the best single judge, which a
     label-free user cannot select in advance, and clearly beats the blind single-judge average.</caption>
@@ -688,7 +667,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   helping on its own (item-weighting alone $0.94$, judge-weighting alone $0.92$) and most on the discriminative items
   where judge reliability matters. The aggregator is robust: injecting a random judge degrades the plain mean to $0.85$
   but leaves the doubly-robust ranking at $0.95$, with the rogue judge receiving weight $0.00$. Compared against standard
-  baselines on the same scores (Table&nbsp;4), the doubly-robust ranking matches or beats the best single judge (an
+  baselines on the same scores (Table&nbsp;3), the doubly-robust ranking matches or beats the best single judge (an
   oracle, since which judge is best is not knowable without labels), the unweighted panel (PoLL), and the median; its
   decisive advantage is robustness to a contaminated judge pool: adding rogue judges steadily degrades the unweighted
   mean (0.88, 0.85, 0.64) and even the median (0.94, 0.91, 0.71) at zero, one, and three rogue judges, while the
@@ -696,7 +675,7 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
 </p>
 <div class="tablewrap">
 <table class="data">
-  <caption><strong>Table 4.</strong> Rank-recovery on thirteen candidate models (science QA and reasoning; gold =
+  <caption><strong>Table 3.</strong> Rank-recovery on thirteen candidate models (science QA and reasoning; gold =
     benchmark-native accuracy), comparing standard label-free baselines (best single judge, unweighted panel / PoLL,
     median) against the CoEval weights. Each CoEval weight helps on its own, and the two compose into the best recovery;
     the aggregator alone is robust to an injected random judge, which it gives weight 0.00. Values are the Spearman and
@@ -732,8 +711,8 @@ $$\bar{s}_i \;=\; \frac{1}{|J|} \sum_{j \in J} s_{ij}.$$
   verbatim non-duplication <em>corroborates</em> the structural guarantee: because items are synthesized fresh from the
   attribute specification on each run, they cannot have appeared in any model's <em>prior</em> training, and a model
   cannot retrieve them from a leaked copy of these widely-used benchmarks. (The scope from Section&nbsp;5.1 holds: this
-  applies to CoEval's generated items; the benchmark-grounded anchor of Table&nbsp;1 deliberately reuses public items to
-  obtain objective ground truth.)
+  applies to CoEval's generated items; the benchmark-grounded anchor of Section&nbsp;5.1 deliberately reuses public items
+  to obtain objective ground truth.)
 </p>
 <p>
   Non-duplication shows the items are fresh; a controlled study shows why that matters. We fine-tune a small open model
@@ -1166,7 +1145,7 @@ Output only the JSON. No explanation or markdown.</pre>
   that controls for a judge's overall harshness gives $+0.04$ on clinical reasoning (95% CI $[-0.00, +0.08]$), $-0.04$ on
   legal, and $-0.04$ on drug-interaction: no systematic self-inflation survives. As an explicit safeguard,
   <em>vendor-disjoint aggregation</em> (when scoring a model, dropping any judge sharing its vendor family) leaves every
-  ranking in Table&nbsp;2 and Table&nbsp;G1 unchanged, with per-model scores shifting by at most $0.016$, confirming the
+  ranking in Table&nbsp;1 and Table&nbsp;G1 unchanged, with per-model scores shifting by at most $0.016$, confirming the
   cross-family rankings are already robust to same-family bias.
 </p>
 

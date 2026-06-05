@@ -249,7 +249,7 @@ Measured directly, the residual same-family preference is small and inconsistent
 that controls for a judge\textquotesingle s overall harshness gives \(+0.04\) on clinical reasoning (95\% CI \([-0.00, +0.08]\)), \(-0.04\) on
 legal, and \(-0.04\) on drug-interaction: no systematic self-inflation survives. As an explicit safeguard,
 \emph{vendor-disjoint aggregation} (when scoring a model, dropping any judge sharing its vendor family) leaves every
-ranking in Table~2 and Table~G1 unchanged, with per-model scores shifting by at most \(0.016\), confirming the
+ranking in Table~1 and Table~G1 unchanged, with per-model scores shifting by at most \(0.016\), confirming the
 cross-family rankings are already robust to same-family bias.
 
 \section{System overview and experimental configuration}\label{appF}
@@ -333,15 +333,15 @@ agree unanimously on the full drug-interaction order, unanimously on the weakest
 \toprule
 Vertical & Model & CoEval score {[}95\% CI{]} \\
 \midrule
-\emph{Drug--drug interaction} & gpt-4o-mini & 0.770 {[}0.739, 0.800{]} \\
-& gpt-3.5-turbo & 0.682 {[}0.646, 0.717{]} \\
-& llama-3.2-3b & 0.497 {[}0.459, 0.532{]} \\
-\emph{Clinical reasoning} & gpt-3.5-turbo & 0.873 {[}0.849, 0.895{]} \\
-& gpt-4o-mini & 0.864 {[}0.840, 0.885{]} \\
-& llama-3.2-3b & 0.814 {[}0.784, 0.844{]} \\
-\emph{Legal analysis} & gpt-4o-mini & 0.982 {[}0.973, 0.991{]} \\
-& gpt-3.5-turbo & 0.740 {[}0.709, 0.770{]} \\
-& llama-3.2-3b & 0.709 {[}0.677, 0.744{]} \\
+\emph{Drug--drug interaction} & gpt-4o-mini & 0.770\newline{\scriptsize {[}0.739, 0.800{]}} \\
+& gpt-3.5-turbo & 0.682\newline{\scriptsize {[}0.646, 0.717{]}} \\
+& llama-3.2-3b & 0.497\newline{\scriptsize {[}0.459, 0.532{]}} \\
+\emph{Clinical reasoning} & gpt-3.5-turbo & 0.873\newline{\scriptsize {[}0.849, 0.895{]}} \\
+& gpt-4o-mini & 0.864\newline{\scriptsize {[}0.840, 0.885{]}} \\
+& llama-3.2-3b & 0.814\newline{\scriptsize {[}0.784, 0.844{]}} \\
+\emph{Legal analysis} & gpt-4o-mini & 0.982\newline{\scriptsize {[}0.973, 0.991{]}} \\
+& gpt-3.5-turbo & 0.740\newline{\scriptsize {[}0.709, 0.770{]}} \\
+& llama-3.2-3b & 0.709\newline{\scriptsize {[}0.677, 0.744{]}} \\
 \bottomrule
 \end{tabularx}
 \end{table}
